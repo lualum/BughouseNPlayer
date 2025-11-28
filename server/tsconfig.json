@@ -1,0 +1,22 @@
+{
+   "extends": "../tsconfig.json",
+   "compilerOptions": {
+      "outDir": "./dist",
+      "rootDir": ".",
+      "module": "commonjs",
+      "moduleResolution": "node",
+      "lib": ["ES2020"],
+      "composite": true,
+      "baseUrl": ".",
+      "paths": {
+         "../shared/*": ["../shared/dist/*"]
+      }
+   },
+   "ts-node": {
+      "transpileOnly": true,
+      "files": true
+   },
+   "references": [{ "path": "../shared" }],
+   "include": ["./**/*.ts"],
+   "exclude": ["dist", "node_modules"]
+}

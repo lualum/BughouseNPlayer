@@ -1,0 +1,55 @@
+@media (max-width: 768px) {
+   #menu-content {
+      flex-direction: column;
+      gap: 30px;
+   }
+
+   .name-section,
+   .join-room {
+      flex-direction: column;
+      gap: 10px;
+   }
+
+   .name-section .form-group,
+   .name-section button,
+   .join-room .form-group,
+   .join-room button {
+      flex: none;
+   }
+
+   #teams {
+      grid-template-columns: 1fr;
+   }
+
+   #lobby-controls {
+      flex-direction: column;
+   }
+
+   #game {
+      flex-direction: column;
+   }
+
+   #game-sidebar {
+      width: 100%;
+      height: 250px;
+      flex-direction: row;
+   }
+
+   #sidebar-header {
+      flex: 1;
+      border-bottom: none;
+      border-right: 1px solid #1a1a1a;
+   }
+
+   #chat-section {
+      flex: 2;
+   }
+
+   #chat-messages {
+      max-height: 120px;
+   }
+
+   #game-area {
+      padding: 0;
+   }
+}

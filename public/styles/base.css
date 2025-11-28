@@ -1,0 +1,82 @@
+* {
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+}
+
+body {
+   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+   min-height: 100vh;
+   overflow: hidden;
+}
+
+.screen {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   min-height: 100vh;
+   padding: 20px;
+}
+
+.hidden {
+   display: none !important;
+}
+
+input,
+label {
+   display: block;
+   width: 100%;
+}
+
+.form-group {
+   margin-bottom: 20px;
+   text-align: left;
+}
+
+.form-group label {
+   margin-bottom: 8px;
+   color: #2c3e50;
+   font-weight: 600;
+}
+
+.form-group input {
+   padding: 12px 15px;
+   border: 2px solid #e9ecef;
+   border-radius: 10px;
+   font-size: 16px;
+}
+
+.form-group input:focus {
+   outline: none;
+   border-color: #5075f9;
+}
+
+button {
+   background: #5075f9;
+   color: white;
+   border: none;
+   padding: 15px 30px;
+   border-radius: 10px;
+   font-size: 16px;
+   font-weight: 600;
+   cursor: pointer;
+   width: 100%;
+}
+
+/* Error messages */
+#menu-error,
+#lobby-error {
+   color: #ea4179;
+   font-weight: bold;
+   margin-top: 15px;
+   text-align: center;
+   background: #fae0de;
+   padding: 10px;
+   border-radius: 6px;
+   border: 1px solid #f9c7c4;
+}
+
+#menu-error:empty,
+#lobby-error:empty {
+   display: none;
+}

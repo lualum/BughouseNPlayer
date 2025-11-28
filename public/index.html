@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>Bughouse</title>
+      <link rel="stylesheet" href="/styles/base.css"/>
+      <link rel="stylesheet" href="/styles/menu.css"/>
+      <link rel="stylesheet" href="/styles/game.css"/>
+      <link rel="preconnect" href="/styles/misc.css"/>
+      <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+   </head>
+
+   <body>
+      <!-- MENU SCREEN -->
+      <div id="menu" class="screen">
+         <div class="container">
+            <h1 id="menu-header">Bughouse</h1>
+
+            <div id="menu-content">
+               <div id="create-section">
+                  <h2 class="section-title">New Room</h2>
+                  <div class="menu-section">
+                     <div class="name-section">
+                        <div class="form-group">
+                           <label for="player-name-input">Your Name</label>
+                           <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" required />
+                        </div>
+                     </div>
+                  </div>
+
+                  <div class="menu-section">
+                     <div>
+                        <button id="create-room-btn">Create Room</button>
+                     </div>
+                  </div>
+               </div>
+
+               <div id="join-section">
+                  <h2 class="section-title">Join Existing Room</h2>
+                  <div class="menu-section">
+                     <div class="join-room">
+                        <div class="form-group">
+                           <label for="room-code-input">Room Code</label>
+                           <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="4" required />
+                        </div>
+                        <button id="join-room-btn">Join Room</button>
+                     </div>
+                  </div>
+
+                  <div class="menu-section">
+                     <div id="lobbies-list">
+                        <div class="no-lobbies">
+                           <p>🔍 No lobbies available</p>
+                           <p style="font-size: 12px; margin-top: 5px">Create a new room or wait for others to host!</p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            <div id="menu-error"></div>
+         </div>
+      </div>
+
+      <!-- LOBBY + GAME SCREEN -->
+      <div id="game" class="screen hidden">
+         <div id="game-sidebar">
+            <div id="sidebar-header">
+               <div id="game-title">Room: <span id="game-room-code"></span></div>
+               <button id="leave-game-btn">Leave Game</button>
+            </div>
+
+            <div id="player-list"></div>
+
+            <button id="ready-btn">Ready</button>
+
+            <div id="chat-section">
+               <div id="chat-messages"></div>
+               <div id="chat-input-container">
+                  <input type="text" id="chat-input" placeholder="Type message..." maxlength="200" />
+               </div>
+            </div>
+         </div>
+
+         <div id="game-area"></div>
+      </div>
+
+      <!-- Name Change Modal -->
+      <div id="name-modal" class="modal hidden">
+         <div class="modal-content">
+            <h2>Please Enter Your Name</h2>
+            <p>You need to set a name before joining a room</p>
+            <div class="form-group">
+               <input type="text" id="modal-name-input" placeholder="Enter your name" maxlength="20" required />
+            </div>
+            <div id="modal-error" class="error"></div>
+            <div class="modal-buttons">
+               <button id="submit-name-btn" class="primary-btn">Confirm</button>
+               <button id="close-modal" class="secondary-btn">Cancel</button>
+            </div>
+         </div>
+      </div>
+
+      <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+      <script type="module" src="/dist/client.js"></script>
+   </body>
+</html>
