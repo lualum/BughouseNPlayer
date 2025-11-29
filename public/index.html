@@ -1,105 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
+   <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+      <title>Bughouse</title>
+      <link rel="stylesheet" href="/styles/base.css"/>
+      <link rel="stylesheet" href="/styles/menu.css"/>
+      <link rel="stylesheet" href="/styles/game.css"/>
+      <link rel="preconnect" href="/styles/misc.css"/>
+      <link rel="icon" type="image/x-icon" href="/favicon.ico"/>
+   </head>
 
-<head>
-   <meta charset="UTF-8" />
-   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-   <title>Bughouse</title>
-   <link rel="stylesheet" href="/styles/base.css" />
-   <link rel="stylesheet" href="/styles/menu.css" />
-   <link rel="stylesheet" href="/styles/game.css" />
-   <link rel="preconnect" href="/styles/misc.css" />
-   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-</head>
+   <body>
+      <!-- MENU SCREEN -->
+      <div id="menu" class="screen">
+         <div class="container">
+            <h1 id="menu-header">Bughouse</h1>
 
-<body>
-   <!-- MENU SCREEN -->
-   <div id="menu" class="screen">
-      <div id="menu-navbar">
-         <div class="navbar-title">Bughouse</div>
-      </div>
+            <div id="menu-content">
+               <div id="create-section">
+                  <h2 class="section-title">New Room</h2>
+                  <div class="menu-section">
+                     <div class="name-section">
+                        <div class="form-group">
+                           <label for="player-name-input">Your Name</label>
+                           <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" autocomplete="off" required />
+                        </div>
+                     </div>
+                  </div>
 
-      <div id="menu-container">
-         <div id="lobbies-section">
-            <div id="lobbies-list">
-               <div class="no-lobbies">
-                  <p>No lobbies available</p>
-                  <p style="font-size: 12px; margin-top: 5px">Create a new room to get started!</p>
-               </div>
-            </div>
-         </div>
-
-         <div id="controls-section">
-            <div class="controls-content">
-               <div class="form-group">
-                  <label for="player-name-input">Your Name</label>
-                  <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20"
-                     autocomplete="off" required />
-               </div>
-
-               <div class="form-group">
-                  <label for="room-code-input">Room Code</label>
-                  <input type="text" id="room-code-input" placeholder="Enter 4-letter code" maxlength="4" required />
+                  <div class="menu-section">
+                     <div>
+                        <button id="create-room-btn">Create Room</button>
+                     </div>
+                  </div>
                </div>
 
-               <button id="join-room-btn">Join Room</button>
-               <button id="create-room-btn" class="create-btn">Create New Room</button>
+               <div id="join-section">
+                  <h2 class="section-title">Join Existing Room</h2>
+                  <div class="menu-section">
+                     <div class="join-room">
+                        <div class="form-group">
+                           <label for="room-code-input">Room Code</label>
+                           <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="4" required />
+                        </div>
+                        <button id="join-room-btn">Join Room</button>
+                     </div>
+                  </div>
+
+                  <div class="menu-section">
+                     <div id="lobbies-list">
+                        <div class="no-lobbies">
+                           <p>🔍 No lobbies available</p>
+                           <p style="font-size: 12px; margin-top: 5px">Create a new room or wait for others to host!</p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
             </div>
 
             <div id="menu-error"></div>
          </div>
       </div>
 
-      <a href="https://github.com/lualum/BughouseNPlayer" id="github-link" target="_blank" rel="noopener noreferrer">
-         <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor">
-            <path
-               d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
-         </svg>
-         GitHub
-      </a>
-   </div>
+      <!-- LOBBY + GAME SCREEN -->
+      <div id="game" class="screen hidden">
+         <div id="game-sidebar">
+            <div id="sidebar-header">
+               <div id="game-title">Room: <span id="game-room-code"></span></div>
+               <button id="leave-game-btn">Leave Game</button>
+            </div>
 
-   <!-- Name Change Modal -->
-   <div id="name-modal" class="modal hidden">
-      <div class="modal-content">
-         <h2>Please Enter Your Name</h2>
-         <p>You need to set a name before joining a room</p>
-         <div class="form-group">
-            <input type="text" id="modal-name-input" placeholder="Enter your name" maxlength="20" required />
+            <div id="player-list"></div>
+
+            <button id="ready-btn">Ready</button>
+
+            <div id="chat-section">
+               <div id="chat-messages"></div>
+               <div id="chat-input-container">
+                  <input type="text" id="chat-input" placeholder="Type message..." maxlength="200" />
+               </div>
+            </div>
          </div>
-         <div id="modal-error" class="error"></div>
-         <div class="modal-buttons">
-            <button id="submit-name-btn" class="primary-btn">Confirm</button>
-            <button id="close-modal" class="secondary-btn">Cancel</button>
-         </div>
+
+         <div id="game-area"></div>
       </div>
-   </div>
 
-   <!-- LOBBY + GAME SCREEN -->
-   <div id="game" class="screen hidden">
-      <div id="game-sidebar">
-         <div id="sidebar-header">
-            <div id="game-title">Room: <span id="game-room-code"></span></div>
-            <button id="leave-game-btn">Leave Game</button>
-         </div>
-
-         <div id="player-list"></div>
-
-         <button id="ready-btn">Ready</button>
-
-         <div id="chat-section">
-            <div id="chat-messages"></div>
-            <div id="chat-input-container">
-               <input type="text" id="chat-input" placeholder="Type message..." maxlength="200" />
+      <!-- Name Change Modal -->
+      <div id="name-modal" class="modal hidden">
+         <div class="modal-content">
+            <h2>Please Enter Your Name</h2>
+            <p>You need to set a name before joining a room</p>
+            <div class="form-group">
+               <input type="text" id="modal-name-input" placeholder="Enter your name" maxlength="20" required />
+            </div>
+            <div id="modal-error" class="error"></div>
+            <div class="modal-buttons">
+               <button id="submit-name-btn" class="primary-btn">Confirm</button>
+               <button id="close-modal" class="secondary-btn">Cancel</button>
             </div>
          </div>
       </div>
 
-      <div id="game-area"></div>
-   </div>
-
-   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-   <script type="module" src="/dist/client.js"></script>
-</body>
-
+      <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+      <script type="module" src="/dist/client.js"></script>
+   </body>
 </html>

@@ -1,13 +1,4 @@
 @media (max-width: 768px) {
-   #menu-container {
-      flex-direction: column;
-   }
-
-   #controls-section {
-      max-width: none;
-      padding: 30px 20px;
-   }
-
    #menu-content {
       flex-direction: column;
       gap: 30px;
