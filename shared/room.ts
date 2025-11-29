@@ -4,7 +4,7 @@ import { Game } from "./state";
 
 export enum RoomStatus {
    LOBBY = "lobby",
-   GAME = "game",
+   PLAYING = "playing",
 }
 
 export interface RoomListing {

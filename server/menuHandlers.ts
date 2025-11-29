@@ -84,8 +84,10 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
       room.addPlayer(socket.player!);
    }
 
-   for (const match of room.game.matches) {
-      match.updateTime(Date.now());
+   if (room.status === RoomStatus.PLAYING) {
+      for (const match of room.game.matches) {
+         match.updateTime(Date.now());
+      }
    }
 
    socket.emit("joined-room", room.serialize());

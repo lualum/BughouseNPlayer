@@ -6,7 +6,7 @@ import { Server } from "socket.io";
 
 export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
    socket.on("toggle-ready", () => {
-      if (!socket.room || socket.room.status === RoomStatus.GAME) return;
+      if (!socket.room || socket.room.status === RoomStatus.PLAYING) return;
 
       socket.player!.status =
          socket.player!.status === PlayerStatus.READY
@@ -27,7 +27,7 @@ export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
          socket.room.readyToStart()
       ) {
          const currentTime = Date.now();
-         socket.room.status = RoomStatus.GAME;
+         socket.room.status = RoomStatus.PLAYING;
 
          socket.room!.game.matches.forEach((match) => {
             match.chess.reset();
@@ -38,7 +38,7 @@ export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
          const timeoutCheckInterval = setInterval(() => {
             const currentTime = Date.now();
             rooms.forEach((room) => {
-               if (room.status === RoomStatus.GAME) {
+               if (room.status === RoomStatus.PLAYING) {
                   room.game.updateTime(currentTime);
                   const timeout = room.game.checkTimeout();
                   if (timeout) {
@@ -86,7 +86,7 @@ export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
    socket.on("move-board", (boardID: number, color: Color, move: Move) => {
       if (
          !socket.room ||
-         socket.room.status !== RoomStatus.GAME ||
+         socket.room.status !== RoomStatus.PLAYING ||
          !socket.room.game.matches[boardID].samePlayer(socket.player!, color)
       ) {
          return;

@@ -154,7 +154,7 @@
    align-items: center;
    justify-content: center;
    gap: calc(var(--square-size) * 0.235);
-   background: #11151c;
+   background: #1a252f;
    position: relative;
    padding: 0;
    width: 100%;
@@ -182,7 +182,7 @@
 }
 
 .board-container {
-   background: #34495e;
+   background: #2c3e50;
    padding: calc(var(--square-size) * 0.235);
    display: flex;
    flex-direction: column;

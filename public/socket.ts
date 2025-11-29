@@ -53,7 +53,7 @@ export function initSocketEvents(): void {
       updateUIAllPlayers();
       updateUITime();
 
-      if (room.status === RoomStatus.GAME) {
+      if (room.status === RoomStatus.PLAYING) {
          showGameUI();
          startTimeUpdates();
       } else {
@@ -99,7 +99,7 @@ export function initSocketEvents(): void {
    });
 
    session.socket.on("started-room", (raw: Game, timeStarted: number) => {
-      session.room!.status = RoomStatus.GAME;
+      session.room!.status = RoomStatus.PLAYING;
       session.room!.game = Game.deserialize(raw);
       session.room!.game.matches.forEach((match) => {
          match.lastMoveTime = timeStarted;

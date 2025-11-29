@@ -6,8 +6,6 @@ import {
    createMatchElements,
    flipAllAndUpdate,
    updateUIAllPlayers,
-   updateUIPlayers,
-   updateUITime,
 } from "./matchUI";
 
 export function initGameControls(): void {

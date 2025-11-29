@@ -136,7 +136,7 @@ export function updateUIBoard(boardID: number): void {
 
          if (
             isMyTurn &&
-            session.room!.status === RoomStatus.GAME &&
+            session.room!.status === RoomStatus.PLAYING &&
             session.room!.game.matches[boardID].samePlayer(
                session.player!,
                boardInstance.getPieceColor(piece)!
@@ -220,7 +220,7 @@ function updatePocket(
 
       if (
          isMyTurn &&
-         session.room!.status === RoomStatus.GAME &&
+         session.room!.status === RoomStatus.PLAYING &&
          session.room!.game.matches[boardID].samePlayer(session.player!, color)
       ) {
          img.style.cursor = "grab";
@@ -278,7 +278,8 @@ function showLegalMoves(
    boardID: number,
    row: number,
    col: number,
-   isPocket: boolean
+   isPocket: boolean,
+   piece: Piece
 ): void {
    const boardInstance = getBoardInstance(boardID);
    if (!boardInstance) return;
@@ -288,11 +289,6 @@ function showLegalMoves(
    clearLegalMoves(boardID);
 
    if (isPocket) {
-      const piece =
-         boardInstance.turn === Color.WHITE
-            ? boardInstance.whitePocket[0]
-            : boardInstance.blackPocket[0];
-
       for (let r = 0; r < 8; r++) {
          for (let c = 0; c < 8; c++) {
             const pos = createPosition(r, c);
@@ -343,7 +339,7 @@ function handleMouseDown(e: MouseEvent): void {
       highlightSquare(boardID, highlightRow, highlightCol);
    }
 
-   showLegalMoves(boardID, row, col, isPocket);
+   showLegalMoves(boardID, row, col, isPocket, piece);
 
    const dragElement = target.cloneNode(true) as HTMLImageElement;
 
