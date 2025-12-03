@@ -149,6 +149,7 @@ export function startGameUI(): void {
 
    updateUIAllBoards();
    updateUIAllPlayers();
+   updatePlayerList();
 }
 
 export function endGameUI(): void {
@@ -159,6 +160,7 @@ export function endGameUI(): void {
 
    updateUIAllBoards();
    updateUIAllPlayers();
+   updatePlayerList();
 }
 
 function escapeHtml(text: string): string {

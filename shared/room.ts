@@ -123,6 +123,8 @@ export class Room {
          match.blackTime = 180000;
          match.playerTimeSinceMove = 180000;
          match.lastMoveTime = currentTime;
+
+         match.chess.initializeBoard();
       });
 
       return true;

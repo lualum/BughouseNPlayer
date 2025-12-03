@@ -67,7 +67,7 @@ export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
       io.to(socket.room.code).emit("p-moved-board", boardID, move, currentTime);
 
       if (socket.room.game.matches[boardID].chess.isCheckmate()) {
-         socket.room.status = RoomStatus.LOBBY;
+         socket.room.endRoom();
          io.to(socket.room.code).emit(
             "ended-room",
             (color === Color.WHITE) ===

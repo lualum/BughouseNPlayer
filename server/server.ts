@@ -92,8 +92,7 @@ const timeoutCheckInterval = setInterval(() => {
          room.game.updateTime(currentTime);
          const timeout = room.game.checkTimeout();
          if (timeout) {
-            room.status = RoomStatus.LOBBY;
-            clearInterval(timeoutCheckInterval);
+            room.endRoom();
             io.to(room.code).emit(
                "ended-room",
                timeout.team,

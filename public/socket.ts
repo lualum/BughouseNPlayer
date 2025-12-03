@@ -100,9 +100,7 @@ export function initSocketEvents(): void {
    session.socket.on("started-room", (raw: Game, timeStarted: number) => {
       session.room!.status = RoomStatus.PLAYING;
       session.room!.game = Game.deserialize(raw);
-      session.room!.game.matches.forEach((match) => {
-         match.lastMoveTime = timeStarted;
-      });
+      session.room!.tryStartRoom(timeStarted);
 
       showGameUI();
       startTimeUpdates();
@@ -125,8 +123,7 @@ export function initSocketEvents(): void {
 
    session.socket.on("ended-room", (raw: Team, reason: string) => {
       const team = raw === "red" ? Team.RED : Team.BLUE;
-      session.room!.status = RoomStatus.LOBBY;
-
+      session.room!.endRoom();
       showLobbyUI();
       stopTimeUpdates();
 

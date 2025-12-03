@@ -66,6 +66,12 @@ export class Chess {
    }
 
    initializeBoard(): void {
+      for (let row = 0; row < 8; row++) {
+         for (let col = 0; col < 8; col++) {
+            this.board[row][col] = null;
+         }
+      }
+
       const backRank: PieceType[] = [
          PieceType.ROOK,
          PieceType.KNIGHT,
@@ -574,20 +580,6 @@ export class Chess {
       }
 
       return this.turn;
-   }
-
-   reset(): void {
-      this.board = Array(8)
-         .fill(null)
-         .map(() => Array(8).fill(null));
-      this.whitePocket = new Map();
-      this.blackPocket = new Map();
-      this.turn = Color.WHITE;
-      this.whiteCastleShort = true;
-      this.whiteCastleLong = true;
-      this.blackCastleShort = true;
-      this.blackCastleLong = true;
-      this.initializeBoard();
    }
 }
 
