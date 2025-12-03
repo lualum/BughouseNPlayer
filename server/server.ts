@@ -2,7 +2,7 @@ import express from "express";
 import http from "http";
 import { Server, Socket } from "socket.io";
 import path from "path";
-import { Room } from "../shared/room";
+import { Room, RoomStatus } from "../shared/room";
 import { Player } from "../shared/player";
 import { setupLobbyHandlers } from "lobbyHandlers";
 import { setupMenuHandlers } from "menuHandlers";
@@ -84,6 +84,25 @@ const PORT = process.env.PORT || 3333;
 server.listen(PORT, () => {
    console.log(`Server running on port ${PORT}`);
 });
+
+const timeoutCheckInterval = setInterval(() => {
+   const currentTime = Date.now();
+   rooms.forEach((room) => {
+      if (room.status === RoomStatus.PLAYING) {
+         room.game.updateTime(currentTime);
+         const timeout = room.game.checkTimeout();
+         if (timeout) {
+            room.status = RoomStatus.LOBBY;
+            clearInterval(timeoutCheckInterval);
+            io.to(room.code).emit(
+               "ended-room",
+               timeout.team,
+               timeout.player + " timed out."
+            );
+         }
+      }
+   });
+}, 100);
 
 function randomPlayerID(): string {
    return (

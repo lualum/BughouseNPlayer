@@ -1,13 +1,11 @@
 import { session } from "./session";
-import { Color, Match } from "../shared/state";
-import { RoomStatus } from "../shared/room";
+import { Color } from "../shared/chess";
+import { Match, RoomStatus } from "../shared/room";
 import {
    createBoardElement,
    createPocketElement,
    updateUIAllBoards,
-   updateUIBoard,
 } from "./chessUI";
-import { match } from "assert";
 
 let intervalID: number;
 

@@ -1,6 +1,6 @@
 import { Chat } from "./chat";
 import { Player, PlayerStatus } from "./player";
-import { Game } from "./state";
+import { Chess, Color, Move, MoveResult } from "./chess";
 
 export enum RoomStatus {
    LOBBY = "lobby",
@@ -10,6 +10,13 @@ export enum RoomStatus {
 export interface RoomListing {
    code: string;
    numPlayers: number;
+}
+
+// Red: White unflipped & Black flipped
+// Blue: White flipped & Black unflipped
+export enum Team {
+   RED = "red",
+   BLUE = "blue",
 }
 
 export class Room {
@@ -25,6 +32,10 @@ export class Room {
       this.status = RoomStatus.LOBBY;
       this.game = new Game();
       this.chat = new Chat();
+
+      // Initialize two chess games for the room
+      this.game.matches.push(new Match(180000, false));
+      this.game.matches.push(new Match(180000, true));
    }
 
    serialize(): any {
@@ -35,7 +46,7 @@ export class Room {
 
       return {
          code: this.code,
-         roomState: this.status,
+         status: this.status,
          gameState: this.game.serialize(),
          chat: this.chat.serialize(),
          players: serializedPlayers,
@@ -44,7 +55,7 @@ export class Room {
 
    static deserialize(data: any): Room {
       const room = new Room(data.code);
-      room.status = data.roomState;
+      room.status = data.status;
       room.game = Game.deserialize(data.gameState);
       room.chat = Chat.deserialize(data.chat);
 
@@ -69,143 +80,21 @@ export class Room {
       this.players.set(player.id, player);
    }
 
-   removePlayer(playerId: string): void {
-      this.players.delete(playerId);
-      // Remove player from boards if they are in one
+   removePlayer(id: string): void {
+      this.players.delete(id);
+
       for (const match of this.game.matches) {
-         if (match.whitePlayer?.id === playerId) {
+         if (match.whitePlayer?.id === id) {
             match.whitePlayer = null;
          }
-         if (match.blackPlayer?.id === playerId) {
+         if (match.blackPlayer?.id === id) {
             match.blackPlayer = null;
          }
       }
    }
 
-   getPlayer(playerId: string): Player | undefined {
-      return this.players.get(playerId);
-   }
-
-   allBoardsFull(): boolean {
-      for (const match of this.game.matches) {
-         if (!match.whitePlayer || !match.blackPlayer) return false;
-      }
-      return true;
-   }
-
-   readyToStart(): boolean {
-      if (this.players.size < 2) return false;
-      for (const player of this.players.values()) {
-         if (player.status !== PlayerStatus.READY) return false;
-      }
-      return true;
-   }
-
-   autoAssignPlayers(): void {
-      // Count current assignments for each player
-      const playerBoardCounts = new Map<string, number>();
-      this.players.forEach((player) => {
-         playerBoardCounts.set(player.id, 0);
-      });
-
-      // Count existing assignments
-      for (const match of this.game.matches) {
-         if (match.whitePlayer) {
-            playerBoardCounts.set(
-               match.whitePlayer.id,
-               (playerBoardCounts.get(match.whitePlayer.id) || 0) + 1
-            );
-         }
-         if (match.blackPlayer) {
-            playerBoardCounts.set(
-               match.blackPlayer.id,
-               (playerBoardCounts.get(match.blackPlayer.id) || 0) + 1
-            );
-         }
-      }
-
-      // Get list of players sorted by fewest boards assigned, with randomness for ties
-      const getSortedPlayers = (): Player[] => {
-         const players = Array.from(this.players.values());
-
-         // Shuffle array first to randomize ties
-         for (let i = players.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [players[i], players[j]] = [players[j], players[i]];
-         }
-
-         // Sort by board count (stable sort preserves random order for ties)
-         return players.sort((a, b) => {
-            const countA = playerBoardCounts.get(a.id) || 0;
-            const countB = playerBoardCounts.get(b.id) || 0;
-            return countA - countB;
-         });
-      };
-
-      // Fill empty positions
-      for (const match of this.game.matches) {
-         // Fill white position if empty
-         if (!match.whitePlayer) {
-            const sortedPlayers = getSortedPlayers();
-            for (const player of sortedPlayers) {
-               // Check if player is already black on this board
-               if (match.blackPlayer?.id === player.id) continue;
-
-               // Check if player is on the opposite color of a flipped equivalent board
-               let canAssign = true;
-               for (const otherMatch of this.game.matches) {
-                  if (otherMatch === match) continue;
-                  if (otherMatch.flipped !== match.flipped) {
-                     // Different flip means different color mapping
-                     if (otherMatch.blackPlayer?.id === player.id) {
-                        canAssign = false;
-                        break;
-                     }
-                  }
-               }
-
-               if (canAssign) {
-                  match.whitePlayer = player;
-                  playerBoardCounts.set(
-                     player.id,
-                     (playerBoardCounts.get(player.id) || 0) + 1
-                  );
-                  break;
-               }
-            }
-         }
-
-         // Fill black position if empty
-         if (!match.blackPlayer) {
-            const sortedPlayers = getSortedPlayers();
-            for (const player of sortedPlayers) {
-               // Check if player is already white on this board
-               if (match.whitePlayer?.id === player.id) continue;
-
-               // Check if player is on the opposite color of a flipped equivalent board
-               let canAssign = true;
-               for (const otherMatch of this.game.matches) {
-                  if (otherMatch === match) continue;
-                  if (otherMatch.flipped !== match.flipped) {
-                     // Different flip means different color mapping
-                     if (otherMatch.whitePlayer?.id === player.id) {
-                        canAssign = false;
-                        break;
-                     }
-                  }
-               }
-
-               if (canAssign) {
-                  match.blackPlayer = player;
-                  playerBoardCounts.set(
-                     player.id,
-                     (playerBoardCounts.get(player.id) || 0) + 1
-                  );
-                  break;
-               }
-            }
-         }
-      }
+   getPlayer(id: string): Player | undefined {
+      return this.players.get(id);
    }
 
    allPlayersDisconnected(): boolean {
@@ -216,11 +105,206 @@ export class Room {
       return true;
    }
 
-   resetGame(): void {
+   tryStartRoom(currentTime: number = Date.now()): boolean {
+      if (this.status !== RoomStatus.LOBBY) return false;
+      for (const match of this.game.matches) {
+         if (!match.whitePlayer || !match.blackPlayer) return false;
+         if (
+            match.whitePlayer.status !== PlayerStatus.READY ||
+            match.blackPlayer.status !== PlayerStatus.READY
+         )
+            return false;
+      }
+
+      this.status = RoomStatus.PLAYING;
+
+      this.game.matches.forEach((match) => {
+         match.whiteTime = 180000; // TODO: make configurable (currently 3 min)
+         match.blackTime = 180000;
+         match.playerTimeSinceMove = 180000;
+         match.lastMoveTime = currentTime;
+      });
+
+      return true;
+   }
+
+   endRoom(): void {
       this.status = RoomStatus.LOBBY;
-      this.game.resetState();
+
       for (const player of this.players.values()) {
          player.status = PlayerStatus.NOT_READY;
       }
+   }
+}
+
+export class Game {
+   matches: Match[];
+
+   constructor() {
+      this.matches = [];
+   }
+
+   serialize(): any {
+      return {
+         matches: this.matches.map((match) => match.serialize()),
+      };
+   }
+
+   static deserialize(data: any): Game {
+      const state = new Game();
+      state.matches = (data.matches || []).map((matchData: any) =>
+         Match.deserialize(matchData)
+      );
+      return state;
+   }
+
+   tryApplyMove(matchIndex: number, move: Move): MoveResult {
+      if (matchIndex < 0 || matchIndex >= this.matches.length) {
+         return { success: false, capturedPiece: null };
+      }
+
+      const result = this.matches[matchIndex].chess.move(move);
+
+      if (result.success && result.capturedPiece) {
+         for (let i = 0; i < this.matches.length; i++) {
+            if (this.matches[i].flipped === this.matches[matchIndex].flipped) {
+               this.matches[i].chess.addToPocket(
+                  Chess.invertPieceColor(result.capturedPiece)
+               );
+            } else {
+               this.matches[i].chess.addToPocket(result.capturedPiece);
+            }
+         }
+      }
+
+      return result;
+   }
+
+   updateTime(currentTime: number = Date.now()): void {
+      for (const match of this.matches) {
+         match.updateTime(currentTime);
+      }
+   }
+
+   checkTimeout(): { team: Team; player: Player } | null {
+      let minTime = Infinity;
+      let minSide: Team | null = null;
+      let minPlayer: Player | null = null;
+
+      for (const match of this.matches) {
+         if (match.flipped ? match.blackTime : match.whiteTime < minTime) {
+            minTime = match.whiteTime;
+            minSide = Team.BLUE;
+            minPlayer = match.flipped ? match.blackPlayer : match.whitePlayer;
+         }
+
+         // Bottom side
+         if (match.flipped ? match.whiteTime : match.blackTime < minTime) {
+            minTime = match.blackTime;
+            minSide = Team.RED;
+            minPlayer = match.flipped ? match.whitePlayer : match.blackPlayer;
+         }
+      }
+
+      return minTime > 0 ? null : { team: minSide!, player: minPlayer! };
+   }
+}
+
+export class Match {
+   chess: Chess;
+   whitePlayer: Player | null;
+   blackPlayer: Player | null;
+   whiteTime: number;
+   blackTime: number;
+   playerTimeSinceMove: number;
+   lastMoveTime: number | null = null;
+   activeColor: Color;
+   flipped: boolean; // normal has bottom as white
+
+   constructor(time: number = 0, flipped: boolean = false) {
+      this.chess = new Chess();
+      this.whitePlayer = null;
+      this.blackPlayer = null;
+      this.whiteTime = time;
+      this.blackTime = time;
+      this.playerTimeSinceMove = time;
+      this.lastMoveTime = Date.now();
+      this.activeColor = Color.WHITE;
+      this.flipped = flipped;
+   }
+
+   serialize(): any {
+      return {
+         chess: this.chess.serialize(),
+         whitePlayer: this.whitePlayer ? this.whitePlayer.serialize() : null,
+         blackPlayer: this.blackPlayer ? this.blackPlayer.serialize() : null,
+         whiteTime: this.whiteTime,
+         blackTime: this.blackTime,
+         playerTimeSinceMove: this.playerTimeSinceMove,
+         lastMoveTime: this.lastMoveTime,
+         activeColor: this.activeColor,
+         flipped: this.flipped,
+      };
+   }
+
+   static deserialize(data: any): Match {
+      const match = new Match();
+      match.chess = Chess.deserialize(data.chess);
+      match.whitePlayer = data.whitePlayer
+         ? Player.deserialize(data.whitePlayer)
+         : null;
+      match.blackPlayer = data.blackPlayer
+         ? Player.deserialize(data.blackPlayer)
+         : null;
+      match.whiteTime = data.whiteTime;
+      match.blackTime = data.blackTime;
+      match.playerTimeSinceMove = data.playerTimeSinceMove;
+      match.lastMoveTime = data.lastMoveTime;
+      match.activeColor = data.activeColor;
+      match.flipped = data.flipped;
+      return match;
+   }
+
+   getPlayer(color: Color): Player | null {
+      if (color === Color.WHITE) {
+         return this.whitePlayer;
+      } else {
+         return this.blackPlayer;
+      }
+   }
+
+   setPlayer(player: Player, color: Color): void {
+      if (color === Color.WHITE) {
+         this.whitePlayer = player;
+      } else {
+         this.blackPlayer = player;
+      }
+   }
+
+   removePlayer(color: Color): void {
+      if (color === Color.WHITE) {
+         this.whitePlayer = null;
+      } else {
+         this.blackPlayer = null;
+      }
+   }
+
+   updateTime(currentTime: number = Date.now()): void {
+      if (!this.lastMoveTime) return;
+
+      const elapsed = currentTime - this.lastMoveTime;
+      if (this.activeColor === Color.WHITE) {
+         this.whiteTime = this.playerTimeSinceMove - elapsed;
+      } else {
+         this.blackTime = this.playerTimeSinceMove - elapsed;
+      }
+   }
+
+   switchTurn(currentTime: number): void {
+      this.updateTime(currentTime);
+      this.activeColor = this.chess.turn;
+      this.playerTimeSinceMove =
+         this.activeColor === Color.WHITE ? this.whiteTime : this.blackTime;
+      this.lastMoveTime = currentTime;
    }
 }

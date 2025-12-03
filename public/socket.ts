@@ -1,6 +1,6 @@
 import { session } from "./session";
 import { updateURL } from "./url";
-import { RoomListing, RoomStatus } from "../shared/room";
+import { Game, RoomListing, RoomStatus, Team } from "../shared/room";
 import { Player, PlayerStatus } from "../shared/player";
 import { Room } from "../shared/room";
 import { showError, updateLobbiesList } from "./menuUI";
@@ -11,16 +11,15 @@ import {
    updateChatDisplay,
    updatePlayerList,
 } from "./gameUI";
-import { Color, Game, Move, Team } from "../shared/state";
+import { Color, Move } from "../shared/chess";
 import {
-   flipAllAndUpdate,
    startTimeUpdates,
    stopTimeUpdates,
    updateUIAllPlayers,
    updateUIPlayers,
    updateUITime,
 } from "./matchUI";
-import { updateUIAllBoards, updateUIBoard } from "./chessUI";
+import { updateUIAllBoards } from "./chessUI";
 
 export function initSocketEvents(): void {
    session.socket.on("created-player", (id: string, auth: string) => {
@@ -113,7 +112,7 @@ export function initSocketEvents(): void {
    session.socket.on(
       "p-moved-board",
       (boardID: number, move: Move, newTime: number) => {
-         session.room?.game.applyMove(boardID, move);
+         session.room?.game.tryApplyMove(boardID, move);
          session.room?.game.matches[boardID].updateTime(newTime);
          session.room?.game.matches[boardID].switchTurn(newTime);
          session.room?.game.matches[boardID].updateTime(Date.now());

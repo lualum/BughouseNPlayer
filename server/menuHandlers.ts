@@ -1,7 +1,6 @@
 import { GameSocket } from "./server";
 import { Room, RoomStatus } from "../shared/room";
 import { rooms, emitRoomList } from "./server";
-import { Match } from "../shared/state";
 import { Server } from "socket.io";
 import { PlayerStatus } from "../shared/player";
 
@@ -53,10 +52,6 @@ function createRoom(roomCode?: string): string | null {
 
    const code = roomCode || randomCode();
    const room = new Room(code);
-
-   // Initialize two chess games for the room
-   room.game.matches.push(new Match(600000, false));
-   room.game.matches.push(new Match(600000, true));
 
    rooms.set(code, room);
    console.log(`Room created with code: ${code}`);

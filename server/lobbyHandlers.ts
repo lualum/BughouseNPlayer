@@ -1,7 +1,7 @@
-import { GameSocket, rooms } from "./server";
-import { RoomStatus } from "../shared/room";
+import { GameSocket } from "./server";
+import { RoomStatus, Team } from "../shared/room";
 import { PlayerStatus } from "../shared/player";
-import { Color, Move, Team } from "../shared/state";
+import { Color, Move } from "../shared/chess";
 import { Server } from "socket.io";
 
 export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
@@ -19,41 +19,8 @@ export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
          socket.player!.status
       );
 
-      // socket.room.autoAssignPlayers();
-
-      if (
-         socket.room.status === RoomStatus.LOBBY &&
-         socket.room.allBoardsFull() &&
-         socket.room.readyToStart()
-      ) {
-         const currentTime = Date.now();
-         socket.room.status = RoomStatus.PLAYING;
-
-         socket.room!.game.matches.forEach((match) => {
-            match.chess.reset();
-            match.lastMoveTime = currentTime;
-         });
-
-         // TODO: move this to an expanded room class
-         const timeoutCheckInterval = setInterval(() => {
-            const currentTime = Date.now();
-            rooms.forEach((room) => {
-               if (room.status === RoomStatus.PLAYING) {
-                  room.game.updateTime(currentTime);
-                  const timeout = room.game.checkTimeout();
-                  if (timeout) {
-                     room.status = RoomStatus.LOBBY;
-                     clearInterval(timeoutCheckInterval);
-                     io.to(room.code).emit(
-                        "ended-room",
-                        timeout.team,
-                        timeout.player + " timed out."
-                     );
-                  }
-               }
-            });
-         }, 100);
-
+      const currentTime = Date.now();
+      if (socket.room.tryStartRoom()) {
          io.to(socket.room.code).emit(
             "started-room",
             socket.room.game.serialize(),
@@ -87,14 +54,15 @@ export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
       if (
          !socket.room ||
          socket.room.status !== RoomStatus.PLAYING ||
-         !socket.room.game.matches[boardID].samePlayer(socket.player!, color)
+         socket.room.game.matches[boardID].getPlayer(color)?.id !==
+            socket.player!.id
       ) {
          return;
       }
 
       const currentTime = Date.now();
       socket.room?.game.matches[boardID].switchTurn(currentTime);
-      socket.room.game.applyMove(boardID, move);
+      socket.room.game.tryApplyMove(boardID, move);
 
       io.to(socket.room.code).emit("p-moved-board", boardID, move, currentTime);
 
