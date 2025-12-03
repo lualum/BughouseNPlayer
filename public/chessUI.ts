@@ -460,7 +460,6 @@ function handleMouseUp(e: MouseEvent): void {
          from: fromPosition,
          to: toPosition,
       };
-      result = boardInstance.move(move);
    } else {
       const fromPosition: Position = createPosition(
          pieceSnapshot.row,
@@ -470,8 +469,9 @@ function handleMouseUp(e: MouseEvent): void {
          from: fromPosition,
          to: toPosition,
       };
-      result = boardInstance.move(move);
    }
+
+   result = session.room!.game.tryApplyMove(pieceSnapshot.boardID, move);
 
    if (result.success) {
       session.socket.emit(
