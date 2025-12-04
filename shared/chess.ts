@@ -32,10 +32,10 @@ export class Chess {
          whitePocket: Object.fromEntries(this.whitePocket),
          blackPocket: Object.fromEntries(this.blackPocket),
          turn: this.turn,
-         whiteCanCastleKingside: this.whiteCastleShort,
-         whiteCanCastleQueenside: this.whiteCastleLong,
-         blackCanCastleKingside: this.blackCastleShort,
-         blackCanCastleQueenside: this.blackCastleLong,
+         whiteCastleShort: this.whiteCastleShort,
+         whiteCastleLong: this.whiteCastleLong,
+         blackCastleShort: this.blackCastleShort,
+         blackCastleLong: this.blackCastleLong,
       };
    }
 
@@ -58,10 +58,10 @@ export class Chess {
       }
 
       chess.turn = data.turn;
-      chess.whiteCastleShort = data.whiteCanCastleKingside ?? true;
-      chess.whiteCastleLong = data.whiteCanCastleQueenside ?? true;
-      chess.blackCastleShort = data.blackCanCastleKingside ?? true;
-      chess.blackCastleLong = data.blackCanCastleQueenside ?? true;
+      chess.whiteCastleShort = data.whiteCastleShort ?? true;
+      chess.whiteCastleLong = data.whiteCastleLong ?? true;
+      chess.blackCastleShort = data.blackCastleShort ?? true;
+      chess.blackCastleLong = data.blackCastleLong ?? true;
       return chess;
    }
 

@@ -3,8 +3,8 @@ import { Player, PlayerStatus } from "../shared/player";
 import { Game, Room, RoomListing, RoomStatus, Team } from "../shared/room";
 import { updateUIAllBoards } from "./chessUI";
 import {
-   startGameUI as showGameUI,
-   endGameUI as showLobbyUI,
+   startGameUI,
+   endGameUI,
    showRoomElements,
    updateChatDisplay,
    updateUIPlayerList,
@@ -52,10 +52,10 @@ export function initSocketEvents(): void {
       updateUITime();
 
       if (room.status === RoomStatus.PLAYING) {
-         showGameUI();
+         startGameUI();
          startTimeUpdates();
       } else {
-         showLobbyUI();
+         endGameUI();
          stopTimeUpdates();
       }
 
@@ -101,7 +101,7 @@ export function initSocketEvents(): void {
       session.room!.game = Game.deserialize(raw);
       session.room!.tryStartRoom(timeStarted);
 
-      showGameUI();
+      startGameUI();
       startTimeUpdates();
       console.log(`Game started in room ${session.room!.code}`);
    });
@@ -123,7 +123,7 @@ export function initSocketEvents(): void {
    session.socket.on("ended-room", (raw: Team, reason: string) => {
       const team = raw === "red" ? Team.RED : Team.BLUE;
       session.room!.endRoom();
-      showLobbyUI();
+      endGameUI();
       stopTimeUpdates();
 
       // TODO: Show modal end game screen
