@@ -82,7 +82,9 @@ io.on("connection", (socket: GameSocket) => {
 
 const PORT = process.env.PORT || 3333;
 server.listen(PORT, () => {
-   console.log(`Server running on port ${PORT}`);
+   console.log(
+      `<< Started Server [${PORT}] on ${new Date().toLocaleString()} >> \n\n`
+   );
 });
 
 const timeoutCheckInterval = setInterval(() => {
