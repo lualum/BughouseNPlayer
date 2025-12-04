@@ -1,6 +1,6 @@
-import { session } from "./session";
 import { RoomListing } from "../shared/room";
 import { stopTimeUpdates } from "./matchUI";
+import { session } from "./session";
 
 // Store the pending action
 let pendingAction: (() => void) | null = null;

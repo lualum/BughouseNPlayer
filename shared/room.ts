@@ -1,6 +1,6 @@
 import { Chat } from "./chat";
-import { Player, PlayerStatus } from "./player";
 import { Chess, Color, Move, MoveResult } from "./chess";
+import { Player, PlayerStatus } from "./player";
 
 export enum RoomStatus {
    LOBBY = "lobby",

@@ -1,12 +1,12 @@
-import { session } from "./session";
-import { leaveRoom } from "./menuUI";
-import { updateUIAllBoards, updateUIBoard } from "./chessUI";
 import { PlayerStatus } from "../shared/player";
+import { updateUIAllBoards } from "./chessUI";
 import {
    createMatchElements,
    flipAllAndUpdate,
    updateUIAllPlayers,
 } from "./matchUI";
+import { leaveRoom } from "./menuUI";
+import { session } from "./session";
 
 export function initGameControls(): void {
    const leaveGameBtn = document.getElementById("leave-game-btn");

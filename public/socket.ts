@@ -1,17 +1,14 @@
-import { session } from "./session";
-import { updateURL } from "./url";
-import { Game, RoomListing, RoomStatus, Team } from "../shared/room";
+import { Color, Move } from "../shared/chess";
 import { Player, PlayerStatus } from "../shared/player";
-import { Room } from "../shared/room";
-import { showError, updateLobbiesList } from "./menuUI";
+import { Game, Room, RoomListing, RoomStatus, Team } from "../shared/room";
+import { updateUIAllBoards } from "./chessUI";
 import {
+   startGameUI as showGameUI,
    endGameUI as showLobbyUI,
    showRoomElements,
-   startGameUI as showGameUI,
    updateChatDisplay,
    updateUIPlayerList,
 } from "./gameUI";
-import { Color, Move } from "../shared/chess";
 import {
    startTimeUpdates,
    stopTimeUpdates,
@@ -19,7 +16,9 @@ import {
    updateUIPlayers,
    updateUITime,
 } from "./matchUI";
-import { updateUIAllBoards } from "./chessUI";
+import { showError, updateLobbiesList } from "./menuUI";
+import { session } from "./session";
+import { updateURL } from "./url";
 
 export function initSocketEvents(): void {
    session.socket.on("created-player", (id: string, auth: string) => {

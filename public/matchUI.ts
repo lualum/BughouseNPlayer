@@ -1,4 +1,3 @@
-import { session } from "./session";
 import { Color } from "../shared/chess";
 import { Match, RoomStatus } from "../shared/room";
 import {
@@ -6,6 +5,7 @@ import {
    createPocketElement,
    updateUIAllBoards,
 } from "./chessUI";
+import { session } from "./session";
 
 let intervalID: number;
 

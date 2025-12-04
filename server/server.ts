@@ -1,12 +1,12 @@
+import { randomBytes } from "crypto";
 import express from "express";
 import http from "http";
-import { Server, Socket } from "socket.io";
-import path from "path";
-import { Room, RoomStatus } from "../shared/room";
-import { Player } from "../shared/player";
 import { setupLobbyHandlers } from "lobbyHandlers";
 import { setupMenuHandlers } from "menuHandlers";
-import { randomBytes } from "crypto";
+import path from "path";
+import { Server, Socket } from "socket.io";
+import { Player } from "../shared/player";
+import { Room, RoomStatus } from "../shared/room";
 
 const app = express();
 const server = http.createServer(app);

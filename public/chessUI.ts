@@ -1,4 +1,3 @@
-import { session } from "./session";
 import {
    BoardPosition,
    Chess,
@@ -6,10 +5,11 @@ import {
    Move,
    Piece,
    PieceType,
-   Position,
    PocketPosition,
+   Position,
 } from "../shared/chess";
 import { RoomStatus } from "../shared/room";
+import { session } from "./session";
 
 const PIECE_IMAGES = {
    K: "/pieces/wk.png",

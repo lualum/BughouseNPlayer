@@ -1,8 +1,8 @@
-import { GameSocket } from "./server";
-import { RoomStatus, Team } from "../shared/room";
-import { PlayerStatus } from "../shared/player";
-import { Color, Move } from "../shared/chess";
 import { Server } from "socket.io";
+import { Color, Move } from "../shared/chess";
+import { PlayerStatus } from "../shared/player";
+import { RoomStatus, Team } from "../shared/room";
+import { GameSocket } from "./server";
 
 export function setupLobbyHandlers(socket: GameSocket, io: Server): void {
    socket.on("toggle-ready", () => {
