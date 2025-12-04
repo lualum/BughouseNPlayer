@@ -78,7 +78,7 @@ export function updateReadyButton(): void {
    }
 }
 
-export function updatePlayerList(): void {
+export function updateUIPlayerList(): void {
    const playerList = document.getElementById("player-list");
    if (playerList) {
       playerList.innerHTML = "";
@@ -149,7 +149,7 @@ export function startGameUI(): void {
 
    updateUIAllBoards();
    updateUIAllPlayers();
-   updatePlayerList();
+   updateUIPlayerList();
 }
 
 export function endGameUI(): void {
@@ -160,7 +160,7 @@ export function endGameUI(): void {
 
    updateUIAllBoards();
    updateUIAllPlayers();
-   updatePlayerList();
+   updateUIPlayerList();
 }
 
 function escapeHtml(text: string): string {

@@ -9,7 +9,7 @@ import {
    showRoomElements,
    startGameUI as showGameUI,
    updateChatDisplay,
-   updatePlayerList,
+   updateUIPlayerList,
 } from "./gameUI";
 import { Color, Move } from "../shared/chess";
 import {
@@ -46,7 +46,7 @@ export function initSocketEvents(): void {
 
       showRoomElements();
 
-      updatePlayerList();
+      updateUIPlayerList();
       updateChatDisplay();
       updateUIAllBoards();
       updateUIAllPlayers();
@@ -69,12 +69,12 @@ export function initSocketEvents(): void {
       }
 
       session.room?.addPlayer(new Player(id, name));
-      updatePlayerList();
+      updateUIPlayerList();
    });
 
    session.socket.on("p-left-room", (id: string) => {
       session.room?.removePlayer(id);
-      updatePlayerList();
+      updateUIPlayerList();
    });
 
    session.socket.on(
@@ -94,7 +94,7 @@ export function initSocketEvents(): void {
    session.socket.on("p-set-status", (id: string, status: PlayerStatus) => {
       const player = session.room?.getPlayer(id)!;
       player.status = status;
-      updatePlayerList();
+      updateUIPlayerList();
    });
 
    session.socket.on("started-room", (raw: Game, timeStarted: number) => {
