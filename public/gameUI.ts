@@ -1,5 +1,5 @@
 import { PlayerStatus } from "../shared/player";
-import { updateUIAllBoards } from "./chessUI";
+import { updateUIAllBoards } from "./matchUI";
 import {
    createMatchElements,
    flipAllAndUpdate,

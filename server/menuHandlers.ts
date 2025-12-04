@@ -108,8 +108,8 @@ export function tryLeavePlayer(socket: GameSocket): void {
    }
 
    if (socket.room.status === RoomStatus.LOBBY) {
-      socket.to(socket.room.code).emit("p-left-room", socket.player!.id);
       socket.room.removePlayer(socket.player!.id);
+      socket.to(socket.room.code).emit("p-left-room", socket.player!.id);
       emitRoomList();
    } else {
       socket.room.players.get(socket.player!.id)!.status =

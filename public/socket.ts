@@ -1,7 +1,7 @@
 import { Color, Move } from "../shared/chess";
 import { Player, PlayerStatus } from "../shared/player";
 import { Game, Room, RoomListing, RoomStatus, Team } from "../shared/room";
-import { updateUIAllBoards } from "./chessUI";
+import { updateUIAllBoards } from "./matchUI";
 import {
    startGameUI,
    endGameUI,
