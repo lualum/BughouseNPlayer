@@ -1,25 +1,15 @@
 export class Chess {
-   board: Board;
-   whitePocket: Map<PieceType, number>;
-   blackPocket: Map<PieceType, number>;
-   turn: Color;
-   whiteCastleShort: boolean;
-   whiteCastleLong: boolean;
-   blackCastleShort: boolean;
-   blackCastleLong: boolean;
+   board: Board = [];
+   whitePocket: Map<PieceType, number> = new Map();
+   blackPocket: Map<PieceType, number> = new Map();
+   turn: Color = Color.WHITE;
+   whiteCastleShort: boolean = true;
+   whiteCastleLong: boolean = true;
+   blackCastleShort: boolean = true;
+   blackCastleLong: boolean = true;
 
    constructor() {
-      this.board = Array(8)
-         .fill(null)
-         .map(() => Array(8).fill(null));
-      this.whitePocket = new Map();
-      this.blackPocket = new Map();
-      this.turn = Color.WHITE;
-      this.whiteCastleShort = true;
-      this.whiteCastleLong = true;
-      this.blackCastleShort = true;
-      this.blackCastleLong = true;
-      this.initializeBoard();
+      this.reset();
    }
 
    serialize(): any {
@@ -65,12 +55,17 @@ export class Chess {
       return chess;
    }
 
-   initializeBoard(): void {
-      for (let row = 0; row < 8; row++) {
-         for (let col = 0; col < 8; col++) {
-            this.board[row][col] = null;
-         }
-      }
+   reset(): void {
+      this.whitePocket = new Map();
+      this.blackPocket = new Map();
+      this.turn = Color.WHITE;
+      this.whiteCastleShort = true;
+      this.whiteCastleLong = true;
+      this.blackCastleShort = true;
+      this.blackCastleLong = true;
+      this.board = Array(8)
+         .fill(null)
+         .map(() => Array(8).fill(null));
 
       const backRank: PieceType[] = [
          PieceType.ROOK,

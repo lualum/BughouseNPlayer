@@ -123,8 +123,8 @@ export class Room {
          match.blackTime = 180000;
          match.playerTimeSinceMove = 180000;
          match.lastMoveTime = currentTime;
-
-         match.chess.initializeBoard();
+         match.activeColor = Color.WHITE;
+         match.chess.reset();
       });
 
       return true;
