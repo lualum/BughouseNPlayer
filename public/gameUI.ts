@@ -1,3 +1,4 @@
+import { Color } from "../shared/chess";
 import { PlayerStatus } from "../shared/player";
 import { updateUIAllBoards } from "./matchUI";
 import {
@@ -147,9 +148,27 @@ export function startGameUI(): void {
       readyBtn.style.display = "none";
    }
 
-   updateUIAllBoards();
-   updateUIAllPlayers();
-   updateUIPlayerList();
+   // Put current player on bottom
+   let topBottomDelta = 0; // # of this player on top - # on bottom
+   for (const match of session.room!.game!.matches) {
+      const playerIsTop =
+         match.getPlayer(match.flipped ? Color.WHITE : Color.BLACK)?.id ===
+         session.player!.id;
+      const playerIsBottom =
+         match.getPlayer(match.flipped ? Color.BLACK : Color.WHITE)?.id ===
+         session.player!.id;
+
+      topBottomDelta += (playerIsTop ? 1 : 0) - (playerIsBottom ? 1 : 0);
+   }
+
+   // If more boards have this player on top than bottom, flip all boards
+   if (topBottomDelta > 0) {
+      flipAllAndUpdate();
+   } else {
+      updateUIAllBoards();
+      updateUIAllPlayers();
+      updateUIPlayerList();
+   }
 }
 
 export function endGameUI(): void {
