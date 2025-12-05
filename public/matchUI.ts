@@ -164,7 +164,7 @@ export function createMatchElements(boardID: number): void {
    if (!boardsArea) return;
 
    const boardContainer = document.createElement("div");
-   boardContainer.className = "board-container";
+   boardContainer.className = "match-container";
    boardContainer.dataset.boardId = boardID.toString();
 
    const topRow = createPocketRowElements(boardID, "top");
@@ -181,7 +181,7 @@ export function createMatchElements(boardID: number): void {
 
 export function deleteBoard(boardID: number): void {
    const boardContainer = document.querySelector(
-      `.board-container[data-board-id="${boardID}"]`
+      `.match-container[data-board-id="${boardID}"]`
    );
    if (boardContainer && boardContainer.parentNode) {
       boardContainer.parentNode.removeChild(boardContainer);
@@ -495,7 +495,7 @@ function updateTimeDisplay(
             color === getMatchInstance(boardID)?.activeColor
          ) {
             (timeDisplay as HTMLElement).style.color =
-               "rgba(255, 255, 255, 0.5)"; // half transparent white
+               "rgba(255, 255, 255, 0.5)";
          } else {
             (timeDisplay as HTMLElement).style.color = "#FFFFFF";
          }

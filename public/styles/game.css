@@ -147,14 +147,13 @@
 }
 
 #game-area {
-   --square-size: 8.5vmin;
+   --square-size: 6.5vmin;
 
    flex: 1;
    display: flex;
    align-items: center;
    justify-content: center;
    gap: calc(var(--square-size) * 0.235);
-   background: #1a252f;
    position: relative;
    padding: 0;
    width: 100%;
@@ -181,9 +180,9 @@
    background: #ff9800;
 }
 
-.board-container {
+.match-container {
    background: #2c3e50;
-   padding: calc(var(--square-size) * 0.235);
+   /* padding: calc(var(--square-size) * 0.235); */
    display: flex;
    flex-direction: column;
    width: fit-content;
@@ -210,7 +209,7 @@
    display: grid;
    grid-template-columns: repeat(8, var(--square-size));
    grid-template-rows: repeat(8, var(--square-size));
-   margin: calc(var(--square-size) * 0.235) auto;
+
 }
 
 .square {

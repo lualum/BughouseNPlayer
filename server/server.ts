@@ -95,7 +95,7 @@ const timeoutCheckInterval = setInterval(() => {
          const timeout = room.game.checkTimeout();
          if (timeout) {
             room.endRoom();
-            console.log(timeout.player + " timed out.");
+            console.log(timeout.player.name + " timed out.");
             io.to(room.code).emit(
                "ended-room",
                timeout.team,

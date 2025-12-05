@@ -1,18 +1,19 @@
 /* Menu screen styles */
-#menu .container {
-   background: white;
-   border-radius: 20px;
-   width: 100%;
-   max-width: 900px;
-   padding: 40px;
+#menu {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   width: 100vw;
+   height: 100vh;
+   padding: 0px;
    text-align: center;
 }
 
 #menu-header {
    margin-bottom: 40px;
    font-size: 3em;
-   color: #2c3e50;
-   background: #5075f9;
+   background: #FFFFFF;
    -webkit-background-clip: text;
    -webkit-text-fill-color: transparent;
    background-clip: text;
@@ -27,7 +28,7 @@
 #create-section,
 #join-section {
    flex: 1;
-   background: #f8f9fa;
+   background: white;
    border-radius: 15px;
    padding: 30px;
 }

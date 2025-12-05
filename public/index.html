@@ -14,54 +14,52 @@
 <body>
    <!-- MENU SCREEN -->
    <div id="menu" class="screen">
-      <div class="container">
-         <h1 id="menu-header">Bughouse</h1>
+      <h1 id="menu-header">Bughouse</h1>
 
-         <div id="menu-content">
-            <div id="create-section">
-               <h2 class="section-title">New Room</h2>
-               <div class="menu-section">
-                  <div class="name-section">
-                     <div class="form-group">
-                        <label for="player-name-input">Your Name</label>
-                        <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20"
-                           autocomplete="off" required />
-                     </div>
-                  </div>
-               </div>
-
-               <div class="menu-section">
-                  <div>
-                     <button id="create-room-btn">Create Room</button>
+      <div id="menu-content">
+         <div id="create-section">
+            <h2 class="section-title">New Room</h2>
+            <div class="menu-section">
+               <div class="name-section">
+                  <div class="form-group">
+                     <label for="player-name-input">Your Name</label>
+                     <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20"
+                        autocomplete="off" required />
                   </div>
                </div>
             </div>
 
-            <div id="join-section">
-               <h2 class="section-title">Join Existing Room</h2>
-               <div class="menu-section">
-                  <div class="join-room">
-                     <div class="form-group">
-                        <label for="room-code-input">Room Code</label>
-                        <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="4" required />
-                     </div>
-                     <button id="join-room-btn">Join Room</button>
-                  </div>
-               </div>
-
-               <div class="menu-section">
-                  <div id="lobbies-list">
-                     <div class="no-lobbies">
-                        <p>No lobbies available</p>
-                        <p style="font-size: 12px; margin-top: 5px">Create a new room or wait for others to host!</p>
-                     </div>
-                  </div>
+            <div class="menu-section">
+               <div>
+                  <button id="create-room-btn">Create Room</button>
                </div>
             </div>
          </div>
 
-         <div id="menu-error"></div>
+         <div id="join-section">
+            <h2 class="section-title">Join Existing Room</h2>
+            <div class="menu-section">
+               <div class="join-room">
+                  <div class="form-group">
+                     <label for="room-code-input">Room Code</label>
+                     <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="4" required />
+                  </div>
+                  <button id="join-room-btn">Join Room</button>
+               </div>
+            </div>
+
+            <div class="menu-section">
+               <div id="lobbies-list">
+                  <div class="no-lobbies">
+                     <p>No lobbies available</p>
+                     <p style="font-size: 12px; margin-top: 5px">Create a new room or wait for others to host!</p>
+                  </div>
+               </div>
+            </div>
+         </div>
       </div>
+
+      <div id="menu-error"></div>
    </div>
 
    <!-- LOBBY + GAME SCREEN -->
@@ -71,11 +69,8 @@
             <div id="game-title">Room: <span id="game-room-code"></span></div>
             <button id="leave-game-btn">Leave Game</button>
          </div>
-
          <div id="player-list"></div>
-
          <button id="ready-btn">Ready</button>
-
          <div id="chat-section">
             <div id="chat-messages"></div>
             <div id="chat-input-container">
@@ -83,8 +78,15 @@
             </div>
          </div>
       </div>
-
-      <div id="game-area"></div>
+      <div id="game-area-wrapper">
+         <div class="scroll-controls">
+            <button class="scroll-btn" id="scrollLeft" onclick="scrollBoards(-1)">←</button>
+            <span class="scroll-indicator">Board <span id="currentBoard">1</span> of <span
+                  id="totalBoards">1</span></span>
+            <button class="scroll-btn" id="scrollRight" onclick="scrollBoards(1)">→</button>
+         </div>
+         <div id="game-area"></div>
+      </div>
    </div>
 
    <!-- Name Change Modal -->

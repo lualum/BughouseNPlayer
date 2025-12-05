@@ -8,6 +8,15 @@ body {
    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
    min-height: 100vh;
    overflow: hidden;
+   background-image: repeating-conic-gradient(#0F0F0F 0% 25%, #000000 0% 50%);
+   background-size: 160px 160px;
+   background-position: center center;
+   position: relative;
+}
+
+.glass {
+   backdrop-filter: blur(10px); 
+   -webkit-backdrop-filter: blur(10px);  
 }
 
 .screen {
@@ -16,6 +25,8 @@ body {
    justify-content: center;
    min-height: 100vh;
    padding: 20px;
+   position: relative;
+   z-index: 1;
 }
 
 .hidden {

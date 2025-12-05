@@ -118,8 +118,6 @@ function setupNameModal(): void {
             pendingAction();
             pendingAction = null;
          }
-      } else {
-         showError("modal-error", "Please enter a name");
       }
    });
 
