@@ -59,8 +59,8 @@ function getBoardInstance(boardID: number): Chess {
    return session.room?.game.matches[boardID].chess!;
 }
 
-function getMatchInstance(boardID: number): Match | null {
-   return session.room?.game.matches[boardID] || null;
+function getMatchInstance(boardID: number): Match {
+   return session.room?.game.matches[boardID]!;
 }
 
 function getBoardFlipState(boardID: number): boolean {
@@ -285,13 +285,20 @@ function updatePocket(
    pocket.innerHTML = "";
    pocket.dataset.boardId = boardID.toString();
 
-   pieces.forEach((count, pieceType) => {
-      if (count > 0) {
+   const pieceOrder = [
+      PieceType.PAWN,
+      PieceType.KNIGHT,
+      PieceType.BISHOP,
+      PieceType.ROOK,
+      PieceType.QUEEN,
+   ];
+
+   pieceOrder.forEach((pieceType) => {
+      const count = pieces.get(pieceType);
+      if (count && count > 0) {
          const pieceEl = document.createElement("div");
          pieceEl.className = "pocket-piece";
-
          const isMyTurn = getBoardInstance(boardID).turn === color;
-
          const img = document.createElement("img");
          img.dataset.boardId = boardID.toString();
          img.dataset.pieceType = pieceType;
@@ -299,20 +306,16 @@ function updatePocket(
          img.dataset.row = "NaN";
          img.dataset.col = "NaN";
          img.dataset.pocket = "true";
-
          img.ondragstart = () => false;
-
          const imageKey = getPieceImageKey({ type: pieceType, color });
          img.src = PIECE_IMAGES[imageKey as keyof typeof PIECE_IMAGES];
          pieceEl.appendChild(img);
-
          if (count > 1) {
             const countBadge = document.createElement("div");
             countBadge.className = "pocket-count";
             countBadge.textContent = count.toString();
             pieceEl.appendChild(countBadge);
          }
-
          if (
             isMyTurn &&
             session.room?.status === RoomStatus.PLAYING &&
@@ -324,7 +327,6 @@ function updatePocket(
          } else {
             pieceEl.style.cursor = "default";
          }
-
          pocket.appendChild(pieceEl);
       }
    });
@@ -483,6 +485,20 @@ function updateTimeDisplay(
       const timeDisplay = playerInfo.querySelector(".player-time-display");
       if (timeDisplay) {
          timeDisplay.textContent = timeString;
+
+         const color =
+            (position === "top") === getBoardFlipState(boardID)
+               ? Color.BLACK
+               : Color.WHITE;
+         if (
+            session.room!.status === RoomStatus.PLAYING &&
+            color === getMatchInstance(boardID)?.activeColor
+         ) {
+            (timeDisplay as HTMLElement).style.color =
+               "rgba(255, 255, 255, 0.5)"; // half transparent white
+         } else {
+            (timeDisplay as HTMLElement).style.color = "#FFFFFF";
+         }
       }
    }
 }

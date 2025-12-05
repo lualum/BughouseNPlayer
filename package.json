@@ -13,7 +13,7 @@
       "start:server": "nodemon --watch server/dist --watch public/dist --watch shared/dist --exec 'clear && node --no-deprecation' server/dist/server.js",
       "dev": "concurrently --raw -n build,server \"npm run build:watch\" \"npm run start:server\"",
       "start": "node --no-deprecation server/dist/server.js",
-      "host": "tailscale funnel 127.0.0.1:3333 & npm run start"
+      "host": "tailscale funnel 127.0.0.1:3000 & npm run start"
    },
    "dependencies": {
       "concurrently": "^9.2.1",

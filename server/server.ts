@@ -80,7 +80,7 @@ io.on("connection", (socket: GameSocket) => {
    emitRoomList();
 });
 
-const PORT = process.env.PORT || 3333;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
    console.log(
       `<< Started Server [${PORT}] on ${new Date().toLocaleString()} >> \n\n`
