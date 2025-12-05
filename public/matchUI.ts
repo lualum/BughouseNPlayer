@@ -47,6 +47,14 @@ let visualFlipped: boolean = false;
 let intervalID: number;
 
 // Utility Functions
+export function setVisualFlipped(flipped: boolean): void {
+   visualFlipped = flipped;
+}
+
+export function toggleVisualFlipped(): void {
+   visualFlipped = !visualFlipped;
+}
+
 function getBoardInstance(boardID: number): Chess {
    return session.room?.game.matches[boardID].chess!;
 }
@@ -502,8 +510,7 @@ export function stopTimeUpdates(): void {
 }
 
 // Global Flip Control
-export function flipAllAndUpdate(): void {
-   visualFlipped = !visualFlipped;
+export function updateUIAllGame(): void {
    updateUIAllBoards();
    updateUIAllPlayers();
    updateUITime();

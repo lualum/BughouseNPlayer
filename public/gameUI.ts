@@ -1,9 +1,13 @@
 import { Color } from "../shared/chess";
 import { PlayerStatus } from "../shared/player";
-import { updateUIAllBoards } from "./matchUI";
+import {
+   setVisualFlipped,
+   toggleVisualFlipped,
+   updateUIAllBoards,
+} from "./matchUI";
 import {
    createMatchElements,
-   flipAllAndUpdate,
+   updateUIAllGame,
    updateUIAllPlayers,
 } from "./matchUI";
 import { leaveRoom } from "./menuUI";
@@ -26,7 +30,8 @@ export function initGameControls(): void {
    document.addEventListener("keydown", (e: Event) => {
       const keyEvent = e as KeyboardEvent;
       if (keyEvent.key === "x") {
-         flipAllAndUpdate();
+         toggleVisualFlipped();
+         updateUIAllGame();
       }
    });
 }
@@ -162,13 +167,8 @@ export function startGameUI(): void {
    }
 
    // If more boards have this player on top than bottom, flip all boards
-   if (topBottomDelta > 0) {
-      flipAllAndUpdate();
-   } else {
-      updateUIAllBoards();
-      updateUIAllPlayers();
-      updateUIPlayerList();
-   }
+   setVisualFlipped(topBottomDelta > 0);
+   updateUIAllGame();
 }
 
 export function endGameUI(): void {

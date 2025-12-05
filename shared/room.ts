@@ -2,6 +2,8 @@ import { Chat } from "./chat";
 import { Chess, Color, Move, MoveResult } from "./chess";
 import { Player, PlayerStatus } from "./player";
 
+const defaultTime = 5000; // 3 minutes in milliseconds
+
 export enum RoomStatus {
    LOBBY = "lobby",
    PLAYING = "playing",
@@ -34,8 +36,8 @@ export class Room {
       this.chat = new Chat();
 
       // Initialize two chess games for the room
-      this.game.matches.push(new Match(180000, false));
-      this.game.matches.push(new Match(180000, true));
+      this.game.matches.push(new Match(defaultTime, false));
+      this.game.matches.push(new Match(defaultTime, true));
    }
 
    serialize(): any {
@@ -119,9 +121,9 @@ export class Room {
       this.status = RoomStatus.PLAYING;
 
       this.game.matches.forEach((match) => {
-         match.whiteTime = 180000; // TODO: make configurable (currently 3 min)
-         match.blackTime = 180000;
-         match.playerTimeSinceMove = 180000;
+         match.whiteTime = defaultTime; // TODO: make configurable (currently 3 min)
+         match.blackTime = defaultTime;
+         match.playerTimeSinceMove = defaultTime;
          match.lastMoveTime = currentTime;
          match.activeColor = Color.WHITE;
          match.chess.reset();
@@ -195,14 +197,14 @@ export class Game {
 
       for (const match of this.matches) {
          if (match.flipped ? match.blackTime : match.whiteTime < minTime) {
-            minTime = match.whiteTime;
+            minTime = match.flipped ? match.blackTime : match.whiteTime;
             minSide = Team.BLUE;
             minPlayer = match.flipped ? match.blackPlayer : match.whitePlayer;
          }
 
          // Bottom side
          if (match.flipped ? match.whiteTime : match.blackTime < minTime) {
-            minTime = match.blackTime;
+            minTime = match.flipped ? match.whiteTime : match.blackTime;
             minSide = Team.RED;
             minPlayer = match.flipped ? match.whitePlayer : match.blackPlayer;
          }

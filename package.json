@@ -6,14 +6,14 @@
       "build:server": "esbuild server/*.ts --bundle --platform=node --outdir=server/dist --sourcemap --minify",
       "build:shared": "esbuild shared/*.ts --bundle --platform=node --outdir=shared/dist --sourcemap --minify",
       "build": "npm run build:public && npm run build:server && npm run build:shared",
-      "build:public:watch": "esbuild public/*.ts --bundle --outdir=public/dist --sourcemap --watch",
-      "build:server:watch": "esbuild server/*.ts --bundle --platform=node --outdir=server/dist --sourcemap --watch",
-      "build:shared:watch": "esbuild shared/*.ts --bundle --platform=node --outdir=shared/dist --sourcemap --watch",
-      "build:watch": "concurrently \"npm run build:public:watch\" \"npm run build:server:watch\" \"npm run build:shared:watch\"",
+      "build:public:watch": "npm run build:public -- --watch",
+      "build:server:watch": "npm run build:server -- --watch",
+      "build:shared:watch": "npm run build:shared -- --watch",
+      "build:watch": "concurrently -n public,server,shared \"npm run build:public:watch\" \"npm run build:server:watch\" \"npm run build:shared:watch\"",
       "start:server": "nodemon --watch server/dist --watch public/dist --watch shared/dist --exec 'clear && node --no-deprecation' server/dist/server.js",
-      "dev": "concurrently --raw -n build:public,build:server,build:shared,start:server \"npm run build:public:watch\" \"npm run build:server:watch\" \"npm run build:shared:watch\" \"npm run start:server\"",
-      "start": "node server/dist/server.js",
-      "host": "npm run build && tailscale funnel 127.0.0.1:3333"
+      "dev": "concurrently --raw -n build,server \"npm run build:watch\" \"npm run start:server\"",
+      "start": "node --no-deprecation server/dist/server.js",
+      "host": "tailscale funnel 127.0.0.1:3333 & npm run start"
    },
    "dependencies": {
       "concurrently": "^9.2.1",
