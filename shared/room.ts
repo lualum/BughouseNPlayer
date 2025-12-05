@@ -2,7 +2,7 @@ import { Chat } from "./chat";
 import { Chess, Color, Move, MoveResult } from "./chess";
 import { Player, PlayerStatus } from "./player";
 
-const defaultTime = 5000; // 3 minutes in milliseconds
+const defaultTime = 180000; // 3 minutes in milliseconds
 
 export enum RoomStatus {
    LOBBY = "lobby",

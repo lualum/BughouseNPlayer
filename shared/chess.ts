@@ -7,6 +7,7 @@ export class Chess {
    whiteCastleLong: boolean = true;
    blackCastleShort: boolean = true;
    blackCastleLong: boolean = true;
+   enPassantTarget: Position | null = null;
 
    constructor() {
       this.reset();
@@ -26,6 +27,7 @@ export class Chess {
          whiteCastleLong: this.whiteCastleLong,
          blackCastleShort: this.blackCastleShort,
          blackCastleLong: this.blackCastleLong,
+         enPassantTarget: this.enPassantTarget,
       };
    }
 
@@ -52,6 +54,7 @@ export class Chess {
       chess.whiteCastleLong = data.whiteCastleLong ?? true;
       chess.blackCastleShort = data.blackCastleShort ?? true;
       chess.blackCastleLong = data.blackCastleLong ?? true;
+      chess.enPassantTarget = data.enPassantTarget ?? null;
       return chess;
    }
 
@@ -63,6 +66,7 @@ export class Chess {
       this.whiteCastleLong = true;
       this.blackCastleShort = true;
       this.blackCastleLong = true;
+      this.enPassantTarget = null;
       this.board = Array(8)
          .fill(null)
          .map(() => Array(8).fill(null));
@@ -302,6 +306,21 @@ export class Chess {
       return Math.abs(from.col - to.col) === 2 && from.row === to.row;
    }
 
+   isEnPassantMove(from: Position, to: Position): boolean {
+      if (from.type !== "board" || to.type !== "board") return false;
+      if (!this.enPassantTarget || this.enPassantTarget.type !== "board")
+         return false;
+
+      const piece = this.board[from.row][from.col];
+      if (!piece || piece.type !== PieceType.PAWN) return false;
+
+      // Check if moving to the en passant target square
+      return (
+         to.row === this.enPassantTarget.row &&
+         to.col === this.enPassantTarget.col
+      );
+   }
+
    isLegalMove(from: Position, to: Position): boolean {
       if (from.type !== "board" || to.type !== "board") {
          return false;
@@ -331,10 +350,14 @@ export class Chess {
                }
             } else if (
                Math.abs(from.col - to.col) === 1 &&
-               to.row - from.row === direction &&
-               targetPiece
+               to.row - from.row === direction
             ) {
-               isValid = true;
+               // Regular capture or en passant
+               if (targetPiece) {
+                  isValid = true;
+               } else if (this.isEnPassantMove(from, to)) {
+                  isValid = true;
+               }
             }
             break;
          case PieceType.KNIGHT:
@@ -367,14 +390,32 @@ export class Chess {
 
       if (!isValid) return false;
 
+      // Simulate the move to check if it leaves the king in check
       const originalPiece = this.board[to.row][to.col];
+      let capturedEnPassantPiece: Piece | null = null;
+
+      // Handle en passant capture in simulation
+      if (piece.type === PieceType.PAWN && this.isEnPassantMove(from, to)) {
+         const captureRow = from.row;
+         const captureCol = to.col;
+         capturedEnPassantPiece = this.board[captureRow][captureCol];
+         this.board[captureRow][captureCol] = null;
+      }
+
       this.board[to.row][to.col] = piece;
       this.board[from.row][from.col] = null;
 
       const inCheck = this.isInCheck(piece.color);
 
+      // Restore board state
       this.board[from.row][from.col] = piece;
       this.board[to.row][to.col] = originalPiece;
+
+      if (capturedEnPassantPiece) {
+         const captureRow = from.row;
+         const captureCol = to.col;
+         this.board[captureRow][captureCol] = capturedEnPassantPiece;
+      }
 
       return !inCheck;
    }
@@ -428,6 +469,9 @@ export class Chess {
 
       this.removeFromPocket(from.pieceType, from.color);
 
+      // Clear en passant target when dropping a piece
+      this.enPassantTarget = null;
+
       this.turn = this.turn === Color.WHITE ? Color.BLACK : Color.WHITE;
       return { success: true, capturedPiece: null };
    }
@@ -442,7 +486,15 @@ export class Chess {
          return { success: false, capturedPiece: null };
       }
 
-      const captured = this.board[to.row][to.col];
+      let captured = this.board[to.row][to.col];
+
+      // Handle en passant capture
+      if (piece.type === PieceType.PAWN && this.isEnPassantMove(from, to)) {
+         const captureRow = from.row;
+         const captureCol = to.col;
+         captured = this.board[captureRow][captureCol];
+         this.board[captureRow][captureCol] = null;
+      }
 
       // Handle castling
       if (piece.type === PieceType.KING && this.isCastlingMove(from, to)) {
@@ -463,6 +515,18 @@ export class Chess {
          // Normal move
          this.board[to.row][to.col] = piece;
          this.board[from.row][from.col] = null;
+      }
+
+      // Set en passant target if pawn moved two squares
+      if (piece.type === PieceType.PAWN && Math.abs(to.row - from.row) === 2) {
+         const enPassantRow = (from.row + to.row) / 2;
+         this.enPassantTarget = {
+            type: "board",
+            row: enPassantRow,
+            col: to.col, // Changed from from.col to to.col
+         };
+      } else {
+         this.enPassantTarget = null;
       }
 
       // Pawn promotion
