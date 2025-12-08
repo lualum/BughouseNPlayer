@@ -8,15 +8,20 @@ body {
    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
    min-height: 100vh;
    overflow: hidden;
-   background-image: repeating-conic-gradient(#0F0F0F 0% 25%, #000000 0% 50%);
+   background-color: #040404;
    background-size: 160px 160px;
    background-position: center center;
    position: relative;
 }
 
-.glass {
-   backdrop-filter: blur(10px); 
-   -webkit-backdrop-filter: blur(10px);  
+:root {
+   --background: #000000;
+   --primary: #1c1c20;
+   --secondary: #17171a;
+   --accent: #242429;
+   --text: #94959B;
+   --hidden-text: #50515B;
+   --sidebar-margin: 2.5vh;
 }
 
 .screen {
@@ -24,7 +29,6 @@ body {
    align-items: center;
    justify-content: center;
    min-height: 100vh;
-   padding: 20px;
    position: relative;
    z-index: 1;
 }
@@ -36,41 +40,6 @@ body {
 input,
 label {
    display: block;
-   width: 100%;
-}
-
-.form-group {
-   margin-bottom: 20px;
-   text-align: left;
-}
-
-.form-group label {
-   margin-bottom: 8px;
-   color: #2c3e50;
-   font-weight: 600;
-}
-
-.form-group input {
-   padding: 12px 15px;
-   border: 2px solid #e9ecef;
-   border-radius: 10px;
-   font-size: 16px;
-}
-
-.form-group input:focus {
-   outline: none;
-   border-color: #5075f9;
-}
-
-button {
-   background: #5075f9;
-   color: white;
-   border: none;
-   padding: 15px 30px;
-   border-radius: 10px;
-   font-size: 16px;
-   font-weight: 600;
-   cursor: pointer;
    width: 100%;
 }
 
@@ -90,4 +59,20 @@ button {
 #menu-error:empty,
 #lobby-error:empty {
    display: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+   display: none;
+}
+
+.hide-scrollbar {
+   -ms-overflow-style: none;
+   scrollbar-width: none;
+   overscroll-behavior: none;
+}
+
+input {
+   border: none;
+   background: var(--accent);
+   display: flex;
 }

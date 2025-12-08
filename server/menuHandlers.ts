@@ -32,11 +32,8 @@ export function setupMenuHandlers(socket: GameSocket, io: Server): void {
       tryLeavePlayer(socket);
       if (socket.room && socket.room.code) {
          socket.leave(socket.room!.code);
-      } else {
-         console.log("Room not found???");
-         console.log(socket.room);
-         console.log(socket.room?.code);
       }
+
       socket.room = null;
    });
 

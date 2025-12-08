@@ -6,25 +6,50 @@ import { session } from "./session";
 let pendingAction: (() => void) | null = null;
 
 export function initMenuControls(): void {
-   // Menu buttons
-   const createRoomBtn = document.getElementById("create-room-btn");
-   createRoomBtn?.addEventListener("click", () => {
-      if (
-         checkAndPromptForName(() => {
-            session.socket.emit("create-room");
-         })
-      ) {
-         session.socket.emit("create-room");
-      }
-   });
+   // Combined action button
+   const actionBtn = document.getElementById("action-btn")!;
+   const roomCodeInput = document.getElementById(
+      "room-code-input"
+   ) as HTMLInputElement;
 
-   const joinRoomBtn = document.getElementById("join-room-btn");
-   joinRoomBtn?.addEventListener("click", () => {
-      const roomCodeInput = document.getElementById(
-         "room-code-input"
-      ) as HTMLInputElement;
+   // Update button appearance based on input
+   const updateActionButton = () => {
       const roomCode = roomCodeInput?.value.trim() || "";
-      if (roomCode.length === 4) {
+
+      if (roomCode.length === 0) {
+         // Create mode
+         actionBtn.querySelector("p")!.textContent = "+";
+         actionBtn.style.background = "#5DA061";
+         actionBtn.querySelector("p")!.style.transform = "translateY(0px)";
+      } else {
+         // Join mode
+         actionBtn.querySelector("p")!.textContent = "↪";
+         actionBtn.style.background = "#C74748";
+         actionBtn.querySelector("p")!.style.transform = "translateY(3px)";
+      }
+   };
+
+   // Initial update
+   updateActionButton();
+
+   // Update on input
+   roomCodeInput?.addEventListener("input", updateActionButton);
+
+   // Handle button click
+   actionBtn?.addEventListener("click", () => {
+      const roomCode = roomCodeInput?.value.trim() || "";
+
+      if (roomCode.length === 0) {
+         // Create room
+         if (
+            checkAndPromptForName(() => {
+               session.socket.emit("create-room");
+            })
+         ) {
+            session.socket.emit("create-room");
+         }
+      } else if (roomCode.length === 4) {
+         // Join room
          if (
             checkAndPromptForName(() => {
                session.socket.emit("join-room", roomCode);
@@ -37,11 +62,10 @@ export function initMenuControls(): void {
       }
    });
 
-   const roomCodeInput = document.getElementById("room-code-input");
    roomCodeInput?.addEventListener("keypress", (e: Event) => {
       const keyEvent = e as KeyboardEvent;
       if (keyEvent.key === "Enter") {
-         joinRoomBtn?.click();
+         actionBtn?.click();
       }
    });
 
@@ -52,12 +76,11 @@ export function initMenuControls(): void {
       session.socket.emit("toggle-ready");
    });
 
-   const leaveRoomBtn = document.getElementById("leave-room-btn");
+   const leaveRoomBtn = document.getElementById("leave-game-btn");
    leaveRoomBtn?.addEventListener("click", () => {
       leaveRoom();
    });
 
-   // Setup name change modal
    setupNameModal();
 }
 
@@ -221,7 +244,7 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
    if (lobbies.length === 0) {
       lobbiesContainer.innerHTML = `
       <div class="no-lobbies">
-        <p>No lobbies available</p>
+        <p>No Lobbies Found!</p>
         <p style="font-size: 12px; margin-top: 5px">Create a new room or wait for others to host!</p>
       </div>`;
       return;
@@ -236,7 +259,7 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
       <div class="lobby-info">
         <div class="lobby-code">${lobby.code}</div>
         <div class="lobby-players">
-          <span style="color: #ea4179; font-weight: 700;">${lobby.numPlayers}</span>
+          <span style="color: #C74748; font-weight: 700;">${lobby.numPlayers}</span>
         </div>
       </div>
       <button class="lobby-join-btn">Join</button>

@@ -7,14 +7,6 @@ export function checkURLForRoom(): void {
    const roomCode = pathParts[2]; // Assuming /games/ROOMCODE structure
 
    if (roomCode && roomCode.length === 4) {
-      const input = document.getElementById(
-         "room-code-input"
-      ) as HTMLInputElement;
-      if (input) {
-         input.value = roomCode;
-      }
-
-      // Check for name and prompt if needed, then join room
       if (
          checkAndPromptForName(() => {
             // Remove URL extension

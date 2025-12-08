@@ -57,6 +57,14 @@ export function showRoomElements(): void {
       for (let i = 0; i < session.room.game.matches.length; i++) {
          createMatchElements(i);
       }
+
+      const totalBoardsSpan = document.getElementById("totalBoards");
+      if (totalBoardsSpan) {
+         totalBoardsSpan.textContent =
+            session.room.game.matches.length.toString();
+      }
+
+      initScrollControls();
    }
 }
 
@@ -137,7 +145,7 @@ export function updateChatDisplay(): void {
       const senderName =
          message.id === session.player!.id
             ? "You"
-            : session!.room!.players!.get(message!.id)!.name;
+            : session!.room!.players!.get(message!.id)?.name ?? "Unknown";
       messageDiv.innerHTML = `
       <div class="chat-sender">${senderName}</div>
       <div class="chat-text">${escapeHtml(message.message)}</div>
@@ -145,6 +153,71 @@ export function updateChatDisplay(): void {
       chatMessagesDiv.appendChild(messageDiv);
    });
    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+}
+
+export function initScrollControls(): void {
+   const gameArea = document.getElementById("game-area")!;
+   const leftBtn = document.getElementById(
+      "scrollLeft"
+   ) as HTMLButtonElement | null;
+   const rightBtn = document.getElementById(
+      "scrollRight"
+   ) as HTMLButtonElement | null;
+
+   function getBoardAreaDimensions(): { board: number; gap: number } {
+      const boardArea = document.getElementsByClassName(
+         "match-container"
+      )[0] as HTMLElement;
+      return {
+         board: boardArea.clientWidth,
+         gap: parseFloat(getComputedStyle(boardArea).gap) || 0,
+      };
+   }
+
+   function getTotalBoards(): number {
+      return session.room?.game?.matches.length || 1;
+   }
+
+   function scrollBoards(direction: number): void {
+      const { board, gap } = getBoardAreaDimensions();
+      gameArea.scrollBy({
+         left: direction * (board + gap),
+         behavior: "smooth",
+      });
+      setTimeout(updateScrollButtons, 300);
+   }
+
+   function updateScrollButtons(): void {
+      const scrollLeft = gameArea.scrollLeft;
+      const maxScroll = gameArea.scrollWidth - gameArea.clientWidth;
+
+      if (leftBtn) leftBtn.disabled = scrollLeft <= 1;
+      if (rightBtn) rightBtn.disabled = scrollLeft >= maxScroll - 1;
+
+      const totalBoards = getTotalBoards();
+      const { board, gap } = getBoardAreaDimensions();
+
+      const leftBoard = Math.ceil((scrollLeft - gap) / (board + gap)) + 1;
+      const rightBoard =
+         totalBoards -
+         Math.ceil((maxScroll - scrollLeft - gap) / (board + gap));
+
+      const currentBoardSpan = document.getElementById("boardRange");
+      const totalBoardsSpan = document.getElementById("totalBoards");
+
+      if (currentBoardSpan)
+         if (leftBoard > rightBoard) currentBoardSpan.textContent = "_";
+         else if (leftBoard === rightBoard)
+            currentBoardSpan.textContent = `${leftBoard}`;
+         else currentBoardSpan.textContent = `${leftBoard}-${rightBoard}`;
+      if (totalBoardsSpan) totalBoardsSpan.textContent = totalBoards.toString();
+   }
+
+   leftBtn?.addEventListener("click", () => scrollBoards(-1));
+   rightBtn?.addEventListener("click", () => scrollBoards(1));
+   gameArea.addEventListener("scroll", updateScrollButtons);
+
+   updateScrollButtons();
 }
 
 export function startGameUI(): void {
@@ -169,6 +242,7 @@ export function startGameUI(): void {
    // If more boards have this player on top than bottom, flip all boards
    setVisualFlipped(topBottomDelta > 0);
    updateUIAllGame();
+   initScrollControls();
 }
 
 export function endGameUI(): void {
