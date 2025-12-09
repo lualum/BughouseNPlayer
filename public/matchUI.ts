@@ -33,9 +33,18 @@ export function getBoardFlipState(boardID: number): boolean {
 
 function formatTime(time: number): string {
    const milliseconds = Math.max(time, 0);
-   const totalSeconds = Math.floor(milliseconds / 1000);
+   const totalSeconds = milliseconds / 1000;
+
+   if (totalSeconds < 30) {
+      // Show deciseconds (tenths of a second) for times under 30 seconds
+      const seconds = Math.floor(totalSeconds);
+      const deciseconds = Math.floor((totalSeconds % 1) * 10);
+      return `${seconds}.${deciseconds}`;
+   }
+
+   // Standard MM:SS format for 30 seconds and above
    const minutes = Math.floor(totalSeconds / 60);
-   const seconds = totalSeconds % 60;
+   const seconds = Math.floor(totalSeconds) % 60;
    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
 }
 
