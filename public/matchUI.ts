@@ -1,11 +1,11 @@
 import { Color } from "../shared/chess";
 import { Match, RoomStatus } from "../shared/room";
-import { session } from "./session";
 import {
    createBoardElement,
    createPocketElement,
    updateUIBoard,
 } from "./boardUI";
+import { session } from "./session";
 
 export let visualFlipped: boolean = false;
 let intervalID: number;

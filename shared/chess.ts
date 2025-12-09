@@ -119,7 +119,10 @@ export class Chess {
 
    addToPocket(piece: Piece): void {
       const pocket = this.getPocket(piece.color);
-      pocket.set(piece.type, (pocket.get(piece.type) || 0) + 1);
+      // Convert promoted queens to pawns when adding to pocket
+      const typeToAdd =
+         piece.type === PieceType.PROMOTED_QUEEN ? PieceType.PAWN : piece.type;
+      pocket.set(typeToAdd, (pocket.get(typeToAdd) || 0) + 1);
    }
 
    removeFromPocket(pieceType: PieceType, color: Color): boolean {
@@ -190,6 +193,7 @@ export class Chess {
             return this.isDiagonalPath(from, to);
          case PieceType.ROOK:
             return this.isStraightPath(from, to);
+         case PieceType.PROMOTED_QUEEN:
          case PieceType.QUEEN:
             return (
                this.isDiagonalPath(from, to) || this.isStraightPath(from, to)
@@ -371,6 +375,7 @@ export class Chess {
          case PieceType.ROOK:
             isValid = this.isStraightPath(from, to);
             break;
+         case PieceType.PROMOTED_QUEEN:
          case PieceType.QUEEN:
             isValid =
                this.isDiagonalPath(from, to) || this.isStraightPath(from, to);
@@ -486,7 +491,13 @@ export class Chess {
          return { success: false, capturedPiece: null };
       }
 
-      let captured = this.board[to.row][to.col];
+      let captured =
+         this.board[to.row][to.col]?.type === PieceType.PROMOTED_QUEEN
+            ? {
+                 type: PieceType.PAWN,
+                 color: this.board[to.row][to.col]!.color,
+              }
+            : this.board[to.row][to.col];
 
       // Handle en passant capture
       if (piece.type === PieceType.PAWN && this.isEnPassantMove(from, to)) {
@@ -523,16 +534,16 @@ export class Chess {
          this.enPassantTarget = {
             type: "board",
             row: enPassantRow,
-            col: to.col, // Changed from from.col to to.col
+            col: to.col,
          };
       } else {
          this.enPassantTarget = null;
       }
 
-      // Pawn promotion
+      // Pawn promotion - use PROMOTED_QUEEN instead of QUEEN
       if (piece.type === PieceType.PAWN && (to.row === 0 || to.row === 7)) {
          this.board[to.row][to.col] = {
-            type: PieceType.QUEEN,
+            type: PieceType.PROMOTED_QUEEN,
             color: piece.color,
          };
       }
@@ -668,6 +679,7 @@ export enum PieceType {
    BISHOP = "B",
    KNIGHT = "N",
    PAWN = "P",
+   PROMOTED_QUEEN = "Q+",
 }
 
 export interface Piece {

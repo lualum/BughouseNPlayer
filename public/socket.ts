@@ -6,8 +6,9 @@ import {
    startGameUI,
    endGameUI,
    showRoomElements,
-   updateChatDisplay,
+   updateUIAllChat,
    updateUIPlayerList,
+   updateUIPushChat,
 } from "./gameUI";
 import {
    startTimeUpdates,
@@ -46,7 +47,7 @@ export function initSocketEvents(): void {
       showRoomElements();
 
       updateUIPlayerList();
-      updateChatDisplay();
+      updateUIAllChat();
       updateUIAllBoards();
       updateUIAllPlayers();
       updateUITime();
@@ -132,7 +133,8 @@ export function initSocketEvents(): void {
    session.socket.on("p-sent-chat", (id: string, message: string) => {
       console.log(`Chat message from ${id}: ${message}`);
       session.room?.chat.push(id, message);
-      updateChatDisplay();
+
+      updateUIPushChat({ id, message });
    });
 
    session.socket.on("error", (error: string) => {

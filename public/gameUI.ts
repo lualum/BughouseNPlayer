@@ -1,14 +1,11 @@
+import { ChatMessage } from "../shared/chat";
 import { Color } from "../shared/chess";
 import { PlayerStatus } from "../shared/player";
 import {
+   createMatchElements,
    setVisualFlipped,
    toggleVisualFlipped,
-   updateUIAllBoards,
-} from "./matchUI";
-import {
-   createMatchElements,
    updateUIAllGame,
-   updateUIAllPlayers,
 } from "./matchUI";
 import { leaveRoom } from "./menuUI";
 import { session } from "./session";
@@ -132,26 +129,33 @@ export function updateUIPlayerList(): void {
    }
 }
 
-export function updateChatDisplay(): void {
+export function updateUIAllChat(): void {
    const chatMessagesDiv = document.getElementById("chat-messages");
    if (!chatMessagesDiv) return;
 
    chatMessagesDiv.innerHTML = "";
    session.room?.chat.messages.forEach((message) => {
-      const messageDiv = document.createElement("div");
-      messageDiv.className = `chat-message ${
-         message.id === session.player!.id ? "own" : ""
-      }`;
-      const senderName =
-         message.id === session.player!.id
-            ? "You"
-            : session!.room!.players!.get(message!.id)?.name ?? "Unknown";
-      messageDiv.innerHTML = `
+      updateUIPushChat(message);
+   });
+}
+
+export function updateUIPushChat(message: ChatMessage): void {
+   const chatMessagesDiv = document.getElementById("chat-messages");
+   if (!chatMessagesDiv) return;
+
+   const messageDiv = document.createElement("div");
+   messageDiv.className = `chat-message ${
+      message.id === session.player!.id ? "own" : ""
+   }`;
+   const senderName =
+      message.id === session.player!.id
+         ? "You"
+         : session!.room!.players!.get(message!.id)?.name ?? "Unknown";
+   messageDiv.innerHTML = `
       <div class="chat-sender">${senderName}</div>
       <div class="chat-text">${escapeHtml(message.message)}</div>
     `;
-      chatMessagesDiv.appendChild(messageDiv);
-   });
+   chatMessagesDiv.appendChild(messageDiv);
    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
 
@@ -251,9 +255,7 @@ export function endGameUI(): void {
       readyBtn.style.display = "block";
    }
 
-   updateUIAllBoards();
-   updateUIAllPlayers();
-   updateUIPlayerList();
+   updateUIAllGame();
 }
 
 function escapeHtml(text: string): string {

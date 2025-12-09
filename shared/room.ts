@@ -38,7 +38,7 @@ export class Room {
       // Initialize two chess games for the room
       this.game.matches.push(new Match(defaultTime, false));
       this.game.matches.push(new Match(defaultTime, true));
-      // this.game.matches.push(new Match(defaultTime, false));
+      this.game.matches.push(new Match(defaultTime, false));
    }
 
    serialize(): any {

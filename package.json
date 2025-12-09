@@ -11,8 +11,9 @@
       "build:shared:watch": "esbuild shared/*.ts --bundle --platform=node --outdir=shared/dist --sourcemap --minify --watch",
       "build:watch": "concurrently -n public,server,shared \"pnpm run build:public:watch\" \"pnpm run build:server:watch\" \"pnpm run build:shared:watch\"",
       "start:server": "nodemon --watch server/dist --watch public/dist --watch shared/dist --exec 'clear && node --no-deprecation' server/dist/server.js",
+      "start": "pnpm run build && node --no-deprecation server/dist/server.js",
       "dev": "concurrently --raw -n build,server \"pnpm run build:watch\" \"pnpm run start:server\"",
-      "start": "tailscale funnel 127.0.0.1:${PORT:-3000} & node server.js"
+      "host": "pnpm run build > /dev/null 2>&1 && concurrently --raw -n server,funnel \"node --no-deprecation server/dist/server.js\" \"tailscale funnel 127.0.0.1:${PORT:-3000}\""
    },
    "dependencies": {
       "concurrently": "^9.2.1",

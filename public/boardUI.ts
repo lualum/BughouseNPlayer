@@ -54,7 +54,7 @@ function createPocketPosition(
 }
 
 function getPieceImageKey(piece: Piece): string {
-   const baseKey = piece.type;
+   const baseKey = piece.type.charAt(0); // K, Q, R, B, N, P (excludes Q+)
    return piece.color === Color.WHITE
       ? baseKey.toUpperCase()
       : baseKey.toLowerCase();
