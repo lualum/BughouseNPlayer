@@ -106,7 +106,6 @@ export class Chess {
 
    getPiece(pos: Position): Piece | null {
       if (pos.type === "board") {
-         console.log(this.board[pos.row]);
          return this.board[pos.row][pos.col];
       } else {
          const pocket = this.getPocket(pos.color);

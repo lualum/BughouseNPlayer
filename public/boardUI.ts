@@ -30,7 +30,7 @@ interface DragState {
    boardID: number;
    position: Position;
    element: HTMLImageElement;
-   originalElement: HTMLElement;
+   piece: Piece;
 }
 
 let dragState: DragState | null = null;
@@ -106,6 +106,10 @@ export function createBoardElement(boardID: number): HTMLDivElement {
          square.dataset.boardId = boardID.toString();
          square.dataset.row = row.toString();
          square.dataset.col = col.toString();
+
+         // Add event listeners to squares
+         square.addEventListener("mousedown", handleSquareMouseDown);
+
          board.appendChild(square);
       }
    }
@@ -170,14 +174,25 @@ export function updateUIBoard(boardID: number, flipped: boolean): void {
                session.player?.id;
 
          if (isMyTurn && isMyPiece) {
-            img.style.cursor = "grab";
-            img.addEventListener("mousedown", handleMouseDown);
+            element.style.cursor = "grab";
          } else {
-            img.style.cursor = "default";
+            element.style.cursor = "default";
+         }
+
+         if (
+            dragState &&
+            dragState.boardID === boardID &&
+            dragState.position.type === "board" &&
+            dragState.position.row === displayRow &&
+            dragState.position.col === displayCol
+         ) {
+            img.style.opacity = "0";
          }
 
          img.ondragstart = () => false;
          element.appendChild(img);
+      } else {
+         element.style.cursor = "default";
       }
    });
 
@@ -242,7 +257,7 @@ function updatePocket(
 
          if (isMyTurn && isMyPiece) {
             img.style.cursor = "grab";
-            img.addEventListener("mousedown", handleMouseDown);
+            img.addEventListener("mousedown", handlePocketMouseDown);
          } else {
             img.style.cursor = "default";
          }
@@ -326,7 +341,75 @@ function showAnnotations(boardID: number, position: Position): void {
 }
 
 // Drag and Drop Handlers
-function handleMouseDown(e: MouseEvent): void {
+function handleSquareMouseDown(e: MouseEvent): void {
+   const square = e.currentTarget as HTMLElement;
+   if (!square) return;
+
+   const boardID = getBoardID(square);
+   const flipped = isFlipped(boardID);
+   const row = parseInt(square.dataset.row || "0");
+   const col = parseInt(square.dataset.col || "0");
+   const displayRow = flipped ? 7 - row : row;
+   const displayCol = flipped ? 7 - col : col;
+   const position = createPosition(displayRow, displayCol);
+
+   const boardInstance = getBoardInstance(boardID);
+   const piece = boardInstance?.getPiece(position);
+
+   if (!piece) return;
+
+   const isMyTurn = boardInstance.turn === piece.color;
+   const isMyPiece =
+      session.room?.status === RoomStatus.PLAYING &&
+      session.room?.game.matches[boardID].getPlayer(piece.color)?.id ===
+         session.player?.id;
+
+   if (!isMyTurn || !isMyPiece) return;
+
+   e.preventDefault();
+
+   console.log(
+      `[DRAG START] Selected from ${positionToString(
+         position
+      )} on board ${boardID}`
+   );
+
+   showAnnotations(boardID, position);
+
+   // Create drag image
+   const pieceImg = square.querySelector("img") as HTMLImageElement;
+   if (!pieceImg) return;
+
+   const dragImg = document.createElement("img") as HTMLImageElement;
+   dragImg.src = pieceImg.src;
+   dragImg.style.position = "fixed";
+   dragImg.style.zIndex = "9999";
+   dragImg.style.pointerEvents = "none";
+   dragImg.style.width = pieceImg.offsetWidth + "px";
+   dragImg.style.height = pieceImg.offsetHeight + "px";
+   dragImg.style.opacity = "1";
+   dragImg.style.cursor = "grabbing";
+
+   const centerOffsetX = pieceImg.offsetWidth / 2;
+   const centerOffsetY = pieceImg.offsetHeight / 2;
+   dragImg.style.left = e.clientX - centerOffsetX + "px";
+   dragImg.style.top = e.clientY - centerOffsetY + "px";
+
+   document.body.appendChild(dragImg);
+   pieceImg.style.opacity = "0";
+
+   dragState = {
+      boardID,
+      position,
+      element: dragImg,
+      piece,
+   };
+
+   document.addEventListener("mousemove", handleMouseMove);
+   document.addEventListener("mouseup", handleMouseUp);
+}
+
+function handlePocketMouseDown(e: MouseEvent): void {
    const target = e.target as HTMLElement;
    if (!target) return;
 
@@ -360,13 +443,17 @@ function handleMouseDown(e: MouseEvent): void {
    dragImg.style.top = e.clientY - centerOffsetY + "px";
 
    document.body.appendChild(dragImg);
-   target.style.opacity = "0";
+
+   const piece: Piece = {
+      type: target.dataset.pieceType as PieceType,
+      color: target.dataset.pieceColor as Color,
+   };
 
    dragState = {
       boardID,
       position,
       element: dragImg,
-      originalElement: target,
+      piece,
    };
 
    document.addEventListener("mousemove", handleMouseMove);
@@ -392,7 +479,6 @@ function handleMouseUp(e: MouseEvent): void {
 
    // Clean up drag element
    dragState.element.remove();
-   dragState.originalElement.style.opacity = "1";
 
    const dropTarget = document.elementFromPoint(
       e.clientX,
@@ -439,13 +525,11 @@ function handleMouseUp(e: MouseEvent): void {
       to: toPosition,
    };
 
-   const boardInstance = getBoardInstance(state.boardID);
-   const piece = boardInstance?.getPiece(state.position);
    const result = session.room!.game.tryApplyMove(state.boardID, move);
 
    if (result.success) {
       console.log(`[MOVE SUCCESS] Move succeeded`);
-      session.socket.emit("move-board", state.boardID, piece!.color, move);
+      session.socket.emit("move-board", state.boardID, state.piece.color, move);
 
       if (result.capturedPiece) {
          console.log(
