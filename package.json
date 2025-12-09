@@ -12,11 +12,11 @@
       "build:watch": "concurrently -n public,server,shared \"pnpm run build:public:watch\" \"pnpm run build:server:watch\" \"pnpm run build:shared:watch\"",
       "start:server": "nodemon --watch server/dist --watch public/dist --watch shared/dist --exec 'clear && node --no-deprecation' server/dist/server.js",
       "dev": "concurrently --raw -n build,server \"pnpm run build:watch\" \"pnpm run start:server\"",
-      "start": "node --no-deprecation server/dist/server.js",
-      "host": "tailscale funnel 127.0.0.1:3000 & pnpm run start"
+      "start": "tailscale funnel 127.0.0.1:${PORT:-3000} & node server.js"
    },
    "dependencies": {
       "concurrently": "^9.2.1",
+      "dotenv": "^17.2.3",
       "esbuild": "^0.25.10",
       "express": "^5.1.0",
       "socket.io": "^4.8.1",

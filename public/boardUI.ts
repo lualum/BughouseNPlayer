@@ -9,6 +9,7 @@ import {
    Position,
 } from "../shared/chess";
 import { RoomStatus } from "../shared/room";
+import { visualFlipped } from "./matchUI";
 import { session } from "./session";
 
 const PIECE_IMAGES = {
@@ -26,14 +27,15 @@ const PIECE_IMAGES = {
    p: "/pieces/bp.png",
 };
 
-interface DragState {
+interface SelectionState {
    boardID: number;
    position: Position;
-   element: HTMLImageElement;
    piece: Piece;
+   justSelected: boolean;
+   dragElement: HTMLImageElement | null;
 }
 
-let dragState: DragState | null = null;
+let selectedState: SelectionState | null = null;
 
 // Utility Functions
 function getBoardInstance(boardID: number): Chess {
@@ -58,12 +60,18 @@ function getPieceImageKey(piece: Piece): string {
       : baseKey.toLowerCase();
 }
 
-function positionToString(position: Position): string {
-   if (position.type === "pocket") {
-      return `pocket(${position.color} ${position.pieceType})`;
-   } else {
-      return `board(row: ${position.row}, col: ${position.col})`;
+function positionsEqual(pos1: Position, pos2: Position): boolean {
+   if (pos1.type !== pos2.type) return false;
+
+   if (pos1.type === "board" && pos2.type === "board") {
+      return pos1.row === pos2.row && pos1.col === pos2.col;
    }
+
+   if (pos1.type === "pocket" && pos2.type === "pocket") {
+      return pos1.color === pos2.color && pos1.pieceType === pos2.pieceType;
+   }
+
+   return false;
 }
 
 function getPositionFromElement(element: HTMLElement): Position {
@@ -87,7 +95,30 @@ function getBoardID(element: HTMLElement): number {
 }
 
 function isFlipped(boardID: number): boolean {
-   return session.room?.game.matches[boardID]?.flipped || false;
+   return session.room!.game.matches[boardID].flipped !== visualFlipped;
+}
+
+function getSquareElement(
+   boardID: number,
+   position: BoardPosition
+): HTMLElement | null {
+   return document.querySelector(
+      `.square[data-board-id="${boardID}"][data-row="${position.row}"][data-col="${position.col}"]`
+   ) as HTMLElement;
+}
+
+function getPieceImageElement(
+   boardID: number,
+   position: Position
+): HTMLImageElement | null {
+   if (position.type === "board") {
+      const square = getSquareElement(boardID, position);
+      return square?.querySelector("img") as HTMLImageElement | null;
+   } else {
+      return document.querySelector(
+         `img[data-board-id="${boardID}"][data-pocket="true"][data-piece-type="${position.pieceType}"][data-piece-color="${position.color}"]`
+      ) as HTMLImageElement | null;
+   }
 }
 
 // Board Element Creation
@@ -109,6 +140,7 @@ export function createBoardElement(boardID: number): HTMLDivElement {
 
          // Add event listeners to squares
          square.addEventListener("mousedown", handleSquareMouseDown);
+         square.addEventListener("mouseup", handleSquareMouseUp);
 
          board.appendChild(square);
       }
@@ -128,28 +160,148 @@ export function createPocketElement(
    return pocket;
 }
 
+function holdPiece(mouseEvent: MouseEvent): void {
+   if (!selectedState) return;
+
+   // Drop the selected piece (if there is one)
+   dropSelectedPiece();
+
+   // Get the piece image element
+   const pieceImg = getPieceImageElement(
+      selectedState.boardID,
+      selectedState.position
+   );
+   if (!pieceImg) return;
+
+   // Create drag element
+   const dragImg = document.createElement("img") as HTMLImageElement;
+   dragImg.src = pieceImg.src;
+   dragImg.style.position = "fixed";
+   dragImg.style.zIndex = "9999";
+   dragImg.style.pointerEvents = "none";
+   dragImg.style.width = pieceImg.offsetWidth + "px";
+   dragImg.style.height = pieceImg.offsetHeight + "px";
+   dragImg.style.opacity = "1";
+   dragImg.style.cursor = "grabbing";
+
+   const centerOffsetX = pieceImg.offsetWidth / 2;
+   const centerOffsetY = pieceImg.offsetHeight / 2;
+   dragImg.style.left = mouseEvent.clientX - centerOffsetX + "px";
+   dragImg.style.top = mouseEvent.clientY - centerOffsetY + "px";
+
+   document.body.appendChild(dragImg);
+   selectedState.dragElement = dragImg;
+
+   // Add mouse move listener
+   document.addEventListener("mousemove", handleMouseMove);
+
+   // Hide original piece on board
+   if (selectedState.position.type === "board") {
+      const square = getSquareElement(
+         selectedState.boardID,
+         selectedState.position
+      );
+      if (square) {
+         const img = square.querySelector("img");
+         if (img) {
+            img.style.opacity = "0";
+         }
+      }
+   }
+}
+
+function dropSelectedPiece(): void {
+   if (!selectedState) return;
+
+   // Remove drag element
+   if (selectedState.dragElement) {
+      selectedState.dragElement.remove();
+      selectedState.dragElement = null;
+   }
+
+   // Show original piece on board
+   if (selectedState.position.type === "board") {
+      const square = getSquareElement(
+         selectedState.boardID,
+         selectedState.position
+      );
+      if (square) {
+         const img = square.querySelector("img");
+         if (img) {
+            img.style.opacity = "1";
+         }
+      }
+   }
+
+   // Remove mouse move listener
+   document.removeEventListener("mousemove", handleMouseMove);
+}
+
+// Selection Functions
+function selectPiece(boardID: number, position: Position, piece: Piece): void {
+   const previousSelected = selectedState?.position;
+   const justSelected = previousSelected
+      ? !positionsEqual(previousSelected, position)
+      : true;
+
+   deselectPiece();
+
+   selectedState = {
+      boardID,
+      position,
+      piece,
+      justSelected,
+      dragElement: null,
+   };
+
+   updateAnnotations();
+}
+
+function deselectPiece(): void {
+   if (!selectedState) return;
+
+   // Drop piece if holding
+   dropSelectedPiece();
+
+   // Remove drag element if it still exists
+   selectedState.dragElement?.remove();
+
+   // Remove mouse move listener
+   document.removeEventListener("mousemove", handleMouseMove);
+
+   const boardID = selectedState.boardID;
+   selectedState = null;
+   updateUIBoard(boardID);
+}
+
 // UI Update Functions - Boards
-export function updateUIBoard(boardID: number, flipped: boolean): void {
+export function updateUIBoard(boardID: number): void {
    const boardInstance = getBoardInstance(boardID);
    if (!boardInstance) {
       console.error("Board instance not found:", boardID);
       return;
    }
 
-   clearAnnotations(boardID);
-
    const squares = document.querySelectorAll(
       `.square[data-board-id="${boardID}"]`
    );
 
-   squares.forEach((square) => {
-      const element = square as HTMLElement;
-      const row = parseInt(element.dataset.row || "0");
-      const col = parseInt(element.dataset.col || "0");
+   const flipped = isFlipped(boardID);
 
-      const displayRow = flipped ? 7 - row : row;
-      const displayCol = flipped ? 7 - col : col;
-      const position = createPosition(displayRow, displayCol);
+   squares.forEach((square, index) => {
+      const element = square as HTMLElement;
+
+      const visualRow = Math.floor(index / 8);
+      const visualCol = index % 8;
+
+      const row = flipped ? 7 - visualRow : visualRow;
+      const col = flipped ? 7 - visualCol : visualCol;
+
+      // Update dataset to reflect display coordinates
+      element.dataset.row = row.toString();
+      element.dataset.col = col.toString();
+
+      const position = createPosition(row, col);
       const piece = boardInstance.getPiece(position);
 
       element.innerHTML = "";
@@ -163,8 +315,8 @@ export function updateUIBoard(boardID: number, flipped: boolean): void {
          img.dataset.boardId = boardID.toString();
          img.dataset.pieceType = piece.type;
          img.dataset.pieceColor = piece.color;
-         img.dataset.row = displayRow.toString();
-         img.dataset.col = displayCol.toString();
+         img.dataset.row = row.toString();
+         img.dataset.col = col.toString();
          img.dataset.pocket = "false";
 
          const isMyTurn = boardInstance.turn === piece.color;
@@ -179,12 +331,15 @@ export function updateUIBoard(boardID: number, flipped: boolean): void {
             element.style.cursor = "default";
          }
 
+         // Hide piece if it's currently selected and being held
          if (
-            dragState &&
-            dragState.boardID === boardID &&
-            dragState.position.type === "board" &&
-            dragState.position.row === displayRow &&
-            dragState.position.col === displayCol
+            selectedState &&
+            selectedState.dragElement &&
+            selectedState.boardID === boardID &&
+            selectedState.position.type === "board" &&
+            position.type === "board" &&
+            selectedState.position.row === row &&
+            selectedState.position.col === col
          ) {
             img.style.opacity = "0";
          }
@@ -211,6 +366,8 @@ export function updateUIBoard(boardID: number, flipped: boolean): void {
       bottomColor,
       boardID
    );
+
+   updateAnnotations();
 }
 
 function updatePocket(
@@ -244,6 +401,7 @@ function updatePocket(
       if (count && count > 0) {
          const pieceEl = document.createElement("div");
          pieceEl.className = "pocket-piece";
+         pieceEl.dataset.boardId = boardID.toString();
 
          const img = document.createElement("img");
          img.dataset.boardId = boardID.toString();
@@ -258,6 +416,7 @@ function updatePocket(
          if (isMyTurn && isMyPiece) {
             img.style.cursor = "grab";
             img.addEventListener("mousedown", handlePocketMouseDown);
+            img.addEventListener("mouseup", handlePocketMouseUp);
          } else {
             img.style.cursor = "default";
          }
@@ -273,17 +432,6 @@ function updatePocket(
 
          pocket.appendChild(pieceEl);
       }
-   });
-}
-
-// Annotation Functions
-function clearAnnotations(boardID: number): void {
-   const squares = document.querySelectorAll(
-      `.square[data-board-id="${boardID}"]`
-   );
-   squares.forEach((square) => {
-      const element = square as HTMLElement;
-      element.classList.remove("highlight", "legal-move", "has-piece");
    });
 }
 
@@ -304,18 +452,42 @@ function annotateSquare(
    }
 }
 
-function showAnnotations(boardID: number, position: Position): void {
+function updateAnnotations(): void {
+   // Clear board highlights
+   const squares = document.querySelectorAll(`.square`);
+   squares.forEach((square) => {
+      const element = square as HTMLElement;
+      element.classList.remove("highlight", "legal-move", "has-piece");
+   });
+
+   // Clear pocket highlights
+   const pocketPieces = document.querySelectorAll(`.pocket-piece`);
+   pocketPieces.forEach((piece) => {
+      const element = piece as HTMLElement;
+      element.classList.remove("highlight");
+   });
+
+   if (!selectedState) return;
+   const { boardID, position } = selectedState;
    const boardInstance = getBoardInstance(boardID);
    if (!boardInstance) return;
 
-   clearAnnotations(boardID);
-   const flipped = isFlipped(boardID);
-
    // Highlight source square if it's a board position
    if (position.type === "board") {
-      const highlightRow = flipped ? 7 - position.row : position.row;
-      const highlightCol = flipped ? 7 - position.col : position.col;
-      annotateSquare(boardID, highlightRow, highlightCol, ["highlight"]);
+      annotateSquare(boardID, position.row, position.col, ["highlight"]);
+   }
+
+   // Highlight source pocket piece if it's a pocket position
+   if (position.type === "pocket") {
+      const pocketImg = document.querySelector(
+         `img[data-board-id="${boardID}"][data-pocket="true"][data-piece-type="${position.pieceType}"][data-piece-color="${position.color}"]`
+      );
+      if (pocketImg) {
+         const pocketPiece = pocketImg.closest(".pocket-piece") as HTMLElement;
+         if (pocketPiece) {
+            pocketPiece.classList.add("highlight");
+         }
+      }
    }
 
    // Show legal moves
@@ -332,213 +504,159 @@ function showAnnotations(boardID: number, position: Position): void {
                : boardInstance.isLegalMove(position, toPosition);
 
          if (isLegal) {
-            const displayRow = flipped ? 7 - r : r;
-            const displayCol = flipped ? 7 - c : c;
-            annotateSquare(boardID, displayRow, displayCol, ["legal-move"]);
+            annotateSquare(boardID, r, c, ["legal-move"]);
          }
       }
    }
 }
 
-// Drag and Drop Handlers
+// Mouse Move Handler
+function handleMouseMove(e: MouseEvent): void {
+   if (!selectedState || !selectedState.dragElement) return;
+   e.preventDefault();
+
+   const centerOffsetX = selectedState.dragElement.offsetWidth / 2;
+   const centerOffsetY = selectedState.dragElement.offsetHeight / 2;
+
+   selectedState.dragElement.style.left = e.clientX - centerOffsetX + "px";
+   selectedState.dragElement.style.top = e.clientY - centerOffsetY + "px";
+}
+
+// Mouse Event Handlers
 function handleSquareMouseDown(e: MouseEvent): void {
    const square = e.currentTarget as HTMLElement;
    if (!square) return;
 
    const boardID = getBoardID(square);
-   const flipped = isFlipped(boardID);
    const row = parseInt(square.dataset.row || "0");
    const col = parseInt(square.dataset.col || "0");
-   const displayRow = flipped ? 7 - row : row;
-   const displayCol = flipped ? 7 - col : col;
-   const position = createPosition(displayRow, displayCol);
+   const targetPosition = createPosition(row, col);
 
    const boardInstance = getBoardInstance(boardID);
-   const piece = boardInstance?.getPiece(position);
-
-   if (!piece) return;
-
-   const isMyTurn = boardInstance.turn === piece.color;
-   const isMyPiece =
-      session.room?.status === RoomStatus.PLAYING &&
-      session.room?.game.matches[boardID].getPlayer(piece.color)?.id ===
-         session.player?.id;
-
-   if (!isMyTurn || !isMyPiece) return;
+   const pieceAtTarget = boardInstance?.getPiece(targetPosition);
 
    e.preventDefault();
 
-   console.log(
-      `[DRAG START] Selected from ${positionToString(
-         position
-      )} on board ${boardID}`
-   );
+   if (selectedState && selectedState.boardID === boardID) {
+      // Try to apply move
+      const move: Move = {
+         from: selectedState.position,
+         to: targetPosition,
+      };
+      const result = session.room!.game.tryApplyMove(boardID, move);
 
-   showAnnotations(boardID, position);
+      if (result.success) {
+         session.socket.emit(
+            "move-board",
+            boardID,
+            selectedState.piece.color,
+            move
+         );
+         deselectPiece();
+      } else if (!pieceAtTarget || !isMyPiece(boardID, pieceAtTarget)) {
+         deselectPiece();
+      } else if (
+         isMyPiece(boardID, pieceAtTarget) &&
+         boardInstance.turn === pieceAtTarget.color
+      ) {
+         selectPiece(boardID, targetPosition, pieceAtTarget);
+         holdPiece(e);
+      }
+   } else if (
+      pieceAtTarget &&
+      isMyPiece(boardID, pieceAtTarget) &&
+      boardInstance.turn === pieceAtTarget.color
+   ) {
+      selectPiece(boardID, targetPosition, pieceAtTarget);
+      holdPiece(e);
+   }
+}
 
-   // Create drag image
-   const pieceImg = square.querySelector("img") as HTMLImageElement;
-   if (!pieceImg) return;
+function handleSquareMouseUp(e: MouseEvent): void {
+   const square = e.currentTarget as HTMLElement;
+   if (!square || !selectedState) return;
 
-   const dragImg = document.createElement("img") as HTMLImageElement;
-   dragImg.src = pieceImg.src;
-   dragImg.style.position = "fixed";
-   dragImg.style.zIndex = "9999";
-   dragImg.style.pointerEvents = "none";
-   dragImg.style.width = pieceImg.offsetWidth + "px";
-   dragImg.style.height = pieceImg.offsetHeight + "px";
-   dragImg.style.opacity = "1";
-   dragImg.style.cursor = "grabbing";
+   const boardID = getBoardID(square);
+   if (selectedState.boardID !== boardID) return;
 
-   const centerOffsetX = pieceImg.offsetWidth / 2;
-   const centerOffsetY = pieceImg.offsetHeight / 2;
-   dragImg.style.left = e.clientX - centerOffsetX + "px";
-   dragImg.style.top = e.clientY - centerOffsetY + "px";
+   const row = parseInt(square.dataset.row || "0");
+   const col = parseInt(square.dataset.col || "0");
+   const targetPosition = createPosition(row, col);
 
-   document.body.appendChild(dragImg);
-   pieceImg.style.opacity = "0";
+   e.preventDefault();
 
-   dragState = {
-      boardID,
-      position,
-      element: dragImg,
-      piece,
+   // Try to apply move
+   const move: Move = {
+      from: selectedState.position,
+      to: targetPosition,
    };
 
-   document.addEventListener("mousemove", handleMouseMove);
-   document.addEventListener("mouseup", handleMouseUp);
+   const result = session.room!.game.tryApplyMove(boardID, move);
+
+   if (result.success) {
+      session.socket.emit(
+         "move-board",
+         boardID,
+         selectedState.piece.color,
+         move
+      );
+
+      deselectPiece();
+   } else if (
+      !selectedState.justSelected &&
+      positionsEqual(selectedState.position, targetPosition)
+   ) {
+      deselectPiece();
+   } else {
+      // Move failed, drop the piece back
+      dropSelectedPiece();
+   }
 }
 
 function handlePocketMouseDown(e: MouseEvent): void {
    const target = e.target as HTMLElement;
    if (!target) return;
 
-   e.preventDefault();
-
    const boardID = getBoardID(target);
-   const position = getPositionFromElement(target);
-
-   console.log(
-      `[DRAG START] Selected from ${positionToString(
-         position
-      )} on board ${boardID}`
-   );
-
-   showAnnotations(boardID, position);
-
-   // Create drag image
-   const dragImg = document.createElement("img") as HTMLImageElement;
-   dragImg.src = (target as HTMLImageElement).src;
-   dragImg.style.position = "fixed";
-   dragImg.style.zIndex = "9999";
-   dragImg.style.pointerEvents = "none";
-   dragImg.style.width = target.offsetWidth + "px";
-   dragImg.style.height = target.offsetHeight + "px";
-   dragImg.style.opacity = "1";
-   dragImg.style.cursor = "grabbing";
-
-   const centerOffsetX = target.offsetWidth / 2;
-   const centerOffsetY = target.offsetHeight / 2;
-   dragImg.style.left = e.clientX - centerOffsetX + "px";
-   dragImg.style.top = e.clientY - centerOffsetY + "px";
-
-   document.body.appendChild(dragImg);
+   const targetPosition = getPositionFromElement(target);
 
    const piece: Piece = {
       type: target.dataset.pieceType as PieceType,
       color: target.dataset.pieceColor as Color,
    };
 
-   dragState = {
-      boardID,
-      position,
-      element: dragImg,
-      piece,
-   };
-
-   document.addEventListener("mousemove", handleMouseMove);
-   document.addEventListener("mouseup", handleMouseUp);
-}
-
-function handleMouseMove(e: MouseEvent): void {
-   if (!dragState) return;
    e.preventDefault();
 
-   const centerOffsetX = dragState.element.offsetWidth / 2;
-   const centerOffsetY = dragState.element.offsetHeight / 2;
-
-   dragState.element.style.left = e.clientX - centerOffsetX + "px";
-   dragState.element.style.top = e.clientY - centerOffsetY + "px";
+   selectPiece(boardID, targetPosition, piece);
+   holdPiece(e);
 }
 
-function handleMouseUp(e: MouseEvent): void {
-   if (!dragState) return;
+function handlePocketMouseUp(e: MouseEvent): void {
+   const target = e.target as HTMLElement;
+   if (!target || !selectedState) return;
 
-   document.removeEventListener("mousemove", handleMouseMove);
-   document.removeEventListener("mouseup", handleMouseUp);
+   const boardID = getBoardID(target);
+   if (selectedState.boardID !== boardID) return;
 
-   // Clean up drag element
-   dragState.element.remove();
+   const targetPosition = getPositionFromElement(target);
 
-   const dropTarget = document.elementFromPoint(
-      e.clientX,
-      e.clientY
-   ) as HTMLElement;
-   const square = dropTarget?.closest(".square") as HTMLElement;
+   e.preventDefault();
 
-   const state = dragState;
-   dragState = null;
-
-   if (!square) {
-      console.log(`[DRAG END] Invalid drop target`);
-      clearAnnotations(state.boardID);
-      updateUIBoard(state.boardID, isFlipped(state.boardID));
-      return;
-   }
-
-   const targetBoardID = getBoardID(square);
-
-   if (state.boardID !== targetBoardID) {
-      console.warn(
-         `[DRAG END] Cannot drop piece from board ${state.boardID} to board ${targetBoardID}`
-      );
-      clearAnnotations(state.boardID);
-      updateUIBoard(state.boardID, isFlipped(state.boardID));
-      return;
-   }
-
-   const flipped = isFlipped(state.boardID);
-   const toRow = parseInt(square.dataset.row || "0");
-   const toCol = parseInt(square.dataset.col || "0");
-   const toLogicalRow = flipped ? 7 - toRow : toRow;
-   const toLogicalCol = flipped ? 7 - toCol : toCol;
-   const toPosition = createPosition(toLogicalRow, toLogicalCol);
-
-   console.log(
-      `[DRAG END] Attempting move from ${positionToString(
-         state.position
-      )} to ${positionToString(toPosition)} on board ${state.boardID}`
-   );
-
-   const move: Move = {
-      from: state.position,
-      to: toPosition,
-   };
-
-   const result = session.room!.game.tryApplyMove(state.boardID, move);
-
-   if (result.success) {
-      console.log(`[MOVE SUCCESS] Move succeeded`);
-      session.socket.emit("move-board", state.boardID, state.piece.color, move);
-
-      if (result.capturedPiece) {
-         console.log(
-            `[MOVE SUCCESS] Captured ${result.capturedPiece.color} ${result.capturedPiece.type}`
-         );
-      }
+   if (
+      !selectedState.justSelected &&
+      positionsEqual(selectedState.position, targetPosition)
+   ) {
+      deselectPiece();
    } else {
-      console.log(`[MOVE FAILED] Move is illegal`);
-      clearAnnotations(state.boardID);
-      updateUIBoard(state.boardID, flipped);
+      // Move failed, drop the piece back
+      dropSelectedPiece();
    }
+}
+
+function isMyPiece(boardID: number, piece: Piece): boolean {
+   return (
+      session.room?.status === RoomStatus.PLAYING &&
+      session.room?.game.matches[boardID].getPlayer(piece.color)?.id ===
+         session.player?.id
+   );
 }

@@ -1,4 +1,4 @@
 export class Settings {
-   logSocket: boolean = true;
+   logSocket: boolean = false;
    constructor() {}
 }

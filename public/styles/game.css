@@ -256,11 +256,16 @@
    background-color: rgba(0, 0, 0, 0.14);
    pointer-events: none;
    opacity: 0;
-   transition: opacity 0.15s ease;
+   transition: opacity 0.10s ease, width 0.15s ease, height 0.15s ease;
 }
 
 .square.legal-move::after {
    opacity: 1;
+}
+
+.square.legal-move:hover::after {
+   width: 40%;
+   height: 40%;
 }
 
 .square.legal-move.has-piece::after {
@@ -270,10 +275,14 @@
    border: 0.5vh solid rgba(0, 0, 0, 0.14);
 }
 
+.square.legal-move.has-piece:hover::after {
+   width: 95%;
+   height: 95%;
+}
+
 .piece {
    width: calc(var(--square-size) * 0.941);
    height: calc(var(--square-size) * 0.941);
-   cursor: grab;
    pointer-events: auto;
    user-select: none;
 }
@@ -285,7 +294,6 @@
 .pocket-piece {
    width: calc(var(--square-size) * 0.941);
    height: calc(var(--square-size) * 0.941);
-   cursor: grab;
    display: flex;
    align-items: center;
    justify-content: center;
@@ -295,6 +303,11 @@
 .pocket-piece img {
    width: calc(var(--square-size) * 0.941);
    height: calc(var(--square-size) * 0.941);
+}
+
+.pocket-piece.highlight {
+   background-color: rgba(255, 255, 0, 0.8);
+   border-radius: 4px;
 }
 
 .pocket-count {
@@ -307,10 +320,6 @@
    padding: calc(var(--square-size) * 0.015) calc(var(--square-size) * 0.059);
    border-radius: calc(var(--square-size) * 0.047);
    font-weight: bold;
-}
-
-.dragging {
-   opacity: 0;
 }
 
 .player-info {

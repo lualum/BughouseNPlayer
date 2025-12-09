@@ -7,7 +7,7 @@ import {
    updateUIBoard,
 } from "./boardUI";
 
-let visualFlipped: boolean = false;
+export let visualFlipped: boolean = false;
 let intervalID: number;
 
 // Visual Flip Control
@@ -301,8 +301,7 @@ export function stopTimeUpdates(): void {
 // Global Update Functions
 export function updateUIAllBoards(): void {
    for (let i = 0; i < session.room!.game.matches.length; i++) {
-      const isFlipped = getBoardFlipState(i);
-      updateUIBoard(i, isFlipped);
+      updateUIBoard(i);
    }
 }
 
