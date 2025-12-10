@@ -4,8 +4,9 @@ import { rooms, emitRoomList, MENU_ROOM } from "./server";
 import { Server } from "socket.io";
 import { PlayerStatus } from "../shared/player";
 import { Color, Move } from "../shared/chess";
+import { io } from "./server";
 
-export function setupHandlers(socket: GameSocket, io: Server): void {
+export function setupHandlers(socket: GameSocket): void {
    // Menu handlers
    socket.on("set-name", (name: string) => {
       socket.player!.name = name.trim().substring(0, 20);
@@ -27,13 +28,13 @@ export function setupHandlers(socket: GameSocket, io: Server): void {
    });
 
    socket.on("leave-room", () => {
-      tryLeavePlayer(socket);
+      handlePlayerLeave(socket);
       socket.leave(socket.room!.code);
       socket.join(MENU_ROOM);
    });
 
    socket.on("disconnect", () => {
-      tryLeavePlayer(socket);
+      handlePlayerLeave(socket);
    });
 
    // Lobby handlers
@@ -172,30 +173,50 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
    console.log(`${socket.player!.name || "[unnamed]"} joined room ${code}`);
 }
 
-export function tryLeavePlayer(socket: GameSocket): void {
+function handlePlayerLeave(socket: GameSocket): void {
    if (!socket.room) return;
 
-   socket.leave(socket.room!.code);
+   const room = socket.room;
+   const playerId = socket.player!.id;
 
-   socket.room.players.get(socket.player!.id)!.status =
-      PlayerStatus.DISCONNECTED;
-   if (socket.room.allPlayersDisconnected()) {
-      rooms.delete(socket.room.code);
-      emitRoomList();
-      return;
+   socket.leave(room.code);
+
+   if (room.status === RoomStatus.LOBBY) {
+      handleLobbyPlayerLeave(socket, room);
+   } else {
+      handleGamePlayerDisconnect(socket, room);
    }
 
-   if (socket.room.status === RoomStatus.LOBBY) {
-      socket.room.removePlayer(socket.player!.id);
-      socket.to(socket.room.code).emit("p-left-room", socket.player!.id);
-      emitRoomList();
-   } else {
-      socket.room.players.get(socket.player!.id)!.status =
-         PlayerStatus.DISCONNECTED;
+   // Check if room should be deleted
+   if (shouldDeleteRoom(room)) {
+      deleteRoom(room.code);
+   }
+}
+
+function handleLobbyPlayerLeave(socket: GameSocket, room: Room): void {
+   room.removePlayer(socket.player!.id);
+   socket.to(room.code).emit("p-left-room", socket.player!.id);
+   emitRoomList();
+}
+
+function handleGamePlayerDisconnect(socket: GameSocket, room: Room): void {
+   const player = room.players.get(socket.player!.id);
+   if (player) {
+      player.status = PlayerStatus.DISCONNECTED;
       socket
-         .to(socket.room.code)
+         .to(room.code)
          .emit("p-set-status", socket.player!.id, PlayerStatus.DISCONNECTED);
    }
+}
+
+function shouldDeleteRoom(room: Room): boolean {
+   return room.allPlayersDisconnected();
+}
+
+function deleteRoom(roomCode: string): void {
+   rooms.delete(roomCode);
+   emitRoomList();
+   console.log(`Room ${roomCode} deleted - all players disconnected`);
 }
 
 function randomCode(): string {

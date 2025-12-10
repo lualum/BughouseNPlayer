@@ -109,6 +109,7 @@ button {
    display: flex;
    flex-direction: column;
    gap: 10px;
+   padding: 15px;
 }
 
 #lobbies-list::-webkit-scrollbar {
@@ -174,7 +175,7 @@ button {
 }
 
 .lobby-join-btn {
-   background: #28a745;
+   background: #5DA061;
    color: white;
    border: none;
    padding: 8px 20px;
@@ -260,7 +261,7 @@ button {
 }
 
 .modal-buttons button.primary-btn {
-   background: #28a745;
+   background: #5DA061;
 }
 
 .modal-buttons button.secondary-btn {

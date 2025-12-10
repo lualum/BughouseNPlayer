@@ -9,7 +9,7 @@ import { Room, RoomStatus } from "../shared/room";
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+export const io = new Server(server);
 
 export const rooms = new Map<string, Room>();
 export const profiles = new Map<string, Profile>();
@@ -72,7 +72,7 @@ io.on("connection", (socket: Socket) => {
 
    gameSocket.join(MENU_ROOM);
 
-   setupHandlers(gameSocket, io);
+   setupHandlers(gameSocket);
 
    emitRoomList();
 });
