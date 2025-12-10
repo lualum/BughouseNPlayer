@@ -1,6 +1,6 @@
 import { RoomListing } from "../shared/room";
 import { stopTimeUpdates } from "./matchUI";
-import { session } from "./session";
+import { sn } from "./session";
 
 // Store the pending action
 let pendingAction: (() => void) | null = null;
@@ -43,19 +43,19 @@ export function initMenuControls(): void {
          // Create room
          if (
             checkAndPromptForName(() => {
-               session.socket.emit("create-room");
+               sn.socket.emit("create-room");
             })
          ) {
-            session.socket.emit("create-room");
+            sn.socket.emit("create-room");
          }
       } else if (roomCode.length === 4) {
          // Join room
          if (
             checkAndPromptForName(() => {
-               session.socket.emit("join-room", roomCode);
+               sn.socket.emit("join-room", roomCode);
             })
          ) {
-            session.socket.emit("join-room", roomCode);
+            sn.socket.emit("join-room", roomCode);
          }
       } else {
          showError("menu-error", "Room code must be 4 characters");
@@ -73,7 +73,7 @@ export function initMenuControls(): void {
 
    const readyBtn = document.getElementById("ready-btn");
    readyBtn?.addEventListener("click", () => {
-      session.socket.emit("toggle-ready");
+      sn.socket.emit("toggle-ready");
    });
 
    const leaveRoomBtn = document.getElementById("leave-game-btn");
@@ -133,7 +133,7 @@ function setupNameModal(): void {
          if (mainInput) {
             mainInput.value = name;
          }
-         session.socket.emit("set-name", name);
+         sn.socket.emit("set-name", name);
          hideNameModal();
 
          // Execute the pending action
@@ -183,7 +183,7 @@ function setupNameInput(elementId: string) {
       const target = e.target as HTMLInputElement;
       const name = target.value.trim();
       if (name) {
-         session.socket.emit("set-name", name);
+         sn.socket.emit("set-name", name);
       }
    };
 
@@ -199,7 +199,7 @@ function setupNameInput(elementId: string) {
 
 export function leaveRoom(): void {
    window.history.replaceState({}, "", window.location.pathname);
-   session.socket.emit("leave-room");
+   sn.socket.emit("leave-room");
    showMenuScreen();
 }
 
@@ -216,7 +216,7 @@ export function showMenuScreen(): void {
    clearErrors();
    const gameArea = document.getElementById("game-area");
    if (gameArea) gameArea.innerHTML = "";
-   session.socket.emit("list-rooms");
+   sn.socket.emit("list-rooms");
 
    stopTimeUpdates();
 }
@@ -274,10 +274,10 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
          }
          if (
             checkAndPromptForName(() => {
-               session.socket.emit("join-room", lobby.code);
+               sn.socket.emit("join-room", lobby.code);
             })
          ) {
-            session.socket.emit("join-room", lobby.code);
+            sn.socket.emit("join-room", lobby.code);
          }
       });
 

@@ -1,11 +1,18 @@
 import { Color, Move } from "../shared/chess";
 import { Player, PlayerStatus } from "../shared/player";
-import { Game, Room, RoomListing, RoomStatus, Team } from "../shared/room";
-import { updateUIAllBoards } from "./matchUI";
 import {
-   startGameUI,
+   Game,
+   Room,
+   RoomListing,
+   RoomStatus,
+   SerializedGame,
+   SerializedRoom,
+   Team,
+} from "../shared/room";
+import {
    endGameUI,
    showRoomElements,
+   startGameUI,
    updateUIAllChat,
    updateUIPlayerList,
    updateUIPushChat,
@@ -13,36 +20,37 @@ import {
 import {
    startTimeUpdates,
    stopTimeUpdates,
+   updateUIAllBoards,
    updateUIAllPlayers,
    updateUIPlayers,
    updateUITime,
 } from "./matchUI";
 import { showError, updateLobbiesList } from "./menuUI";
-import { session } from "./session";
+import { sn } from "./session";
 import { updateURL } from "./url";
 
 export function initSocketEvents(): void {
-   session.socket.on("created-player", (id: string, auth: string) => {
-      session.player = new Player(id);
-      session.auth = auth;
+   sn.socket.on("created-player", (id: string, auth: string) => {
+      sn.player = new Player(id);
+      sn.auth = auth;
 
       sessionStorage.setItem("id", id);
       sessionStorage.setItem("auth", auth);
    });
 
-   session.socket.on("sent-player", (name: string) => {
-      session.player!.name = name;
+   sn.socket.on("sent-player", (name: string) => {
+      sn.player!.name = name;
    });
 
-   session.socket.on("listed-rooms", (lobbies: RoomListing[]) => {
+   sn.socket.on("listed-rooms", (lobbies: RoomListing[]) => {
       updateLobbiesList(lobbies);
    });
 
-   session.socket.on("joined-room", (raw: Room) => {
+   sn.socket.on("joined-room", (raw: SerializedRoom) => {
       const room = Room.deserialize(raw);
 
-      session.room = room;
-      session.player = room.players.get(session.player!.id)!;
+      sn.room = room;
+      sn.player = room.players.get(sn.player!.id)!;
 
       showRoomElements();
 
@@ -63,57 +71,57 @@ export function initSocketEvents(): void {
       updateURL(room.code);
    });
 
-   session.socket.on("p-joined-room", (id: string, name: string) => {
-      if (id === session.player?.id) {
+   sn.socket.on("p-joined-room", (id: string, name: string) => {
+      if (id === sn.player?.id) {
          return;
       }
 
-      session.room?.addPlayer(new Player(id, name));
+      sn.room?.addPlayer(new Player(id, name));
       updateUIPlayerList();
    });
 
-   session.socket.on("p-left-room", (id: string) => {
-      session.room?.removePlayer(id);
+   sn.socket.on("p-left-room", (id: string) => {
+      sn.room?.removePlayer(id);
       updateUIPlayerList();
    });
 
-   session.socket.on(
+   sn.socket.on(
       "p-joined-board",
       (id: string, boardID: number, color: Color) => {
-         const player = session.room?.getPlayer(id)!;
-         session.room?.game.matches[boardID].setPlayer(player, color);
+         const player = sn.room!.getPlayer(id)!;
+         sn.room?.game.matches[boardID].setPlayer(player, color);
          updateUIPlayers(boardID);
       }
    );
 
-   session.socket.on("p-left-board", (boardID: number, color: Color) => {
-      session.room?.game.matches[boardID].removePlayer(color);
+   sn.socket.on("p-left-board", (boardID: number, color: Color) => {
+      sn.room?.game.matches[boardID].removePlayer(color);
       updateUIPlayers(boardID);
    });
 
-   session.socket.on("p-set-status", (id: string, status: PlayerStatus) => {
-      const player = session.room?.getPlayer(id)!;
+   sn.socket.on("p-set-status", (id: string, status: PlayerStatus) => {
+      const player = sn.room!.getPlayer(id)!;
       player.status = status;
       updateUIPlayerList();
    });
 
-   session.socket.on("started-room", (raw: Game, timeStarted: number) => {
-      session.room!.status = RoomStatus.PLAYING;
-      session.room!.game = Game.deserialize(raw);
-      session.room!.tryStartRoom(timeStarted);
+   sn.socket.on("started-room", (raw: SerializedGame, timeStarted: number) => {
+      sn.room!.status = RoomStatus.PLAYING;
+      sn.room!.game = Game.deserialize(raw);
+      sn.room!.tryStartRoom(timeStarted);
 
       startGameUI();
       startTimeUpdates();
-      console.log(`Game started in room ${session.room!.code}`);
+      console.log(`Game started in room ${sn.room!.code}`);
    });
 
-   session.socket.on(
+   sn.socket.on(
       "p-moved-board",
       (boardID: number, move: Move, newTime: number) => {
-         session.room?.game.tryApplyMove(boardID, move);
-         session.room?.game.matches[boardID].updateTime(newTime);
-         session.room?.game.matches[boardID].switchTurn(newTime);
-         session.room?.game.matches[boardID].updateTime(Date.now());
+         sn.room?.game.tryApplyMove(boardID, move);
+         sn.room?.game.matches[boardID].updateTime(newTime);
+         sn.room?.game.matches[boardID].switchTurn(newTime);
+         sn.room?.game.matches[boardID].updateTime(Date.now());
 
          updateUITime();
 
@@ -121,23 +129,22 @@ export function initSocketEvents(): void {
       }
    );
 
-   session.socket.on("ended-room", (raw: Team, reason: string) => {
-      const team = raw === "red" ? Team.RED : Team.BLUE;
-      session.room!.endRoom();
+   sn.socket.on("ended-room", (raw: Team, reason: string) => {
+      sn.room!.endRoom();
       endGameUI();
       stopTimeUpdates();
-
+      updateUIPushChat({ id: "server", message: reason });
       // TODO: Show modal end game screen
    });
 
-   session.socket.on("p-sent-chat", (id: string, message: string) => {
+   sn.socket.on("p-sent-chat", (id: string, message: string) => {
       console.log(`Chat message from ${id}: ${message}`);
-      session.room?.chat.push(id, message);
+      sn.room?.chat.push(id, message);
 
       updateUIPushChat({ id, message });
    });
 
-   session.socket.on("error", (error: string) => {
+   sn.socket.on("error", (error: string) => {
       showError("menu-error", error);
    });
 }

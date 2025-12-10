@@ -1,11 +1,12 @@
 import { Color } from "../shared/chess";
+import { Player } from "../shared/player";
 import { Match, RoomStatus } from "../shared/room";
 import {
    createBoardElement,
    createPocketElement,
    updateUIBoard,
 } from "./boardUI";
-import { session } from "./session";
+import { sn } from "./session";
 
 export let visualFlipped: boolean = false;
 let intervalID: number;
@@ -19,12 +20,12 @@ export function toggleVisualFlipped(): void {
    visualFlipped = !visualFlipped;
 }
 
-function getMatchInstance(boardID: number): Match {
-   return session.room?.game.matches[boardID]!;
+export function getMatchInstance(boardID: number): Match {
+   return sn.room!.game.matches[boardID];
 }
 
 export function getBoardFlipState(boardID: number): boolean {
-   const match = session.room?.game.matches[boardID];
+   const match = sn.room?.game.matches[boardID];
    const matchFlipped = match?.flipped || false;
    // XOR: if both are flipped or both are not flipped, result is false (not flipped)
    // if one is flipped and the other is not, result is true (flipped)
@@ -102,18 +103,9 @@ export function createMatchElements(boardID: number): void {
    boardsArea.appendChild(boardContainer);
 }
 
-export function deleteBoard(boardID: number): void {
-   const boardContainer = document.querySelector(
-      `.match-container[data-board-id="${boardID}"]`
-   );
-   if (boardContainer && boardContainer.parentNode) {
-      boardContainer.parentNode.removeChild(boardContainer);
-   }
-}
-
 // UI Update Functions - Players
 export function updateUIAllPlayers(): void {
-   for (let i = 0; i < session.room!.game.matches.length; i++) {
+   for (let i = 0; i < sn.room!.game.matches.length; i++) {
       updateUIPlayers(i);
    }
 }
@@ -130,7 +122,7 @@ export function updateUIPlayers(boardID: number): void {
    updatePlayerSlot(boardID, "bottom", bottomPlayer, bottomColor);
 }
 
-function getPlayerPositions(matchInstance: any, isFlipped: boolean) {
+function getPlayerPositions(matchInstance: Match, isFlipped: boolean) {
    return {
       topPlayer: isFlipped
          ? matchInstance.whitePlayer
@@ -146,7 +138,7 @@ function getPlayerPositions(matchInstance: any, isFlipped: boolean) {
 function updatePlayerSlot(
    boardID: number,
    position: "top" | "bottom",
-   player: any,
+   player: Player | null,
    color: Color
 ): void {
    const playerSlot = document.querySelector(
@@ -159,7 +151,7 @@ function updatePlayerSlot(
    if (playerSlot) {
       playerSlot.innerHTML = "";
       const slotContent = player
-         ? createPlayerIcon(boardID, player, color, position)
+         ? createPlayerIcon(boardID, player, color)
          : createEmptySlot(boardID, color);
       playerSlot.appendChild(slotContent);
    }
@@ -170,12 +162,12 @@ function updatePlayerSlot(
 }
 
 function createEmptySlot(boardID: number, color: Color): HTMLElement {
-   if (session.room!.status === RoomStatus.LOBBY) {
+   if (sn.room!.status === RoomStatus.LOBBY) {
       const slot = document.createElement("button");
       slot.className = "join-board-btn";
       slot.textContent = "[+]";
       slot.addEventListener("click", () => {
-         session.socket.emit("join-board", boardID, color);
+         sn.socket.emit("join-board", boardID, color);
       });
       return slot;
    } else {
@@ -188,9 +180,8 @@ function createEmptySlot(boardID: number, color: Color): HTMLElement {
 
 function createPlayerIcon(
    boardID: number,
-   player: any,
-   color: Color,
-   position: "top" | "bottom"
+   player: Player,
+   color: Color
 ): HTMLElement {
    const iconContainer = document.createElement("div");
    iconContainer.style.position = "relative";
@@ -202,8 +193,7 @@ function createPlayerIcon(
    iconContainer.appendChild(slot);
 
    const shouldShowLeaveBtn =
-      session.room!.status === RoomStatus.LOBBY &&
-      player.id === session.player!.id;
+      sn.room!.status === RoomStatus.LOBBY && player.id === sn.player!.id;
 
    if (shouldShowLeaveBtn) {
       const leaveBtn = createLeaveButton(boardID, color);
@@ -220,17 +210,20 @@ function createLeaveButton(boardID: number, color: Color): HTMLButtonElement {
    leaveBtn.className = "leave-board-btn";
    leaveBtn.textContent = "×";
    leaveBtn.addEventListener("click", () => {
-      session.socket.emit("leave-board", boardID, color);
+      sn.socket.emit("leave-board", boardID, color);
    });
    return leaveBtn;
 }
 
-function updatePlayerName(playerInfo: HTMLElement, player: any): void {
+function updatePlayerName(
+   playerInfo: HTMLElement,
+   player: Player | null
+): void {
    const name = playerInfo.querySelector(".player-name-display");
    if (name) {
       name.textContent = player ? player.name : "";
       (name as HTMLElement).style.color =
-         player && player.id === session.player!.id
+         player && player.id === sn.player!.id
             ? "#FFFFFF"
             : "var(--hidden-text)";
    }
@@ -238,7 +231,7 @@ function updatePlayerName(playerInfo: HTMLElement, player: any): void {
 
 // UI Update Functions - Time
 export function updateUITime(): void {
-   for (let i = 0; i < session.room!.game.matches.length; i++) {
+   for (let i = 0; i < sn.room!.game.matches.length; i++) {
       const matchInstance = getMatchInstance(i);
       if (!matchInstance) continue;
 
@@ -274,7 +267,7 @@ function updateTimeDisplay(
                ? Color.BLACK
                : Color.WHITE;
          if (
-            session.room!.status === RoomStatus.PLAYING &&
+            sn.room!.status === RoomStatus.PLAYING &&
             color === getMatchInstance(boardID)?.activeColor
          ) {
             (timeDisplay as HTMLElement).style.color = "var(--hidden-text)";
@@ -286,7 +279,7 @@ function updateTimeDisplay(
 }
 
 export function updateTimeLeft(currentTime: number = Date.now()): void {
-   for (let i = 0; i < session.room!.game.matches.length; i++) {
+   for (let i = 0; i < sn.room!.game.matches.length; i++) {
       const matchInstance = getMatchInstance(i);
       if (!matchInstance) continue;
 
@@ -309,7 +302,7 @@ export function stopTimeUpdates(): void {
 
 // Global Update Functions
 export function updateUIAllBoards(): void {
-   for (let i = 0; i < session.room!.game.matches.length; i++) {
+   for (let i = 0; i < sn.room!.game.matches.length; i++) {
       updateUIBoard(i);
    }
 }

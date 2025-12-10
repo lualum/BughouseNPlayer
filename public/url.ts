@@ -1,5 +1,5 @@
 import { checkAndPromptForName } from "./menuUI";
-import { session } from "./session";
+import { sn } from "./session";
 
 export function checkURLForRoom(): void {
    // Extract room code from path like /games/ABCD
@@ -11,12 +11,12 @@ export function checkURLForRoom(): void {
          checkAndPromptForName(() => {
             // Remove URL extension
             window.history.replaceState({}, "", "/");
-            session.socket.emit("join-room", roomCode);
+            sn.socket.emit("join-room", roomCode);
          })
       ) {
          // If name is already set, join immediately
          window.history.replaceState({}, "", "/");
-         session.socket.emit("join-room", roomCode);
+         sn.socket.emit("join-room", roomCode);
       }
    }
 }

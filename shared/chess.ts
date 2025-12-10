@@ -1,3 +1,20 @@
+export interface SerializedChess {
+   board: (SerializedPiece | null)[][];
+   whitePocket: Record<PieceType, number>;
+   blackPocket: Record<PieceType, number>;
+   turn: Color;
+   whiteCastleShort: boolean;
+   whiteCastleLong: boolean;
+   blackCastleShort: boolean;
+   blackCastleLong: boolean;
+   enPassantTarget: Position | null;
+}
+
+export interface SerializedPiece {
+   type: PieceType;
+   color: Color;
+}
+
 export class Chess {
    board: Board = [];
    whitePocket: Map<PieceType, number> = new Map();
@@ -13,15 +30,35 @@ export class Chess {
       this.reset();
    }
 
-   serialize(): any {
+   clone(): Chess {
+      const chess = new Chess();
+      chess.board = this.board.map((row) => [...row]);
+      chess.whitePocket = new Map(this.whitePocket);
+      chess.blackPocket = new Map(this.blackPocket);
+      chess.turn = this.turn;
+      chess.whiteCastleShort = this.whiteCastleShort;
+      chess.whiteCastleLong = this.whiteCastleLong;
+      chess.blackCastleShort = this.blackCastleShort;
+      chess.blackCastleLong = this.blackCastleLong;
+      chess.enPassantTarget = this.enPassantTarget;
+      return chess;
+   }
+
+   serialize(): SerializedChess {
       return {
          board: this.board.map((row) =>
             row.map((piece) =>
                piece ? { type: piece.type, color: piece.color } : null
             )
          ),
-         whitePocket: Object.fromEntries(this.whitePocket),
-         blackPocket: Object.fromEntries(this.blackPocket),
+         whitePocket: Object.fromEntries(this.whitePocket) as Record<
+            PieceType,
+            number
+         >,
+         blackPocket: Object.fromEntries(this.blackPocket) as Record<
+            PieceType,
+            number
+         >,
          turn: this.turn,
          whiteCastleShort: this.whiteCastleShort,
          whiteCastleLong: this.whiteCastleLong,
@@ -31,9 +68,9 @@ export class Chess {
       };
    }
 
-   static deserialize(data: any): Chess {
+   static deserialize(data: SerializedChess): Chess {
       const chess = new Chess();
-      chess.board = data.board.map((row: any[]) =>
+      chess.board = data.board.map((row) =>
          row.map((piece) =>
             piece ? { type: piece.type, color: piece.color } : null
          )
@@ -41,12 +78,12 @@ export class Chess {
 
       chess.whitePocket = new Map();
       for (const [key, value] of Object.entries(data.whitePocket)) {
-         chess.whitePocket.set(key as PieceType, value as number);
+         chess.whitePocket.set(key as PieceType, value);
       }
 
       chess.blackPocket = new Map();
       for (const [key, value] of Object.entries(data.blackPocket)) {
-         chess.blackPocket.set(key as PieceType, value as number);
+         chess.blackPocket.set(key as PieceType, value);
       }
 
       chess.turn = data.turn;
@@ -119,7 +156,6 @@ export class Chess {
 
    addToPocket(piece: Piece): void {
       const pocket = this.getPocket(piece.color);
-      // Convert promoted queens to pawns when adding to pocket
       const typeToAdd =
          piece.type === PieceType.PROMOTED_QUEEN ? PieceType.PAWN : piece.type;
       pocket.set(typeToAdd, (pocket.get(typeToAdd) || 0) + 1);
@@ -179,16 +215,18 @@ export class Chess {
       if (!piece) return false;
 
       switch (piece.type) {
-         case PieceType.PAWN:
+         case PieceType.PAWN: {
             const direction = piece.color === Color.WHITE ? -1 : 1;
             return (
                Math.abs(from.col - to.col) === 1 &&
                to.row - from.row === direction
             );
-         case PieceType.KNIGHT:
+         }
+         case PieceType.KNIGHT: {
             const dr = Math.abs(from.row - to.row);
             const dc = Math.abs(from.col - to.col);
             return (dr === 2 && dc === 1) || (dr === 1 && dc === 2);
+         }
          case PieceType.BISHOP:
             return this.isDiagonalPath(from, to);
          case PieceType.ROOK:
@@ -364,11 +402,12 @@ export class Chess {
                }
             }
             break;
-         case PieceType.KNIGHT:
+         case PieceType.KNIGHT: {
             const dr = Math.abs(from.row - to.row);
             const dc = Math.abs(from.col - to.col);
             isValid = (dr === 2 && dc === 1) || (dr === 1 && dc === 2);
             break;
+         }
          case PieceType.BISHOP:
             isValid = this.isDiagonalPath(from, to);
             break;
@@ -450,24 +489,36 @@ export class Chess {
       return !inCheck;
    }
 
-   move(action: Move): MoveResult {
+   move(action: Move, premove = false): MoveResult {
+      if (action.to.type === "pocket") {
+         return { success: false, capturedPiece: null };
+      }
+
       if (action.from.type === "pocket") {
-         return this.dropPiece(action.to, action.from);
+         return this.dropPiece(action.from, action.to, premove);
       } else {
-         return this.movePiece(action.from, action.to);
+         return this.movePiece(action.from, action.to, premove);
       }
    }
 
-   dropPiece(pos: Position, from: PocketPosition): MoveResult {
-      if (pos.type !== "board") {
+   dropPiece(
+      from: PocketPosition,
+      to: BoardPosition,
+      premove = false
+   ): MoveResult {
+      if (to.type !== "board") {
          return { success: false, capturedPiece: null };
       }
 
-      if (!this.isLegalDrop(pos, from.pieceType, from.color)) {
+      if (
+         premove
+            ? !this.isLegalPredrop(from, to)
+            : !this.isLegalDrop(to, from.pieceType, from.color)
+      ) {
          return { success: false, capturedPiece: null };
       }
 
-      this.board[pos.row][pos.col] = {
+      this.board[to.row][to.col] = {
          type: from.pieceType,
          color: from.color,
       };
@@ -481,15 +532,22 @@ export class Chess {
       return { success: true, capturedPiece: null };
    }
 
-   movePiece(from: Position, to: Position): MoveResult {
+   movePiece(
+      from: BoardPosition,
+      to: BoardPosition,
+      premove = false
+   ): MoveResult {
       if (from.type !== "board" || to.type !== "board") {
          return { success: false, capturedPiece: null };
       }
 
-      const piece = this.board[from.row][from.col];
-      if (!piece || !this.isLegalMove(from, to)) {
+      if (
+         premove ? !this.isLegalPremove(from, to) : !this.isLegalMove(from, to)
+      ) {
          return { success: false, capturedPiece: null };
       }
+
+      const piece = this.board[from.row][from.col]!;
 
       let captured =
          this.board[to.row][to.col]?.type === PieceType.PROMOTED_QUEEN
@@ -595,6 +653,147 @@ export class Chess {
       this.turn = this.turn === Color.WHITE ? Color.BLACK : Color.WHITE;
 
       return { success: true, capturedPiece: captured };
+   }
+
+   isLegalPremove(from: BoardPosition, to: BoardPosition): boolean {
+      // Handle regular moves
+
+      const piece = this.board[from.row][from.col];
+      if (!piece) {
+         return false;
+      }
+
+      const direction = piece.color === Color.WHITE ? -1 : 1;
+
+      switch (piece.type) {
+         case PieceType.PAWN:
+            // Forward moves
+            if (from.col === to.col) {
+               // One square forward
+               if (to.row - from.row === direction) {
+                  return true;
+               }
+               // Two squares forward from starting position
+               if (to.row - from.row === 2 * direction) {
+                  const startRow = piece.color === Color.WHITE ? 6 : 1;
+                  return from.row === startRow;
+               }
+               return false;
+            }
+            // Diagonal captures (premove assumes there will be something to capture)
+            if (
+               Math.abs(from.col - to.col) === 1 &&
+               to.row - from.row === direction
+            ) {
+               return true;
+            }
+            return false;
+
+         case PieceType.KNIGHT: {
+            const dr = Math.abs(from.row - to.row);
+            const dc = Math.abs(from.col - to.col);
+            return (dr === 2 && dc === 1) || (dr === 1 && dc === 2);
+         }
+
+         case PieceType.BISHOP:
+            return (
+               Math.abs(from.row - to.row) === Math.abs(from.col - to.col) &&
+               from.row !== to.row
+            );
+
+         case PieceType.ROOK:
+            return (
+               (from.row === to.row || from.col === to.col) &&
+               !(from.row === to.row && from.col === to.col)
+            );
+
+         case PieceType.PROMOTED_QUEEN:
+         case PieceType.QUEEN: {
+            const isDiagonal =
+               Math.abs(from.row - to.row) === Math.abs(from.col - to.col);
+            const isStraight = from.row === to.row || from.col === to.col;
+            const notSameSquare = !(from.row === to.row && from.col === to.col);
+            return (isDiagonal || isStraight) && notSameSquare;
+         }
+
+         case PieceType.KING: {
+            const rowDiff = Math.abs(from.row - to.row);
+            const colDiff = Math.abs(from.col - to.col);
+
+            if (rowDiff <= 1 && colDiff <= 1 && rowDiff + colDiff > 0) {
+               return true;
+            }
+
+            // Castling (king moves 2 squares horizontally on home rank)
+            if (from.row === to.row && Math.abs(from.col - to.col) === 2) {
+               // Must be on home rank
+               const homeRank = piece.color === Color.WHITE ? 7 : 0;
+               if (from.row !== homeRank || from.col !== 4) {
+                  return false;
+               }
+
+               // Check castling rights
+               const side =
+                  to.col > from.col ? CastleMove.SHORT : CastleMove.LONG;
+               if (piece.color === Color.WHITE) {
+                  if (
+                     side === CastleMove.SHORT &&
+                     !this.whiteCastleShort &&
+                     to.col > from.col
+                  )
+                     return false;
+                  if (
+                     side === CastleMove.LONG &&
+                     !this.whiteCastleLong &&
+                     to.col < from.col
+                  )
+                     return false;
+               } else {
+                  if (
+                     side === CastleMove.SHORT &&
+                     !this.blackCastleShort &&
+                     to.col < from.col
+                  )
+                     return false;
+                  if (
+                     side === CastleMove.LONG &&
+                     !this.blackCastleLong &&
+                     to.col > from.col
+                  )
+                     return false;
+               }
+
+               return true;
+            }
+
+            return false;
+         }
+
+         default:
+            return false;
+      }
+   }
+
+   isLegalPredrop(from: PocketPosition, to: Position): boolean {
+      if (to.type !== "board") return false;
+
+      // Square must be empty (we check current state for this)
+      if (this.board[to.row][to.col] !== null) {
+         return false;
+      }
+
+      // Check if piece is in pocket
+      const pocket = this.getPocket(from.color);
+      if (!pocket.has(from.pieceType) || pocket.get(from.pieceType)! <= 0) {
+         return false;
+      }
+
+      // Pawns can't be dropped on back rank
+      if (from.pieceType === PieceType.PAWN && (to.row === 0 || to.row === 7)) {
+         return false;
+      }
+
+      return true;
    }
 
    isCheckmate(): Color | null {

@@ -18,16 +18,4 @@ export class Player {
       this.name = name;
       this.status = status;
    }
-
-   serialize(): any {
-      return {
-         id: this.id,
-         name: this.name,
-         ready: this.status,
-      };
-   }
-
-   static deserialize(data: any): Player {
-      return new Player(data.id, data.name, data.ready);
-   }
 }

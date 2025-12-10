@@ -10,11 +10,11 @@ export class Session {
    auth: string;
    settings: Settings;
 
-   constructor(playerID?: string, auth?: string) {
-      if (playerID && auth) {
+   constructor(id?: string, auth?: string) {
+      if (id && auth) {
          this.socket = io({
             auth: {
-               playerID: playerID,
+               playerID: id,
                token: auth,
             },
          });
@@ -23,7 +23,7 @@ export class Session {
       }
 
       this.room = null;
-      this.player = playerID ? new Player(playerID) : null;
+      this.player = id ? new Player(id) : null;
       this.auth = auth || "";
       this.settings = new Settings();
 
@@ -39,14 +39,14 @@ export class Session {
 
          // Log all outgoing socket events
          const originalEmit = this.socket.emit.bind(this.socket);
-         this.socket.emit = function (event: string, ...args: any[]) {
+         this.socket.emit = function (event: string, ...args: unknown[]) {
             console.log(
                `%c⬆ [EMIT] ${event}`,
                "color: #4CAF50; font-weight: bold",
                args
             );
             return originalEmit(event, ...args);
-         } as any;
+         };
       }
    }
 
@@ -66,8 +66,8 @@ export function initSession() {
    // } else {
    //    session = new Session();
    // }
-   session = new Session();
-   return session;
+   sn = new Session();
+   return sn;
 }
 
-export let session: Session;
+export let sn: Session;

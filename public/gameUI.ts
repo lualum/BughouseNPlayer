@@ -8,7 +8,7 @@ import {
    updateUIAllGame,
 } from "./matchUI";
 import { leaveRoom } from "./menuUI";
-import { session } from "./session";
+import { sn } from "./session";
 
 export function initGameControls(): void {
    const leaveGameBtn = document.getElementById("leave-game-btn");
@@ -42,7 +42,7 @@ export function showRoomElements(): void {
 
    const gameRoomCode = document.getElementById("game-room-code");
    if (gameRoomCode) {
-      gameRoomCode.textContent = session.room?.code || "";
+      gameRoomCode.textContent = sn.room?.code || "";
    }
 
    const boardsArea = document.getElementById("game-area");
@@ -50,15 +50,14 @@ export function showRoomElements(): void {
       container.remove();
    });
 
-   if (session.room?.game?.matches) {
-      for (let i = 0; i < session.room.game.matches.length; i++) {
+   if (sn.room?.game?.matches) {
+      for (let i = 0; i < sn.room.game.matches.length; i++) {
          createMatchElements(i);
       }
 
       const totalBoardsSpan = document.getElementById("totalBoards");
       if (totalBoardsSpan) {
-         totalBoardsSpan.textContent =
-            session.room.game.matches.length.toString();
+         totalBoardsSpan.textContent = sn.room.game.matches.length.toString();
       }
 
       initScrollControls();
@@ -71,7 +70,7 @@ export function sendChatMessage(): void {
 
    const message = chatInput.value.trim();
    if (message.length > 0) {
-      session.socket.emit("send-chat", message);
+      sn.socket.emit("send-chat", message);
       chatInput.value = "";
    }
 }
@@ -80,7 +79,7 @@ export function updateReadyButton(): void {
    const readyBtn = document.getElementById("ready-btn");
    if (!readyBtn) return;
 
-   if (session.player && session.player.status) {
+   if (sn.player && sn.player.status) {
       readyBtn.textContent = "Not Ready";
       readyBtn.classList.add("ready");
    } else {
@@ -93,7 +92,7 @@ export function updateUIPlayerList(): void {
    const playerList = document.getElementById("player-list");
    if (playerList) {
       playerList.innerHTML = "";
-      session.room?.players.forEach((player) => {
+      sn.room?.players.forEach((player) => {
          const playerDiv = document.createElement("div");
          playerDiv.className = "player-item";
 
@@ -115,7 +114,7 @@ export function updateUIPlayerList(): void {
                break;
          }
 
-         const isCurrentPlayer = player.id === session.player?.id;
+         const isCurrentPlayer = player.id === sn.player?.id;
 
          playerDiv.innerHTML = `
             <span class="status-checkbox ${statusClass}">${statusIcon}</span>
@@ -134,7 +133,7 @@ export function updateUIAllChat(): void {
    if (!chatMessagesDiv) return;
 
    chatMessagesDiv.innerHTML = "";
-   session.room?.chat.messages.forEach((message) => {
+   sn.room?.chat.messages.forEach((message) => {
       updateUIPushChat(message);
    });
 }
@@ -145,12 +144,16 @@ export function updateUIPushChat(message: ChatMessage): void {
 
    const messageDiv = document.createElement("div");
    messageDiv.className = `chat-message ${
-      message.id === session.player!.id ? "own" : ""
+      message.id === sn.player!.id ? "own" : ""
    }`;
-   const senderName =
-      message.id === session.player!.id
-         ? "You"
-         : session!.room!.players!.get(message!.id)?.name ?? "Unknown";
+
+   const getSenderName = () => {
+      if (message.id === sn.player!.id) return "You";
+      if (message.id === "server") return "Server";
+      return sn.room?.players?.get(message.id)?.name ?? "Unknown";
+   };
+   const senderName = getSenderName();
+
    messageDiv.innerHTML = `
       <div class="chat-sender">${senderName}</div>
       <div class="chat-text">${escapeHtml(message.message)}</div>
@@ -179,7 +182,7 @@ export function initScrollControls(): void {
    }
 
    function getTotalBoards(): number {
-      return session.room?.game?.matches.length || 1;
+      return sn.room?.game?.matches.length || 1;
    }
 
    function scrollBoards(direction: number): void {
@@ -232,13 +235,13 @@ export function startGameUI(): void {
 
    // Put current player on bottom
    let topBottomDelta = 0; // # of this player on top - # on bottom
-   for (const match of session.room!.game!.matches) {
+   for (const match of sn.room!.game!.matches) {
       const playerIsTop =
          match.getPlayer(match.flipped ? Color.WHITE : Color.BLACK)?.id ===
-         session.player!.id;
+         sn.player!.id;
       const playerIsBottom =
          match.getPlayer(match.flipped ? Color.BLACK : Color.WHITE)?.id ===
-         session.player!.id;
+         sn.player!.id;
 
       topBottomDelta += (playerIsTop ? 1 : 0) - (playerIsBottom ? 1 : 0);
    }

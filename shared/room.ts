@@ -1,8 +1,8 @@
 import { Chat } from "./chat";
-import { Chess, Color, Move, MoveResult } from "./chess";
+import { Chess, Color, Move, MoveResult, SerializedChess } from "./chess";
 import { Player, PlayerStatus } from "./player";
 
-const defaultTime = 35000; // 3 minutes in milliseconds
+const defaultTime = 180000; // 3 minutes in milliseconds
 
 export enum RoomStatus {
    LOBBY = "lobby",
@@ -19,6 +19,32 @@ export interface RoomListing {
 export enum Team {
    RED = "red",
    BLUE = "blue",
+}
+
+export interface SerializedMatch {
+   chess: SerializedChess;
+   whitePlayer: Player | null;
+   blackPlayer: Player | null;
+   whiteTime: number;
+   blackTime: number;
+   whitePremoves: Move[];
+   blackPremoves: Move[];
+   playerTimeSinceMove: number;
+   lastMoveTime: number | null;
+   activeColor: Color;
+   flipped: boolean;
+}
+
+export interface SerializedGame {
+   matches: SerializedMatch[];
+}
+
+export interface SerializedRoom {
+   code: string;
+   status: RoomStatus;
+   gameState: SerializedGame;
+   chat: Chat;
+   players: Record<string, Player>;
 }
 
 export class Room {
@@ -41,33 +67,31 @@ export class Room {
       // this.game.matches.push(new Match(defaultTime, false));
    }
 
-   serialize(): any {
-      const serializedPlayers: Record<string, any> = {};
-      this.players.forEach((player, playerId) => {
-         serializedPlayers[playerId] = player.serialize();
+   serialize(): SerializedRoom {
+      const serializedPlayers: Record<string, Player> = {};
+      this.players.forEach((player, id) => {
+         serializedPlayers[id] = player;
       });
 
       return {
          code: this.code,
          status: this.status,
          gameState: this.game.serialize(),
-         chat: this.chat.serialize(),
+         chat: this.chat,
          players: serializedPlayers,
       };
    }
 
-   static deserialize(data: any): Room {
+   static deserialize(data: SerializedRoom): Room {
       const room = new Room(data.code);
       room.status = data.status;
       room.game = Game.deserialize(data.gameState);
-      room.chat = Chat.deserialize(data.chat);
+      room.chat = data.chat;
 
       const playersData = data.players || {};
-      Object.entries(playersData).forEach(
-         ([playerId, playerData]: [string, any]) => {
-            room.players.set(playerId, Player.deserialize(playerData));
-         }
-      );
+      Object.entries(playersData).forEach(([id, playerData]) => {
+         room.players.set(id, playerData);
+      });
 
       return room;
    }
@@ -137,7 +161,11 @@ export class Room {
       this.status = RoomStatus.LOBBY;
 
       for (const player of this.players.values()) {
-         player.status = PlayerStatus.NOT_READY;
+         if (player.status === PlayerStatus.DISCONNECTED) {
+            this.removePlayer(player.id);
+         } else {
+            player.status = PlayerStatus.NOT_READY;
+         }
       }
    }
 }
@@ -149,15 +177,15 @@ export class Game {
       this.matches = [];
    }
 
-   serialize(): any {
+   serialize(): SerializedGame {
       return {
          matches: this.matches.map((match) => match.serialize()),
       };
    }
 
-   static deserialize(data: any): Game {
+   static deserialize(data: SerializedGame): Game {
       const state = new Game();
-      state.matches = (data.matches || []).map((matchData: any) =>
+      state.matches = (data.matches || []).map((matchData) =>
          Match.deserialize(matchData)
       );
       return state;
@@ -226,10 +254,6 @@ export class Game {
    }
 
    addPremove(matchIndex: number, move: Move): boolean {
-      if (matchIndex < 0 || matchIndex >= this.matches.length) {
-         return false;
-      }
-
       const match = this.matches[matchIndex];
 
       // Determine which color is making the premove (opposite of active color)
@@ -246,10 +270,6 @@ export class Game {
    }
 
    clearPremoves(matchIndex: number, color: Color): void {
-      if (matchIndex < 0 || matchIndex >= this.matches.length) {
-         return;
-      }
-
       const match = this.matches[matchIndex];
 
       if (color === Color.WHITE) {
@@ -269,6 +289,17 @@ export class Game {
       return color === Color.WHITE
          ? [...match.whitePremoves]
          : [...match.blackPremoves];
+   }
+
+   getPremovedChess(matchIndex: number): Chess {
+      const chess = this.matches[matchIndex].chess.clone();
+      const color = this.matches[matchIndex].activeColor;
+
+      for (const move of this.getPremoves(matchIndex, color)) {
+         chess.move(move, true);
+      }
+
+      return chess;
    }
 
    updateTime(currentTime: number = Date.now()): void {
@@ -328,11 +359,11 @@ export class Match {
       this.flipped = flipped;
    }
 
-   serialize(): any {
+   serialize(): SerializedMatch {
       return {
          chess: this.chess.serialize(),
-         whitePlayer: this.whitePlayer ? this.whitePlayer.serialize() : null,
-         blackPlayer: this.blackPlayer ? this.blackPlayer.serialize() : null,
+         whitePlayer: this.whitePlayer,
+         blackPlayer: this.blackPlayer,
          whiteTime: this.whiteTime,
          blackTime: this.blackTime,
          whitePremoves: this.whitePremoves,
@@ -344,15 +375,11 @@ export class Match {
       };
    }
 
-   static deserialize(data: any): Match {
+   static deserialize(data: SerializedMatch): Match {
       const match = new Match();
       match.chess = Chess.deserialize(data.chess);
-      match.whitePlayer = data.whitePlayer
-         ? Player.deserialize(data.whitePlayer)
-         : null;
-      match.blackPlayer = data.blackPlayer
-         ? Player.deserialize(data.blackPlayer)
-         : null;
+      match.whitePlayer = data.whitePlayer;
+      match.blackPlayer = data.blackPlayer;
       match.whiteTime = data.whiteTime;
       match.blackTime = data.blackTime;
       match.whitePremoves = data.whitePremoves || [];

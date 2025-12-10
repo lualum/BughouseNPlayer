@@ -10,7 +10,7 @@ import {
 } from "../shared/chess";
 import { RoomStatus } from "../shared/room";
 import { visualFlipped } from "./matchUI";
-import { session } from "./session";
+import { sn } from "./session";
 
 const PIECE_IMAGES = {
    K: "/pieces/wk.png",
@@ -39,7 +39,7 @@ let selectedState: SelectionState | null = null;
 
 // Utility Functions
 function getBoardInstance(boardID: number): Chess {
-   return session.room?.game.matches[boardID].chess!;
+   return sn.room!.game.matches[boardID].chess;
 }
 
 function createPosition(row: number, col: number): BoardPosition {
@@ -95,7 +95,7 @@ function getBoardID(element: HTMLElement): number {
 }
 
 function isFlipped(boardID: number): boolean {
-   return session.room!.game.matches[boardID].flipped !== visualFlipped;
+   return sn.room!.game.matches[boardID].flipped !== visualFlipped;
 }
 
 function getSquareElement(
@@ -321,9 +321,9 @@ export function updateUIBoard(boardID: number): void {
 
          const isMyTurn = boardInstance.turn === piece.color;
          const isMyPiece =
-            session.room?.status === RoomStatus.PLAYING &&
-            session.room?.game.matches[boardID].getPlayer(piece.color)?.id ===
-               session.player?.id;
+            sn.room?.status === RoomStatus.PLAYING &&
+            sn.room?.game.matches[boardID].getPlayer(piece.color)?.id ===
+               sn.player?.id;
 
          if (isMyTurn && isMyPiece) {
             element.style.cursor = "grab";
@@ -392,9 +392,8 @@ function updatePocket(
 
    const isMyTurn = getBoardInstance(boardID).turn === color;
    const isMyPiece =
-      session.room?.status === RoomStatus.PLAYING &&
-      session.room?.game.matches[boardID].getPlayer(color)?.id ===
-         session.player?.id;
+      sn.room?.status === RoomStatus.PLAYING &&
+      sn.room?.game.matches[boardID].getPlayer(color)?.id === sn.player?.id;
 
    pieceOrder.forEach((pieceType) => {
       const count = pieces.get(pieceType);
@@ -543,15 +542,10 @@ function handleSquareMouseDown(e: MouseEvent): void {
          from: selectedState.position,
          to: targetPosition,
       };
-      const result = session.room!.game.tryApplyMove(boardID, move);
+      const result = sn.room!.game.tryApplyMove(boardID, move);
 
       if (result.success) {
-         session.socket.emit(
-            "move-board",
-            boardID,
-            selectedState.piece.color,
-            move
-         );
+         sn.socket.emit("move-board", boardID, selectedState.piece.color, move);
          deselectPiece();
       } else if (!pieceAtTarget || !isMyPiece(boardID, pieceAtTarget)) {
          deselectPiece();
@@ -591,15 +585,10 @@ function handleSquareMouseUp(e: MouseEvent): void {
       to: targetPosition,
    };
 
-   const result = session.room!.game.tryApplyMove(boardID, move);
+   const result = sn.room!.game.tryApplyMove(boardID, move);
 
    if (result.success) {
-      session.socket.emit(
-         "move-board",
-         boardID,
-         selectedState.piece.color,
-         move
-      );
+      sn.socket.emit("move-board", boardID, selectedState.piece.color, move);
 
       deselectPiece();
    } else if (
@@ -655,8 +644,8 @@ function handlePocketMouseUp(e: MouseEvent): void {
 
 function isMyPiece(boardID: number, piece: Piece): boolean {
    return (
-      session.room?.status === RoomStatus.PLAYING &&
-      session.room?.game.matches[boardID].getPlayer(piece.color)?.id ===
-         session.player?.id
+      sn.room?.status === RoomStatus.PLAYING &&
+      sn.room?.game.matches[boardID].getPlayer(piece.color)?.id ===
+         sn.player?.id
    );
 }
