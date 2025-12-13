@@ -1,14 +1,16 @@
-import { initGameControls } from "./gameUI";
-import { initMenuControls } from "./menuUI";
+import { initGameSocket } from "./game-socket";
+import { initGameControls } from "./game-ui";
+import { initMenuSocket } from "./menu-socket";
+import { initMenuControls } from "./menu-ui";
 import { initSession } from "./session";
-import { initSocketEvents } from "./socket";
 import { checkURLForRoom } from "./url";
 
 document.addEventListener("DOMContentLoaded", () => {
    (function () {
       initSession();
-      initSocketEvents();
+      initMenuSocket();
       initMenuControls();
+      initGameSocket();
       initGameControls();
       checkURLForRoom();
    })();

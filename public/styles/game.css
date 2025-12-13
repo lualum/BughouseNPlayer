@@ -236,8 +236,12 @@
    background: #f5eb84;
 }
 
-.square.dark.highlight {
-   background: #d8c560;
+.square.dark.premoved {
+   background: #E3472A;
+}
+
+.square.light.premoved {
+   background: #FB6852;
 }
 
 .square {
@@ -257,6 +261,36 @@
    pointer-events: none;
    opacity: 0;
    transition: opacity 0.10s ease, width 0.15s ease, height 0.15s ease;
+}
+
+.rank-label {
+   position: absolute;
+   top: 2px;
+   left: 2px;
+   font-size: 12px;
+   font-weight: bold;
+   pointer-events: none;
+   user-select: none;
+}
+
+.file-label {
+   position: absolute;
+   bottom: 2px;
+   right: 2px;
+   font-size: 12px;
+   font-weight: bold;
+   pointer-events: none;
+   user-select: none;
+}
+
+.square.light .rank-label,
+.square.light .file-label {
+   color: #C78E53;
+}
+
+.square.dark .rank-label,
+.square.dark .file-label {
+   color: #F7D0A4;
 }
 
 .square.legal-move::after {
@@ -280,14 +314,19 @@
    height: 95%;
 }
 
-.piece {
+.square .piece {
    width: calc(var(--square-size) * 0.941);
    height: calc(var(--square-size) * 0.941);
    pointer-events: auto;
    user-select: none;
 }
 
-.piece:active {
+.dragged-piece {
+   position: fixed;
+   z-index: 9999;
+   pointer-events: none;
+   user-select: none;
+   opacity: 1;
    cursor: grabbing;
 }
 

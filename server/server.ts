@@ -1,8 +1,8 @@
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 import express from "express";
 import { setupHandlers } from "handlers";
-import http from "http";
-import path from "path";
+import http from "node:http";
+import path from "node:path";
 import { Server, Socket } from "socket.io";
 import { Player } from "../shared/player";
 import { Room, RoomStatus } from "../shared/room";
@@ -30,12 +30,12 @@ export interface Profile {
 const publicPath = path.join(__dirname, "..", "..", "public");
 
 app.use(express.static(publicPath));
-app.get("/games/:roomCode", (req, res) => {
-   const roomCode = req.params.roomCode as string;
+app.get("/games/:roomCode", (request, response) => {
+   const roomCode = request.params.roomCode as string;
    if (!/^[A-Z0-9]{4}$/.test(roomCode)) {
-      return res.status(404).send("Invalid room code format");
+      return response.status(404).send("Invalid room code format");
    }
-   res.sendFile("index.html", { root: publicPath });
+   response.sendFile("index.html", { root: publicPath });
 });
 
 io.on("connection", (socket: Socket) => {
@@ -86,27 +86,27 @@ server.listen(PORT, () => {
 
 setInterval(() => {
    const currentTime = Date.now();
-   rooms.forEach((room) => {
+   for (const [code, room] of rooms) {
       if (room.status === RoomStatus.PLAYING) {
          room.game.updateTime(currentTime);
          const timeout = room.game.checkTimeout();
          if (timeout) {
             room.endRoom();
             console.log(timeout.player.name + " timed out.");
-            io.to(room.code).emit(
+            io.to(code).emit(
                "ended-room",
                timeout.team,
                timeout.player.name + " timed out."
             );
          }
       }
-   });
+   }
 }, 100);
 
 function randomPlayerID(): string {
    return (
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15)
+      Math.random().toString(36).slice(2, 15) +
+      Math.random().toString(36).slice(2, 15)
    );
 }
 
@@ -117,6 +117,6 @@ function randomAuth(): string {
 export function emitRoomList(): void {
    io.to(MENU_ROOM).emit(
       "listed-rooms",
-      Array.from(rooms.values()).map((room) => room.getRoomListing())
+      [...rooms.values()].map((room) => room.getRoomListing())
    );
 }

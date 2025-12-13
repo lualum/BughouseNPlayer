@@ -5,18 +5,27 @@
       "rootDir": ".",
       "module": "commonjs",
       "moduleResolution": "node",
-      "lib": ["ES2020"],
+      "lib": [
+         "ES2022"
+      ],
       "composite": true,
       "baseUrl": ".",
       "paths": {
-         "../shared/*": ["../shared/dist/*"]
+         "../shared/*": [
+            "../shared/dist/*"
+         ]
       }
    },
-   "ts-node": {
-      "transpileOnly": true,
-      "files": true
-   },
-   "references": [{ "path": "../shared" }],
-   "include": ["./**/*.ts"],
-   "exclude": ["dist", "node_modules"]
+   "references": [
+      {
+         "path": "../shared"
+      }
+   ],
+   "include": [
+      "./**/*.ts"
+   ],
+   "exclude": [
+      "dist",
+      "node_modules"
+   ]
 }

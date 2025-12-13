@@ -11,9 +11,7 @@ export class Chat {
    }
 
    push(id: string, message: string): void {
-      this.messages.push({ id: id, message: message });
-      if (this.messages.length > 100) {
-         this.messages.shift();
-      }
+      this.messages.push({ id, message });
+      if (this.messages.length > 100) this.messages.shift();
    }
 }

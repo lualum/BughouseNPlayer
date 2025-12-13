@@ -1,58 +1,57 @@
-import { io, Socket } from "socket.io-client";
 import { Player } from "../shared/player";
 import { Room } from "../shared/room";
 import { Settings } from "./settings";
+import { Socket, io } from "socket.io-client";
 
 export class Session {
    socket: Socket;
-   room: Room | null;
-   player: Player | null;
+   room: Room | undefined;
+   player: Player | undefined;
    auth: string;
    settings: Settings;
 
    constructor(id?: string, auth?: string) {
-      if (id && auth) {
-         this.socket = io({
-            auth: {
-               playerID: id,
-               token: auth,
-            },
-         });
-      } else {
-         this.socket = io();
-      }
+      this.socket =
+         id && auth
+            ? io({
+                 auth: {
+                    playerID: id,
+                    token: auth,
+                 },
+              })
+            : io();
 
-      this.room = null;
-      this.player = id ? new Player(id) : null;
+      this.room = undefined;
+      this.player = id ? new Player(id) : undefined;
       this.auth = auth || "";
       this.settings = new Settings();
 
       if (this.settings.logSocket) {
          // Log all incoming socket events
-         this.socket.onAny((event, ...args) => {
+         this.socket.onAny((event, ...arguments_) => {
             console.log(
                `%c⬇ [RECEIVE] ${event}`,
                "color: #2196F3; font-weight: bold",
-               args
+               arguments_
             );
          });
 
          // Log all outgoing socket events
          const originalEmit = this.socket.emit.bind(this.socket);
-         this.socket.emit = function (event: string, ...args: unknown[]) {
+         this.socket.emit = function (event: string, ...arguments_: unknown[]) {
             console.log(
                `%c⬆ [EMIT] ${event}`,
                "color: #4CAF50; font-weight: bold",
-               args
+               arguments_
             );
-            return originalEmit(event, ...args);
+            return originalEmit(event, ...arguments_);
          };
       }
    }
 
    resetSession(): void {
-      this.room = null;
-      this.player = null;
+      this.room = undefined;
+      this.player = undefined;
       this.auth = "";
    }
 }
@@ -67,7 +66,14 @@ export function initSession() {
    //    session = new Session();
    // }
    sn = new Session();
+   gs = sn as GameSession;
    return sn;
 }
 
+export type GameSession = Session & {
+   player: Player;
+   room: Room;
+};
+
 export let sn: Session;
+export let gs: GameSession;

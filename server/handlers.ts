@@ -1,15 +1,13 @@
-import { GameSocket } from "./server";
-import { Room, RoomStatus, Team } from "../shared/room";
-import { rooms, emitRoomList, MENU_ROOM } from "./server";
 import { Server } from "socket.io";
-import { PlayerStatus } from "../shared/player";
+import { GameSocket, io, emitRoomList, MENU_ROOM, rooms } from "./server";
+import { Room, RoomStatus, Team } from "../shared/room";
 import { Color, Move } from "../shared/chess";
-import { io } from "./server";
+import { PlayerStatus } from "../shared/player";
 
 export function setupHandlers(socket: GameSocket): void {
    // Menu handlers
    socket.on("set-name", (name: string) => {
-      socket.player!.name = name.trim().substring(0, 20);
+      socket.player.name = name.trim().slice(0, 20);
    });
 
    socket.on("create-room", () => {
@@ -18,6 +16,7 @@ export function setupHandlers(socket: GameSocket): void {
          socket.emit("error", "Room limit reached");
          return;
       }
+
       joinRoom(socket, io, code);
       emitRoomList();
    });
@@ -29,7 +28,6 @@ export function setupHandlers(socket: GameSocket): void {
 
    socket.on("leave-room", () => {
       handlePlayerLeave(socket);
-      socket.leave(socket.room!.code);
       socket.join(MENU_ROOM);
    });
 
@@ -41,15 +39,15 @@ export function setupHandlers(socket: GameSocket): void {
    socket.on("toggle-ready", () => {
       if (!socket.room || socket.room.status === RoomStatus.PLAYING) return;
 
-      socket.player!.status =
-         socket.player!.status === PlayerStatus.READY
+      socket.player.status =
+         socket.player.status === PlayerStatus.READY
             ? PlayerStatus.NOT_READY
             : PlayerStatus.READY;
 
       io.to(socket.room.code).emit(
          "p-set-status",
          socket.player.id,
-         socket.player!.status
+         socket.player.status
       );
 
       const currentTime = Date.now();
@@ -65,19 +63,24 @@ export function setupHandlers(socket: GameSocket): void {
 
    socket.on("send-chat", (message: string) => {
       if (!socket.room) return;
-      socket.room.chat.push(
-         socket.player!.id,
-         message.trim().substring(0, 200)
-      );
-      io.to(socket.room.code).emit("p-sent-chat", socket.player!.id, message);
+      socket.room.chat.push(socket.player.id, message.trim().slice(0, 200));
+      io.to(socket.room.code).emit("p-sent-chat", socket.player.id, message);
    });
 
    socket.on("join-board", (boardID: number, color: Color) => {
       if (!socket.room || socket.room.status !== RoomStatus.LOBBY) return;
-      socket.room.game.matches[boardID].setPlayer(socket.player!, color);
+      const oppTeam =
+         socket.room.game.matches[boardID].getTeam(color) === Team.RED
+            ? Team.BLUE
+            : Team.RED;
+
+      for (const match of socket.room.game.matches)
+         if (match.getPlayerTeam(oppTeam)?.id === socket.player.id) return;
+
+      socket.room.game.matches[boardID].setPlayer(socket.player, color);
       io.to(socket.room.code).emit(
          "p-joined-board",
-         socket.player!.id,
+         socket.player.id,
          boardID,
          color
       );
@@ -88,13 +91,12 @@ export function setupHandlers(socket: GameSocket): void {
          !socket.room ||
          socket.room.status !== RoomStatus.PLAYING ||
          socket.room.game.matches[boardID].getPlayer(color)?.id !==
-            socket.player!.id
-      ) {
+            socket.player.id
+      )
          return;
-      }
 
       const currentTime = Date.now();
-      socket.room?.game.matches[boardID].switchTurn(currentTime);
+      socket.room.game.matches[boardID].switchTurn(currentTime);
       socket.room.game.tryApplyMove(boardID, move);
 
       io.to(socket.room.code).emit("p-moved-board", boardID, move, currentTime);
@@ -103,10 +105,7 @@ export function setupHandlers(socket: GameSocket): void {
          socket.room.endRoom();
          io.to(socket.room.code).emit(
             "ended-room",
-            (color === Color.WHITE) ===
-               socket.room.game.matches[boardID].flipped
-               ? Team.RED
-               : Team.BLUE,
+            socket.room.game.matches[boardID].getTeam(color),
             socket.room.game.matches[boardID].getPlayer(color)?.name +
                " got checkmated."
          );
@@ -120,10 +119,8 @@ export function setupHandlers(socket: GameSocket): void {
    });
 }
 
-function createRoom(roomCode?: string): string | null {
-   if (rooms.size >= 10000) {
-      return null;
-   }
+function createRoom(roomCode?: string): string | undefined {
+   if (rooms.size >= 10_000) return;
 
    const code = roomCode || randomCode();
    const room = new Room(code);
@@ -148,64 +145,57 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
    socket.join(code);
    socket.room = room;
 
-   const playerInRoom = room.players.get(socket.player!.id);
-   if (playerInRoom) {
-      playerInRoom.status = PlayerStatus.NOT_READY;
-      socket.to(socket.room.code).emit("p-set-status", PlayerStatus.NOT_READY);
-   } else {
-      socket.player!.status = PlayerStatus.NOT_READY;
-      room.addPlayer(socket.player!);
-   }
-
-   if (room.status === RoomStatus.PLAYING) {
+   if (room.status === RoomStatus.PLAYING)
       for (const match of room.game.matches) {
          match.updateTime(Date.now());
       }
+
+   const playerInRoom = room.players.get(socket.player.id);
+   if (playerInRoom) {
+      playerInRoom.status = PlayerStatus.NOT_READY;
+      socket.emit("joined-room", room.serialize());
+      socket.to(socket.room.code).emit("p-set-status", PlayerStatus.NOT_READY);
+   } else {
+      socket.player.status = PlayerStatus.NOT_READY;
+      room.addPlayer(socket.player);
+      io.to(socket.room.code).emit(
+         "p-joined-room",
+         socket.player?.id,
+         socket.player?.name
+      );
+      socket.emit("joined-room", room.serialize());
    }
 
-   socket.emit("joined-room", room.serialize());
-   io.to(socket.room.code).emit(
-      "p-joined-room",
-      socket.player?.id,
-      socket.player?.name
-   );
-
-   console.log(`${socket.player!.name || "[unnamed]"} joined room ${code}`);
+   console.log(`${socket.player.name || "[unnamed]"} joined room ${code}`);
 }
 
 function handlePlayerLeave(socket: GameSocket): void {
    if (!socket.room) return;
 
    const room = socket.room;
-   const playerId = socket.player!.id;
 
    socket.leave(room.code);
 
-   if (room.status === RoomStatus.LOBBY) {
-      handleLobbyPlayerLeave(socket, room);
-   } else {
-      handleGamePlayerDisconnect(socket, room);
-   }
+   if (room.status === RoomStatus.LOBBY) handleLobbyPlayerLeave(socket, room);
+   else handleGamePlayerDisconnect(socket, room);
 
    // Check if room should be deleted
-   if (shouldDeleteRoom(room)) {
-      deleteRoom(room.code);
-   }
+   if (shouldDeleteRoom(room)) deleteRoom(room.code);
 }
 
 function handleLobbyPlayerLeave(socket: GameSocket, room: Room): void {
-   room.removePlayer(socket.player!.id);
-   socket.to(room.code).emit("p-left-room", socket.player!.id);
+   room.removePlayer(socket.player.id);
+   socket.to(room.code).emit("p-left-room", socket.player.id);
    emitRoomList();
 }
 
 function handleGamePlayerDisconnect(socket: GameSocket, room: Room): void {
-   const player = room.players.get(socket.player!.id);
+   const player = room.players.get(socket.player.id);
    if (player) {
       player.status = PlayerStatus.DISCONNECTED;
       socket
          .to(room.code)
-         .emit("p-set-status", socket.player!.id, PlayerStatus.DISCONNECTED);
+         .emit("p-set-status", socket.player.id, PlayerStatus.DISCONNECTED);
    }
 }
 
@@ -224,9 +214,9 @@ function randomCode(): string {
    let result = "";
    do {
       result = "";
-      for (let i = 0; i < 4; i++) {
+      for (let index = 0; index < 4; index++)
          result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
    } while (rooms.has(result)); // Ensure unique code
+
    return result;
 }

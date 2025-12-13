@@ -1,31 +1,34 @@
 import { RoomListing } from "../shared/room";
-import { stopTimeUpdates } from "./matchUI";
+import { stopTimeUpdates } from "./match-ui";
 import { sn } from "./session";
 
 // Store the pending action
-let pendingAction: (() => void) | null = null;
+let pendingAction: (() => void) | undefined;
 
 export function initMenuControls(): void {
    // Combined action button
-   const actionBtn = document.getElementById("action-btn")!;
-   const roomCodeInput = document.getElementById(
-      "room-code-input"
+   const actionButton = document.querySelector(
+      "#action-btn"
+   ) as HTMLButtonElement;
+   const actionButtonText = actionButton.querySelector(
+      "p"
+   ) as HTMLParagraphElement;
+   const roomCodeInput = document.querySelector(
+      "#room-code-input"
    ) as HTMLInputElement;
 
    // Update button appearance based on input
    const updateActionButton = () => {
-      const roomCode = roomCodeInput?.value.trim() || "";
+      const roomCode = roomCodeInput.value.trim() || "";
 
       if (roomCode.length === 0) {
-         // Create mode
-         actionBtn.querySelector("p")!.textContent = "+";
-         actionBtn.style.background = "#5DA061";
-         actionBtn.querySelector("p")!.style.transform = "translateY(0px)";
+         actionButtonText.textContent = "+";
+         actionButton.style.background = "#5DA061";
+         actionButtonText.style.transform = "translateY(0px)";
       } else {
-         // Join mode
-         actionBtn.querySelector("p")!.textContent = "↪";
-         actionBtn.style.background = "#C74748";
-         actionBtn.querySelector("p")!.style.transform = "translateY(3px)";
+         actionButtonText.textContent = "↪";
+         actionButton.style.background = "#C74748";
+         actionButtonText.style.transform = "translateY(3px)";
       }
    };
 
@@ -33,11 +36,11 @@ export function initMenuControls(): void {
    updateActionButton();
 
    // Update on input
-   roomCodeInput?.addEventListener("input", updateActionButton);
+   roomCodeInput.addEventListener("input", updateActionButton);
 
    // Handle button click
-   actionBtn?.addEventListener("click", () => {
-      const roomCode = roomCodeInput?.value.trim() || "";
+   actionButton.addEventListener("click", () => {
+      const roomCode = roomCodeInput.value.trim() || "";
 
       if (roomCode.length === 0) {
          // Create room
@@ -45,39 +48,33 @@ export function initMenuControls(): void {
             checkAndPromptForName(() => {
                sn.socket.emit("create-room");
             })
-         ) {
+         )
             sn.socket.emit("create-room");
-         }
       } else if (roomCode.length === 4) {
          // Join room
          if (
             checkAndPromptForName(() => {
                sn.socket.emit("join-room", roomCode);
             })
-         ) {
+         )
             sn.socket.emit("join-room", roomCode);
-         }
-      } else {
-         showError("menu-error", "Room code must be 4 characters");
-      }
+      } else showError("menu-error", "Room code must be 4 characters");
    });
 
-   roomCodeInput?.addEventListener("keypress", (e: Event) => {
-      const keyEvent = e as KeyboardEvent;
-      if (keyEvent.key === "Enter") {
-         actionBtn?.click();
-      }
+   roomCodeInput.addEventListener("keypress", (event: Event) => {
+      const keyEvent = event as KeyboardEvent;
+      if (keyEvent.key === "Enter") actionButton.click();
    });
 
    setupNameInput("player-name-input");
 
-   const readyBtn = document.getElementById("ready-btn");
-   readyBtn?.addEventListener("click", () => {
+   const readyButton = document.querySelector("#ready-btn");
+   readyButton?.addEventListener("click", () => {
       sn.socket.emit("toggle-ready");
    });
 
-   const leaveRoomBtn = document.getElementById("leave-game-btn");
-   leaveRoomBtn?.addEventListener("click", () => {
+   const leaveRoomButton = document.querySelector("#leave-game-btn");
+   leaveRoomButton?.addEventListener("click", () => {
       leaveRoom();
    });
 
@@ -86,10 +83,10 @@ export function initMenuControls(): void {
 
 // Export this function so it can be used in other files
 export function checkAndPromptForName(action: () => void): boolean {
-   const nameInput = document.getElementById(
-      "player-name-input"
+   const nameInput = document.querySelector(
+      "#player-name-input"
    ) as HTMLInputElement;
-   const currentName = nameInput?.value.trim() || "";
+   const currentName = nameInput.value.trim() || "";
 
    // Check if name is default or empty (adjust "Player" to match your actual default)
    if (
@@ -101,77 +98,80 @@ export function checkAndPromptForName(action: () => void): boolean {
       showNameModal();
       return false;
    }
+
    return true;
 }
 
 function setupNameModal(): void {
-   const modal = document.getElementById("name-modal");
-   const closeBtn = document.getElementById("close-modal");
-   const submitBtn = document.getElementById("submit-name-btn");
-   const modalInput = document.getElementById(
-      "modal-name-input"
+   const modal = document.querySelector("#name-modal") as HTMLDivElement;
+   const closeButton = document.querySelector(
+      "#close-modal"
+   ) as HTMLButtonElement;
+   const submitButton = document.querySelector(
+      "#submit-name-btn"
+   ) as HTMLButtonElement;
+   const modalInput = document.querySelector(
+      "#modal-name-input"
    ) as HTMLInputElement;
 
-   closeBtn?.addEventListener("click", () => {
-      pendingAction = null;
+   closeButton?.addEventListener("click", () => {
+      pendingAction = undefined;
       hideNameModal();
    });
 
-   modal?.addEventListener("click", (e) => {
-      if (e.target === modal) {
-         pendingAction = null;
+   modal?.addEventListener("click", (event) => {
+      if (event.target === modal) {
+         pendingAction = undefined;
          hideNameModal();
       }
    });
 
-   submitBtn?.addEventListener("click", () => {
-      const name = modalInput?.value.trim();
+   submitButton?.addEventListener("click", () => {
+      const name = modalInput.value.trim();
       if (name) {
-         const mainInput = document.getElementById(
-            "player-name-input"
+         const mainInput = document.querySelector(
+            "#player-name-input"
          ) as HTMLInputElement;
-         if (mainInput) {
-            mainInput.value = name;
-         }
+
+         mainInput.value = name;
+
          sn.socket.emit("set-name", name);
          hideNameModal();
 
          // Execute the pending action
          if (pendingAction) {
             pendingAction();
-            pendingAction = null;
+            pendingAction = undefined;
          }
       }
    });
 
-   modalInput?.addEventListener("keypress", (e: Event) => {
-      const keyEvent = e as KeyboardEvent;
-      if (keyEvent.key === "Enter") {
-         submitBtn?.click();
-      }
+   modalInput.addEventListener("keypress", (event: Event) => {
+      const keyEvent = event as KeyboardEvent;
+      if (keyEvent.key === "Enter") submitButton?.click();
    });
 }
 
 function showNameModal(): void {
-   const modal = document.getElementById("name-modal");
-   const modalInput = document.getElementById(
-      "modal-name-input"
+   const modal = document.querySelector("#name-modal");
+   const modalInput = document.querySelector(
+      "#modal-name-input"
    ) as HTMLInputElement;
    if (modal) {
       modal.classList.remove("hidden");
-      modalInput?.focus();
+      modalInput.focus();
    }
 }
 
 function hideNameModal(): void {
-   const modal = document.getElementById("name-modal");
-   const modalInput = document.getElementById(
-      "modal-name-input"
+   const modal = document.querySelector("#name-modal");
+   const modalInput = document.querySelector(
+      "#modal-name-input"
    ) as HTMLInputElement;
-   const errorElement = document.getElementById("modal-error");
+   const errorElement = document.querySelector("#modal-error");
    if (modal) {
       modal.classList.add("hidden");
-      if (modalInput) modalInput.value = "";
+      modalInput.value = "";
       if (errorElement) errorElement.textContent = "";
    }
 }
@@ -182,31 +182,27 @@ function setupNameInput(elementId: string) {
    const handleNameSubmit = (e: Event) => {
       const target = e.target as HTMLInputElement;
       const name = target.value.trim();
-      if (name) {
-         sn.socket.emit("set-name", name);
-      }
+      if (name) sn.socket.emit("set-name", name);
    };
 
    input?.addEventListener("keypress", (e: Event) => {
       const keyEvent = e as KeyboardEvent;
-      if (keyEvent.key === "Enter") {
-         handleNameSubmit(e);
-      }
+      if (keyEvent.key === "Enter") handleNameSubmit(e);
    });
 
    input?.addEventListener("blur", handleNameSubmit);
 }
 
 export function leaveRoom(): void {
-   window.history.replaceState({}, "", window.location.pathname);
+   globalThis.history.replaceState({}, "", globalThis.location.pathname);
    sn.socket.emit("leave-room");
    showMenuScreen();
 }
 
 export function showScreen(screenId: string): void {
-   document.querySelectorAll(".screen").forEach((screen) => {
+   for (const screen of document.querySelectorAll(".screen")) {
       screen.classList.add("hidden");
-   });
+   }
    const targetScreen = document.getElementById(screenId);
    targetScreen?.classList.remove("hidden");
 }
@@ -214,7 +210,7 @@ export function showScreen(screenId: string): void {
 export function showMenuScreen(): void {
    showScreen("menu");
    clearErrors();
-   const gameArea = document.getElementById("game-area");
+   const gameArea = document.querySelector("#game-area");
    if (gameArea) gameArea.innerHTML = "";
    sn.socket.emit("list-rooms");
 
@@ -232,13 +228,13 @@ export function showError(elementId: string, message: string): void {
 }
 
 export function clearErrors(): void {
-   document.querySelectorAll(".error").forEach((error) => {
+   for (const error of document.querySelectorAll(".error")) {
       error.textContent = "";
-   });
+   }
 }
 
 export function updateLobbiesList(lobbies: RoomListing[]): void {
-   const lobbiesContainer = document.getElementById("lobbies-list");
+   const lobbiesContainer = document.querySelector("#lobbies-list");
    if (!lobbiesContainer) return;
 
    if (lobbies.length === 0) {
@@ -252,7 +248,7 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
 
    lobbiesContainer.innerHTML = "";
 
-   lobbies.forEach((lobby) => {
+   for (const lobby of lobbies) {
       const lobbyDiv = document.createElement("div");
       lobbyDiv.className = "lobby-item";
       lobbyDiv.innerHTML = `
@@ -266,21 +262,20 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
     `;
 
       lobbyDiv.addEventListener("click", () => {
-         const roomCodeInput = document.getElementById(
-            "room-code-input"
+         const roomCodeInput = document.querySelector(
+            "#room-code-input"
          ) as HTMLInputElement;
-         if (roomCodeInput) {
-            roomCodeInput.value = lobby.code;
-         }
+
+         roomCodeInput.value = lobby.code;
+
          if (
             checkAndPromptForName(() => {
                sn.socket.emit("join-room", lobby.code);
             })
-         ) {
+         )
             sn.socket.emit("join-room", lobby.code);
-         }
       });
 
-      lobbiesContainer.appendChild(lobbyDiv);
-   });
+      lobbiesContainer.append(lobbyDiv);
+   }
 }
