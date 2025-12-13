@@ -200,7 +200,7 @@ export class Game {
       currentTime: number = Date.now()
    ): MoveResult {
       if (matchIndex < 0 || matchIndex >= this.matches.length)
-         return { success: false, capturedPiece: undefined };
+         return { success: false, captured: undefined };
 
       const match = this.matches[matchIndex];
       const result = match.chess.move(move);
@@ -219,13 +219,11 @@ export class Game {
       currentTime: number = Date.now()
    ): MoveResult {
       const match = this.matches[matchIndex];
-      const premoves =
-         match.activeColor === Color.WHITE
-            ? match.whitePremoves
-            : match.blackPremoves;
+      const premoves = match.activeColor
+         ? match.whitePremoves
+         : match.blackPremoves;
 
-      if (premoves.length === 0)
-         return { success: false, capturedPiece: undefined };
+      if (premoves.length === 0) return { success: false, captured: undefined };
 
       const premove = premoves[0];
 
@@ -242,17 +240,17 @@ export class Game {
    }
 
    moveResultEffects(matchID: number, result: MoveResult): void {
-      if (!result.capturedPiece) return;
+      if (!result.captured) return;
 
       for (let index = 0; index < this.matches.length; index++) {
          const shouldInvert =
             this.matches[index].flipped === this.matches[matchID].flipped;
          const color = shouldInvert
-            ? invertColor(result.capturedPiece.color)
-            : result.capturedPiece.color;
+            ? invertColor(result.captured.color)
+            : result.captured.color;
 
          this.matches[index].chess.addToPocket({
-            type: result.capturedPiece.type,
+            type: result.captured.type,
             color,
          });
       }
@@ -264,7 +262,7 @@ export class Game {
       // Determine which color is making the premove (opposite of active color)
       const premoveColor = invertColor(match.activeColor);
 
-      if (premoveColor === Color.WHITE) match.whitePremoves.push(move);
+      if (premoveColor) match.whitePremoves.push(move);
       else match.blackPremoves.push(move);
 
       return true;
@@ -273,18 +271,14 @@ export class Game {
    clearPremoves(matchIndex: number, color: Color): void {
       const match = this.matches[matchIndex];
 
-      if (color === Color.WHITE) match.whitePremoves = [];
+      if (color) match.whitePremoves = [];
       else match.blackPremoves = [];
    }
 
    getPremoves(matchIndex: number, color: Color): Move[] {
       if (matchIndex < 0 || matchIndex >= this.matches.length) return [];
-
       const match = this.matches[matchIndex];
-
-      return color === Color.WHITE
-         ? [...match.whitePremoves]
-         : [...match.blackPremoves];
+      return color ? [...match.whitePremoves] : [...match.blackPremoves];
    }
 
    getPremovedChess(matchIndex: number): Chess {
@@ -387,7 +381,7 @@ export class Match {
    }
 
    getPlayer(color: Color): Player | undefined {
-      return color === Color.WHITE ? this.whitePlayer : this.blackPlayer;
+      return color ? this.whitePlayer : this.blackPlayer;
    }
 
    getTeam(color: Color): Team {
@@ -401,12 +395,12 @@ export class Match {
    }
 
    setPlayer(player: Player, color: Color): void {
-      if (color === Color.WHITE) this.whitePlayer = player;
+      if (color) this.whitePlayer = player;
       else this.blackPlayer = player;
    }
 
    removePlayer(color: Color): void {
-      if (color === Color.WHITE) this.whitePlayer = undefined;
+      if (color) this.whitePlayer = undefined;
       else this.blackPlayer = undefined;
    }
 
@@ -414,21 +408,21 @@ export class Match {
       if (!this.lastMoveTime) return;
 
       const elapsed = currentTime - this.lastMoveTime;
-      if (this.activeColor === Color.WHITE)
-         this.whiteTime = this.playerTimeSinceMove - elapsed;
+      if (this.activeColor) this.whiteTime = this.playerTimeSinceMove - elapsed;
       else this.blackTime = this.playerTimeSinceMove - elapsed;
    }
 
    switchTurn(currentTime: number): void {
       this.updateTime(currentTime);
       this.activeColor = this.chess.turn;
-      this.playerTimeSinceMove =
-         this.activeColor === Color.WHITE ? this.whiteTime : this.blackTime;
+      this.playerTimeSinceMove = this.activeColor
+         ? this.whiteTime
+         : this.blackTime;
       this.lastMoveTime = currentTime;
    }
 
    clearPremoves(color: Color): void {
-      if (color === Color.WHITE) this.whitePremoves = [];
+      if (color) this.whitePremoves = [];
       else this.blackPremoves = [];
    }
 }

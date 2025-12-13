@@ -17,7 +17,7 @@ export const profiles = new Map<string, Profile>();
 export const MENU_ROOM = "*";
 
 export class GameSocket extends Socket {
-   room!: Room | null;
+   room!: Room;
    player!: Player;
 }
 

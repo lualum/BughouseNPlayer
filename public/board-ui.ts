@@ -28,13 +28,15 @@ const PIECE_IMAGES = {
    p: "/pieces/bp.png",
 };
 
-let selected: {
-   boardID: number;
-   pos: Position;
-   piece: Piece;
-   justSelected: boolean;
-   dragElement: HTMLImageElement | null;
-} | null = null;
+let selected:
+   | {
+        boardID: number;
+        pos: Position;
+        piece: Piece;
+        justSelected: boolean;
+        dragElement: HTMLImageElement | undefined;
+     }
+   | undefined;
 
 // MARK: Utility Functions
 
@@ -190,7 +192,7 @@ function dropSelectedPiece(): void {
    }
 
    selected.dragElement.remove();
-   selected.dragElement = null;
+   selected.dragElement = undefined;
 
    getPieceElement(selected.boardID, selected.pos).style.opacity = "1";
 
@@ -216,7 +218,7 @@ function selectPiece(id: number, pos: Position): void {
       pos,
       piece,
       justSelected,
-      dragElement: null,
+      dragElement: undefined,
    };
 
    updateAnnotations();
@@ -231,7 +233,7 @@ function deselectPiece(): void {
 
    const { boardID } = selected;
 
-   selected = null;
+   selected = undefined;
    updateUIChess(boardID);
 }
 
@@ -444,7 +446,7 @@ function updateAnnotations(): void {
          const toPosition = createPosition(r, c);
          const isLegal =
             pos.loc === "pocket"
-               ? board.isLegalDrop(toPosition, pos.type, pos.color)
+               ? board.isLegalDrop(pos, toPosition)
                : board.isLegalMove(pos, toPosition);
 
          if (isLegal) {

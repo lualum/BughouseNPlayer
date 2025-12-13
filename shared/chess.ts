@@ -7,7 +7,7 @@ export interface SerializedChess {
    whiteCastleLong: boolean;
    blackCastleShort: boolean;
    blackCastleLong: boolean;
-   enPassantTarget: Position | undefined;
+   enPassantTarget: BoardPosition | undefined;
 }
 
 export class Chess {
@@ -19,7 +19,7 @@ export class Chess {
    whiteCastleLong: boolean = true;
    blackCastleShort: boolean = true;
    blackCastleLong: boolean = true;
-   enPassantTarget: Position | undefined = undefined;
+   enPassantTarget: BoardPosition | undefined = undefined;
 
    constructor() {
       this.reset();
@@ -121,9 +121,7 @@ export class Chess {
       else {
          const pocket = this.getPocket(pos.color);
          const count = pocket.get(pos.type) || 0;
-         if (count > 0) return { type: pos.type, color: pos.color };
-
-         return undefined;
+         return count > 0 ? { type: pos.type, color: pos.color } : undefined;
       }
    }
 
@@ -137,31 +135,25 @@ export class Chess {
    removeFromPocket(pieceType: PieceType, color: Color): boolean {
       const pocket = this.getPocket(color);
       const count = pocket.get(pieceType) || 0;
-      if (count > 0) {
-         pocket.set(pieceType, count - 1);
-         if (count - 1 === 0) pocket.delete(pieceType);
-
-         return true;
-      }
-
-      return false;
+      if (count === 0) return false;
+      pocket.set(pieceType, count - 1);
+      if (count === 1) pocket.delete(pieceType);
+      return true;
    }
 
-   findKing(color: Color): Position | undefined {
-      for (let row = 0; row < 8; row++)
+   findKing(color: Color): BoardPosition | undefined {
+      for (let row = 0; row < 8; row++) {
          for (let col = 0; col < 8; col++) {
             const piece = this.board[row][col];
             if (piece && piece.type === PieceType.KING && piece.color === color)
                return { loc: "board", row, col };
          }
-
+      }
       return undefined;
    }
 
-   isSquareAttacked(pos: Position, color: Color): boolean {
-      if (pos.loc !== "board") return false;
-
-      for (let row = 0; row < 8; row++)
+   isSquareAttacked(pos: BoardPosition, color: Color): boolean {
+      for (let row = 0; row < 8; row++) {
          for (let col = 0; col < 8; col++) {
             const piece = this.board[row][col];
             if (
@@ -171,13 +163,11 @@ export class Chess {
             )
                return true;
          }
-
+      }
       return false;
    }
 
-   canPieceAttack(from: Position, to: Position): boolean {
-      if (from.loc !== "board" || to.loc !== "board") return false;
-
+   canPieceAttack(from: BoardPosition, to: BoardPosition): boolean {
       const piece = this.board[from.row][from.col];
       if (!piece) return false;
 
@@ -189,13 +179,11 @@ export class Chess {
                to.row - from.row === direction
             );
          }
-
          case PieceType.KNIGHT: {
             const dr = Math.abs(from.row - to.row);
             const dc = Math.abs(from.col - to.col);
             return (dr === 2 && dc === 1) || (dr === 1 && dc === 2);
          }
-
          case PieceType.BISHOP: {
             return this.isDiagonalPath(from, to);
          }
@@ -226,9 +214,7 @@ export class Chess {
       return this.isSquareAttacked(kingPos, color ? Color.BLACK : Color.WHITE);
    }
 
-   isPathClear(from: Position, to: Position): boolean {
-      if (from.loc !== "board" || to.loc !== "board") return false;
-
+   isPathClear(from: BoardPosition, to: BoardPosition): boolean {
       const rowStep = to.row > from.row ? 1 : to.row < from.row ? -1 : 0;
       const colStep = to.col > from.col ? 1 : to.col < from.col ? -1 : 0;
 
@@ -236,8 +222,7 @@ export class Chess {
       let currentCol = from.col + colStep;
 
       while (currentRow !== to.row || currentCol !== to.col) {
-         if (this.board[currentRow][currentCol] !== null) return false;
-
+         if (this.board[currentRow][currentCol] !== undefined) return false;
          currentRow += rowStep;
          currentCol += colStep;
       }
@@ -245,26 +230,21 @@ export class Chess {
       return true;
    }
 
-   isDiagonalPath(from: Position, to: Position): boolean {
-      if (from.loc !== "board" || to.loc !== "board") return false;
-
-      if (Math.abs(from.row - to.row) !== Math.abs(from.col - to.col))
-         return false;
-      return this.isPathClear(from, to);
+   isDiagonalPath(from: BoardPosition, to: BoardPosition): boolean {
+      return (
+         Math.abs(from.row - to.row) === Math.abs(from.col - to.col) &&
+         this.isPathClear(from, to)
+      );
    }
 
-   isStraightPath(from: Position, to: Position): boolean {
-      if (from.loc !== "board" || to.loc !== "board") return false;
-
-      if (from.row !== to.row && from.col !== to.col) return false;
-      return this.isPathClear(from, to);
+   isStraightPath(from: BoardPosition, to: BoardPosition): boolean {
+      return (
+         (from.row === to.row || from.col === to.col) &&
+         this.isPathClear(from, to)
+      );
    }
 
    canCastle(color: Color, side: CastleMove): boolean {
-      const row = color ? 7 : 0;
-      const kingCol = 4;
-      const rookCol = side === CastleMove.SHORT ? 7 : 0;
-
       // Check if castling rights exist
       if (color) {
          if (side === CastleMove.SHORT && !this.whiteCastleShort) return false;
@@ -274,133 +254,193 @@ export class Chess {
          if (side === CastleMove.LONG && !this.blackCastleLong) return false;
       }
 
-      // Check if king and rook are in correct positions
+      // Check if king and rook are in place
+      const row = color ? 7 : 0;
+      const kingCol = 4;
+      const rookCol = side === CastleMove.SHORT ? 7 : 0;
       const king = this.board[row][kingCol];
       const rook = this.board[row][rookCol];
 
       if (!king || king.type !== PieceType.KING || king.color !== color)
          return false;
-
       if (!rook || rook.type !== PieceType.ROOK || rook.color !== color)
          return false;
-
-      // Check if king is in check
       if (this.isInCheck(color)) return false;
 
-      // Check if squares between king and rook are empty
+      // Check if squares are empty and not under attack
       const start = Math.min(kingCol, rookCol) + 1;
       const end = Math.max(kingCol, rookCol);
-      for (let col = start; col < end; col++)
-         if (this.board[row][col] !== null) return false;
-
-      // Check if squares the king passes through are not under attack
       const enemyColor = invertColor(color);
       const kingDestinationCol = side === CastleMove.SHORT ? 6 : 2;
       const step = side === CastleMove.SHORT ? 1 : -1;
 
-      for (let col = kingCol; col !== kingDestinationCol + step; col += step)
-         if (this.isSquareAttacked({ loc: "board", row, col }, enemyColor))
+      for (let col = kingCol; col !== kingDestinationCol + step; col += step) {
+         if (
+            (col >= start && col < end && this.board[row][col] !== undefined) ||
+            this.isSquareAttacked({ loc: "board", row, col }, enemyColor)
+         )
             return false;
-
+      }
       return true;
    }
 
-   isCastlingMove(from: Position, to: Position): boolean {
-      if (from.loc !== "board" || to.loc !== "board") return false;
-
-      const piece = this.board[from.row][from.col];
-      if (!piece || piece.type !== PieceType.KING) return false;
-
-      // King moving 2 squares horizontally is castling
-      return Math.abs(from.col - to.col) === 2 && from.row === to.row;
-   }
-
-   isEnPassantMove(from: Position, to: Position): boolean {
-      if (from.loc !== "board" || to.loc !== "board") return false;
-      if (!this.enPassantTarget || this.enPassantTarget.loc !== "board")
-         return false;
-
+   isEnPassantMove(from: BoardPosition, to: BoardPosition): boolean {
+      if (!this.enPassantTarget) return false;
       const piece = this.board[from.row][from.col];
       if (!piece || piece.type !== PieceType.PAWN) return false;
-
-      // Check if moving to the en passant target square
       return (
          to.row === this.enPassantTarget.row &&
          to.col === this.enPassantTarget.col
       );
    }
 
-   isLegalMove(from: Position, to: Position): boolean {
-      if (from.loc !== "board" || to.loc !== "board") return false;
-
-      const piece = this.board[from.row][from.col];
-      if (!piece) return false;
-
-      if (this.turn !== piece.color) return false;
-
-      const targetPiece = this.board[to.row][to.col];
-      if (targetPiece && targetPiece.color === piece.color) return false;
-
-      const direction = piece.color ? -1 : 1;
-      let isValid = false;
-
+   private isValidMovementPattern(
+      piece: Piece,
+      from: BoardPosition,
+      to: BoardPosition,
+      premove: boolean
+   ): boolean {
       switch (piece.type) {
          case PieceType.PAWN: {
+            const direction = piece.color ? -1 : 1;
+
+            // Forward moves
             if (from.col === to.col) {
-               if (to.row - from.row === direction && !targetPiece)
-                  isValid = true;
-               else if (to.row - from.row === 2 * direction && !targetPiece) {
-                  const startRow = piece.color ? 6 : 1;
-                  if (from.row === startRow && this.isPathClear(from, to))
-                     isValid = true;
+               // One square forward
+               if (to.row - from.row === direction) {
+                  return premove || !this.board[to.row][to.col];
                }
-            } else if (
+
+               // Two squares forward from starting position
+               if (to.row - from.row === 2 * direction) {
+                  const startRow = piece.color ? 6 : 1;
+                  if (from.row !== startRow) return false;
+
+                  if (premove) return true;
+
+                  const middleRow = from.row + direction;
+                  return (
+                     !this.board[middleRow][to.col] &&
+                     !this.board[to.row][to.col]
+                  );
+               }
+
+               return false;
+            }
+
+            // Diagonal captures
+            if (
                Math.abs(from.col - to.col) === 1 &&
                to.row - from.row === direction
-            )
-               if (targetPiece)
-                  // Regular capture or en passant
-                  isValid = true;
-               else if (this.isEnPassantMove(from, to)) isValid = true;
+            ) {
+               if (premove) return true;
+               const targetPiece = this.board[to.row][to.col];
+               return !!targetPiece || this.isEnPassantMove(from, to);
+            }
 
-            break;
+            return false;
          }
+
          case PieceType.KNIGHT: {
             const dr = Math.abs(from.row - to.row);
             const dc = Math.abs(from.col - to.col);
-            isValid = (dr === 2 && dc === 1) || (dr === 1 && dc === 2);
-            break;
+            return (dr === 2 && dc === 1) || (dr === 1 && dc === 2);
          }
 
          case PieceType.BISHOP: {
-            isValid = this.isDiagonalPath(from, to);
-            break;
+            const isDiagonal =
+               Math.abs(from.row - to.row) === Math.abs(from.col - to.col) &&
+               from.row !== to.row;
+            return premove ? isDiagonal : this.isDiagonalPath(from, to);
          }
+
          case PieceType.ROOK: {
-            isValid = this.isStraightPath(from, to);
-            break;
+            const isStraight =
+               (from.row === to.row || from.col === to.col) &&
+               !(from.row === to.row && from.col === to.col);
+            return premove ? isStraight : this.isStraightPath(from, to);
          }
+
          case PieceType.PROMOTED_QUEEN:
          case PieceType.QUEEN: {
-            isValid =
-               this.isDiagonalPath(from, to) || this.isStraightPath(from, to);
-            break;
+            const isDiagonal =
+               Math.abs(from.row - to.row) === Math.abs(from.col - to.col);
+            const isStraight = from.row === to.row || from.col === to.col;
+            const notSameSquare = !(from.row === to.row && from.col === to.col);
+
+            if (premove) {
+               return (isDiagonal || isStraight) && notSameSquare;
+            }
+            return (
+               this.isDiagonalPath(from, to) || this.isStraightPath(from, to)
+            );
          }
+
          case PieceType.KING: {
-            if (this.isCastlingMove(from, to)) {
-               const side =
-                  to.col > from.col ? CastleMove.SHORT : CastleMove.LONG;
-               return this.canCastle(piece.color, side);
+            const rowDiff = Math.abs(from.row - to.row);
+            const colDiff = Math.abs(from.col - to.col);
+
+            // Normal king move
+            if (rowDiff <= 1 && colDiff <= 1 && rowDiff + colDiff > 0) {
+               return true;
             }
 
-            isValid =
-               Math.abs(from.row - to.row) <= 1 &&
-               Math.abs(from.col - to.col) <= 1;
-            break;
+            // Castling
+            if (from.row === to.row && Math.abs(from.col - to.col) === 2) {
+               const homeRank = piece.color ? 7 : 0;
+               if (from.row !== homeRank || from.col !== 4) return false;
+
+               const side =
+                  to.col > from.col ? CastleMove.SHORT : CastleMove.LONG;
+
+               // Check castling rights
+               if (piece.color) {
+                  if (side === CastleMove.SHORT && !this.whiteCastleShort)
+                     return false;
+                  if (side === CastleMove.LONG && !this.whiteCastleLong)
+                     return false;
+               } else {
+                  if (side === CastleMove.SHORT && !this.blackCastleShort)
+                     return false;
+                  if (side === CastleMove.LONG && !this.blackCastleLong)
+                     return false;
+               }
+
+               return premove || this.canCastle(piece.color, side);
+            }
+
+            return false;
+         }
+
+         default: {
+            return false;
          }
       }
+   }
 
-      if (!isValid) return false;
+   isLegalMove(
+      from: BoardPosition,
+      to: BoardPosition,
+      premove: boolean = false
+   ): boolean {
+      const piece = this.board[from.row][from.col];
+      if (!piece) return false;
+
+      // In premove mode, skip turn and friendly fire checks
+      if (!premove) {
+         if (this.turn !== piece.color) return false;
+
+         const targetPiece = this.board[to.row][to.col];
+         if (targetPiece && targetPiece.color === piece.color) return false;
+      }
+
+      // Check if movement pattern is valid
+      if (!this.isValidMovementPattern(piece, from, to, premove)) {
+         return false;
+      }
+
+      // In premove mode, skip check validation
+      if (premove) return true;
 
       // Simulate the move to check if it leaves the king in check
       const originalPiece = this.board[to.row][to.col];
@@ -432,31 +472,38 @@ export class Chess {
       return !inCheck;
    }
 
-   isLegalDrop(pos: Position, pieceType: PieceType, color: Color): boolean {
-      if (pos.loc !== "board") return false;
+   isLegalDrop(
+      from: PocketPosition,
+      to: BoardPosition,
+      premove: boolean = false
+   ): boolean {
+      if (this.board[to.row][to.col] !== undefined) return false;
 
-      if (this.board[pos.row][pos.col] !== null) return false;
+      // Check if piece is in pocket
+      const pocket = this.getPocket(from.color);
+      if ((pocket.get(from.type) ?? 0) <= 0) return false;
 
-      if (this.turn !== color) return false;
-
-      const pocket = this.getPocket(color);
-      if ((pocket.get(pieceType) ?? 0) <= 0) return false;
-
-      if (pieceType === PieceType.PAWN && (pos.row === 0 || pos.row === 7))
+      // Pawns can't be dropped on back rank
+      if (from.type === PieceType.PAWN && (to.row === 0 || to.row === 7))
          return false;
 
-      this.board[pos.row][pos.col] = { type: pieceType, color };
+      // In premove mode, skip turn and check validation
+      if (premove) return true;
 
-      const inCheck = this.isInCheck(color);
+      if (this.turn !== from.color) return false;
 
-      this.board[pos.row][pos.col] = undefined;
+      this.board[to.row][to.col] = { type: from.type, color: from.color };
+
+      const inCheck = this.isInCheck(from.color);
+
+      this.board[to.row][to.col] = undefined;
 
       return !inCheck;
    }
 
    move(action: Move, premove = false): MoveResult {
       if (action.to.loc === "pocket")
-         return { success: false, capturedPiece: undefined };
+         return { success: false, captured: undefined };
 
       return action.from.loc === "pocket"
          ? this.dropPiece(action.from, action.to, premove)
@@ -468,12 +515,8 @@ export class Chess {
       to: BoardPosition,
       premove = false
    ): MoveResult {
-      if (
-         premove
-            ? !this.isLegalPredrop(from, to)
-            : !this.isLegalDrop(to, from.type, from.color)
-      )
-         return { success: false, capturedPiece: undefined };
+      if (!this.isLegalDrop(from, to, premove))
+         return { success: false, captured: undefined };
 
       this.board[to.row][to.col] = {
          type: from.type,
@@ -484,7 +527,7 @@ export class Chess {
       this.enPassantTarget = undefined;
 
       if (!premove) this.turn = invertColor(this.turn);
-      return { success: true, capturedPiece: undefined };
+      return { success: true, captured: undefined };
    }
 
    movePiece(
@@ -492,14 +535,12 @@ export class Chess {
       to: BoardPosition,
       premove = false
    ): MoveResult {
-      if (
-         premove ? !this.isLegalPremove(from, to) : !this.isLegalMove(from, to)
-      )
-         return { success: false, capturedPiece: undefined };
+      if (!this.isLegalMove(from, to, premove))
+         return { success: false, captured: undefined };
 
       const piece = this.board[from.row][from.col];
 
-      if (!piece) return { success: false, capturedPiece: undefined };
+      if (!piece) return { success: false, captured: undefined };
 
       let captured =
          this.board[to.row][to.col]?.type === PieceType.PROMOTED_QUEEN
@@ -518,7 +559,11 @@ export class Chess {
       }
 
       // Handle castling
-      if (piece.type === PieceType.KING && this.isCastlingMove(from, to)) {
+      if (
+         piece.type === PieceType.KING &&
+         Math.abs(from.col - to.col) === 2 &&
+         from.row === to.row
+      ) {
          const row = from.row;
          const side = to.col > from.col ? CastleMove.SHORT : CastleMove.LONG;
          const rookFromCol = side === CastleMove.SHORT ? 7 : 0;
@@ -549,7 +594,7 @@ export class Chess {
       } else this.enPassantTarget = undefined;
 
       // Pawn promotion - use PROMOTED_QUEEN instead of QUEEN
-      if (piece.type === PieceType.PAWN && (to.row === 0 || to.row === 7))
+      if (piece.type === PieceType.PAWN && to.row === (piece.color ? 0 : 7))
          this.board[to.row][to.col] = {
             type: PieceType.PROMOTED_QUEEN,
             color: piece.color,
@@ -577,150 +622,14 @@ export class Chess {
 
       // If a rook is captured, remove castling rights
       if (captured && captured.type === PieceType.ROOK)
-         if (captured.color === Color.WHITE) {
+         if (captured.color) {
             if (to.row === 7 && to.col === 7) this.whiteCastleShort = false;
             else if (to.row === 7 && to.col === 0) this.whiteCastleLong = false;
          } else if (to.row === 0 && to.col === 7) this.blackCastleShort = false;
          else if (to.row === 0 && to.col === 0) this.blackCastleLong = false;
 
       if (!premove) this.turn = invertColor(this.turn);
-      return { success: true, capturedPiece: captured };
-   }
-
-   isLegalPremove(from: BoardPosition, to: BoardPosition): boolean {
-      // Handle regular moves
-
-      const piece = this.board[from.row][from.col];
-      if (!piece) return false;
-
-      const direction = piece.color === Color.WHITE ? -1 : 1;
-
-      switch (piece.type) {
-         case PieceType.PAWN: {
-            // Forward moves
-            if (from.col === to.col) {
-               // One square forward
-               if (to.row - from.row === direction) return true;
-
-               // Two squares forward from starting position
-               if (to.row - from.row === 2 * direction) {
-                  const startRow = piece.color === Color.WHITE ? 6 : 1;
-                  return from.row === startRow;
-               }
-
-               return false;
-            }
-
-            // Diagonal captures (premove assumes there will be something to capture)
-            if (
-               Math.abs(from.col - to.col) === 1 &&
-               to.row - from.row === direction
-            )
-               return true;
-
-            return false;
-         }
-
-         case PieceType.KNIGHT: {
-            const dr = Math.abs(from.row - to.row);
-            const dc = Math.abs(from.col - to.col);
-            return (dr === 2 && dc === 1) || (dr === 1 && dc === 2);
-         }
-
-         case PieceType.BISHOP: {
-            return (
-               Math.abs(from.row - to.row) === Math.abs(from.col - to.col) &&
-               from.row !== to.row
-            );
-         }
-
-         case PieceType.ROOK: {
-            return (
-               (from.row === to.row || from.col === to.col) &&
-               !(from.row === to.row && from.col === to.col)
-            );
-         }
-
-         case PieceType.PROMOTED_QUEEN:
-         case PieceType.QUEEN: {
-            const isDiagonal =
-               Math.abs(from.row - to.row) === Math.abs(from.col - to.col);
-            const isStraight = from.row === to.row || from.col === to.col;
-            const notSameSquare = !(from.row === to.row && from.col === to.col);
-            return (isDiagonal || isStraight) && notSameSquare;
-         }
-
-         case PieceType.KING: {
-            const rowDiff = Math.abs(from.row - to.row);
-            const colDiff = Math.abs(from.col - to.col);
-
-            if (rowDiff <= 1 && colDiff <= 1 && rowDiff + colDiff > 0)
-               return true;
-
-            // Castling (king moves 2 squares horizontally on home rank)
-            if (from.row === to.row && Math.abs(from.col - to.col) === 2) {
-               // Must be on home rank
-               const homeRank = piece.color === Color.WHITE ? 7 : 0;
-               if (from.row !== homeRank || from.col !== 4) return false;
-
-               // Check castling rights
-               const side =
-                  to.col > from.col ? CastleMove.SHORT : CastleMove.LONG;
-               if (piece.color === Color.WHITE) {
-                  if (
-                     side === CastleMove.SHORT &&
-                     !this.whiteCastleShort &&
-                     to.col > from.col
-                  )
-                     return false;
-                  if (
-                     side === CastleMove.LONG &&
-                     !this.whiteCastleLong &&
-                     to.col < from.col
-                  )
-                     return false;
-               } else {
-                  if (
-                     side === CastleMove.SHORT &&
-                     !this.blackCastleShort &&
-                     to.col < from.col
-                  )
-                     return false;
-                  if (
-                     side === CastleMove.LONG &&
-                     !this.blackCastleLong &&
-                     to.col > from.col
-                  )
-                     return false;
-               }
-
-               return true;
-            }
-
-            return false;
-         }
-
-         default: {
-            return false;
-         }
-      }
-   }
-
-   isLegalPredrop(from: PocketPosition, to: Position): boolean {
-      if (to.loc !== "board") return false;
-
-      // Square must be empty (we check current state for this)
-      if (this.board[to.row][to.col] !== null) return false;
-
-      // Check if piece is in pocket
-      const pocket = this.getPocket(from.color);
-      if ((pocket.get(from.type) ?? 0) <= 0) return false;
-
-      // Pawns can't be dropped on back rank
-      if (from.type === PieceType.PAWN && (to.row === 0 || to.row === 7))
-         return false;
-
-      return true;
+      return { success: true, captured: captured };
    }
 
    isCheckmate(): Color | undefined {
@@ -759,7 +668,12 @@ export class Chess {
             for (let row = 0; row < 8; row++)
                for (let col = 0; col < 8; col++) {
                   const pos: Position = { loc: "board", row, col };
-                  if (this.isLegalDrop(pos, pieceType, this.turn))
+                  if (
+                     this.isLegalDrop(
+                        { loc: "pocket", color: this.turn, type: pieceType },
+                        pos
+                     )
+                  )
                      // Found a legal drop, not checkmate
                      return undefined;
                }
@@ -804,13 +718,10 @@ export function createPosition(
 
 export function positionsEqual(a: Position, b: Position): boolean {
    if (a.loc !== b.loc) return false;
-
    if (a.loc === "board" && b.loc === "board")
       return a.row === b.row && a.col === b.col;
-
    if (a.loc === "pocket" && b.loc === "pocket")
       return a.color === b.color && a.type === b.type;
-
    return false;
 }
 
@@ -849,7 +760,7 @@ export interface Move {
 
 export interface MoveResult {
    success: boolean;
-   capturedPiece: Piece | undefined;
+   captured: Piece | undefined;
 }
 
 export enum CastleMove {
