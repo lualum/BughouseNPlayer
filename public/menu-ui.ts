@@ -176,18 +176,18 @@ function hideNameModal(): void {
    }
 }
 
+function handleNameSubmit(event: Event): void {
+   const target = event.target as HTMLInputElement;
+   const name = target.value.trim();
+   if (name) sn.socket.emit("set-name", name);
+}
+
 function setupNameInput(elementId: string) {
-   const input = document.getElementById(elementId);
+   const input = document.querySelector(`#${elementId}`);
 
-   const handleNameSubmit = (e: Event) => {
-      const target = e.target as HTMLInputElement;
-      const name = target.value.trim();
-      if (name) sn.socket.emit("set-name", name);
-   };
-
-   input?.addEventListener("keypress", (e: Event) => {
-      const keyEvent = e as KeyboardEvent;
-      if (keyEvent.key === "Enter") handleNameSubmit(e);
+   input?.addEventListener("keypress", (event: Event) => {
+      const keyEvent = event as KeyboardEvent;
+      if (keyEvent.key === "Enter") handleNameSubmit(event);
    });
 
    input?.addEventListener("blur", handleNameSubmit);
@@ -203,7 +203,7 @@ export function showScreen(screenId: string): void {
    for (const screen of document.querySelectorAll(".screen")) {
       screen.classList.add("hidden");
    }
-   const targetScreen = document.getElementById(screenId);
+   const targetScreen = document.querySelector(`#${screenId}`);
    targetScreen?.classList.remove("hidden");
 }
 
@@ -218,7 +218,7 @@ export function showMenuScreen(): void {
 }
 
 export function showError(elementId: string, message: string): void {
-   const errorElement = document.getElementById(elementId);
+   const errorElement = document.querySelector(`#${elementId}`);
    if (errorElement) {
       errorElement.textContent = message;
       setTimeout(() => {

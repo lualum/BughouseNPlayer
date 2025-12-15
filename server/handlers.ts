@@ -1,8 +1,8 @@
 import { Server } from "socket.io";
-import { GameSocket, io, emitRoomList, MENU_ROOM, rooms } from "./server";
-import { Room, RoomStatus, Team } from "../shared/room";
 import { Color, Move } from "../shared/chess";
 import { PlayerStatus } from "../shared/player";
+import { Room, RoomStatus, Team } from "../shared/room";
+import { emitRoomList, GameSocket, io, MENU_ROOM, rooms } from "./server";
 
 export function setupHandlers(socket: GameSocket): void {
    // Menu handlers
@@ -97,7 +97,7 @@ export function setupHandlers(socket: GameSocket): void {
 
       const currentTime = Date.now();
       socket.room.game.matches[boardID].switchTurn(currentTime);
-      socket.room.game.tryApplyMove(boardID, move);
+      socket.room.game.tryAddMove(boardID, move);
 
       io.to(socket.room.code).emit("p-moved-board", boardID, move, currentTime);
 

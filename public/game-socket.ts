@@ -112,7 +112,7 @@ export function initGameSocket(): void {
    gs.socket.on(
       "p-moved-board",
       (boardID: number, move: Move, newTime: number) => {
-         gs.room.game.tryApplyMove(boardID, move);
+         gs.room.game.tryAddMove(boardID, move);
          gs.room.game.matches[boardID].updateTime(newTime);
          gs.room.game.matches[boardID].switchTurn(newTime);
          gs.room.game.matches[boardID].updateTime(Date.now());

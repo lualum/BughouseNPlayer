@@ -1,7 +1,7 @@
-import pluginUnicorn from 'eslint-plugin-unicorn';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import parser from '@typescript-eslint/parser';
 import prettierConfig from 'eslint-config-prettier';
+import pluginUnicorn from 'eslint-plugin-unicorn';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -23,8 +23,8 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-      ...pluginUnicorn.configs.recommended.rules,
-      ...prettierConfig.rules
+      ...pluginUnicorn.configs.recommended.rules
     }
-  }
+  },
+  prettierConfig
 ];
