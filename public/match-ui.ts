@@ -2,8 +2,8 @@ import { Color } from "../shared/chess";
 import { Player } from "../shared/player";
 import { Match, RoomStatus, Team } from "../shared/room";
 import {
-   createPocketElement,
    createBoardElement,
+   createPocketElement,
    updateUIChess,
 } from "./board-ui";
 import { gs } from "./session";
@@ -267,7 +267,7 @@ function updateTimeDisplay(
             : Color.WHITE;
       if (
          gs.room.status === RoomStatus.PLAYING &&
-         color === getMatchInstance(boardID)?.activeColor
+         color === getMatchInstance(boardID).chess.turn
       )
          (timeDisplay as HTMLElement).style.color = "var(--hidden-text)";
       else (timeDisplay as HTMLElement).style.color = "#FFFFFF";

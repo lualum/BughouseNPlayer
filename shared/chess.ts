@@ -508,17 +508,13 @@ export class Chess {
          : this.isLegalMove(move.from, move.to, premove);
    }
 
-   tryMove(move: Move, premove = false): MoveResult {
-      if (move.to.loc === "pocket")
-         return { success: false, captured: undefined };
+   doMove(move: Move, premove = false): MoveResult {
+      if (move.to.loc === "pocket") return {};
 
       const from = move.from;
       const to = move.to;
 
       if (from.loc === "pocket") {
-         if (!this.isLegalDrop(from, to, premove))
-            return { success: false, captured: undefined };
-
          this.board[to.row][to.col] = {
             type: from.type,
             color: from.color,
@@ -528,16 +524,11 @@ export class Chess {
          this.enPassantTarget = undefined;
 
          if (!premove) this.turn = invertColor(this.turn);
-         return { success: true, captured: undefined };
-      }
-
-      if (!this.isLegalMove(from, to, premove)) {
-         return { success: false, captured: undefined };
+         return {};
       }
 
       const piece = this.board[from.row][from.col];
-
-      if (!piece) return { success: false, captured: undefined };
+      if (!piece) return {};
 
       let captured =
          this.board[to.row][to.col]?.type === PieceType.PROMOTED_QUEEN
@@ -626,7 +617,7 @@ export class Chess {
          else if (to.row === 0 && to.col === 0) this.blackCastleLong = false;
 
       if (!premove) this.turn = invertColor(this.turn);
-      return { success: true, captured: captured };
+      return { captured };
    }
 
    isCheckmate(): Color | undefined {
@@ -756,8 +747,7 @@ export interface Move {
 }
 
 export interface MoveResult {
-   success: boolean;
-   captured: Piece | undefined;
+   captured?: Piece;
 }
 
 export enum CastleMove {

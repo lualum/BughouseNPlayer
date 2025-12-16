@@ -34,10 +34,9 @@ export interface SerializedMatch {
    blackPlayer: Player | undefined;
    whiteTime: number;
    blackTime: number;
-   premoves: Move[]; // Later moves appear at the end, ALWAYS opposite of chess.turn
+   queued: { moves: Move[]; color: Color };
    playerTimeSinceMove: number;
    lastMoveTime: number | undefined;
-   activeColor: Color; // Player's
    flipped: boolean;
 }
 
@@ -154,7 +153,6 @@ export class Room {
          match.blackTime = defaultTime;
          match.playerTimeSinceMove = defaultTime;
          match.lastMoveTime = currentTime;
-         match.activeColor = Color.WHITE;
          match.chess.reset();
       }
 
@@ -192,75 +190,17 @@ export class Game {
       return state;
    }
 
-   tryAddMove(
-      matchIndex: number,
-      move: Move,
-      premove: boolean = false,
-      currentTime: number = Date.now()
-   ): MoveResult {
-      return premove
-         ? this.tryAddPremove(matchIndex, move)
-         : this.tryApplyMove(matchIndex, move, currentTime);
-   }
-
-   getChessPremoved(matchIndex: number): Chess {
+   getFinalChess(matchIndex: number): Chess {
       const chess = this.matches[matchIndex].chess.clone();
-
-      for (const move of this.getPremoves(matchIndex)) {
-         chess.tryMove(move, true);
-      }
-
+      for (const move of this.matches[matchIndex].queued.moves)
+         chess.doMove(move, true);
       return chess;
    }
 
-   private tryApplyMove(
-      matchIndex: number,
-      move: Move,
-      currentTime: number = Date.now()
-   ): MoveResult {
-      if (matchIndex < 0 || matchIndex >= this.matches.length)
-         return { success: false, captured: undefined };
-
+   doMove(matchIndex: number, move: Move): void {
       const match = this.matches[matchIndex];
-      const result = match.chess.tryMove(move);
-
-      if (result.success) {
-         this.moveResultEffects(matchIndex, result);
-         match.switchTurn(currentTime);
-         this.tryExecutePremoves(matchIndex, currentTime);
-      }
-
-      return result;
-   }
-
-   private tryAddPremove(matchIndex: number, move: Move): MoveResult {
-      const match = this.matches[matchIndex];
-      if (this.getChessPremoved(matchIndex).isLegal(move, true)) {
-         match.premoves.push(move);
-         return { success: true, captured: undefined };
-      }
-      return { success: false, captured: undefined };
-   }
-
-   tryExecutePremoves(
-      matchIndex: number,
-      currentTime: number = Date.now()
-   ): MoveResult {
-      const match = this.matches[matchIndex];
-
-      if (match.premoves.length === 0)
-         return { success: false, captured: undefined };
-
-      const premove = match.premoves[0];
-
-      const result = match.chess.tryMove(premove);
-      if (result.success) {
-         match.premoves.shift();
-         this.moveResultEffects(matchIndex, result);
-         match.switchTurn(currentTime);
-      } else match.premoves.length = 0;
-
-      return result;
+      const result = match.chess.doMove(move);
+      this.moveResultEffects(matchIndex, result);
    }
 
    private moveResultEffects(matchID: number, result: MoveResult): void {
@@ -278,16 +218,6 @@ export class Game {
             color,
          });
       }
-   }
-
-   clearPremoves(matchIndex: number): void {
-      const match = this.matches[matchIndex];
-      match.premoves.length = 0;
-   }
-
-   getPremoves(matchIndex: number): Move[] {
-      if (matchIndex < 0 || matchIndex >= this.matches.length) return [];
-      return this.matches[matchIndex].premoves;
    }
 
    updateTime(currentTime: number = Date.now()): void {
@@ -326,10 +256,9 @@ export class Match {
    blackPlayer: Player | undefined;
    whiteTime: number;
    blackTime: number;
-   premoves: Move[];
+   queued: { moves: Move[]; color: Color };
    playerTimeSinceMove: number;
    lastMoveTime: number | undefined;
-   activeColor: Color;
    flipped: boolean; // normal has bottom as white
 
    constructor(time: number = 0, flipped: boolean = false) {
@@ -338,10 +267,9 @@ export class Match {
       this.blackPlayer = undefined;
       this.whiteTime = time;
       this.blackTime = time;
-      this.premoves = [];
+      this.queued = { moves: [], color: Color.WHITE };
       this.playerTimeSinceMove = time;
       this.lastMoveTime = Date.now();
-      this.activeColor = Color.WHITE;
       this.flipped = flipped;
    }
 
@@ -352,10 +280,9 @@ export class Match {
          blackPlayer: this.blackPlayer,
          whiteTime: this.whiteTime,
          blackTime: this.blackTime,
-         premoves: this.premoves,
+         queued: this.queued,
          playerTimeSinceMove: this.playerTimeSinceMove,
          lastMoveTime: this.lastMoveTime,
-         activeColor: this.activeColor,
          flipped: this.flipped,
       };
    }
@@ -367,10 +294,9 @@ export class Match {
       match.blackPlayer = data.blackPlayer;
       match.whiteTime = data.whiteTime;
       match.blackTime = data.blackTime;
-      match.premoves = data.premoves;
+      match.queued = data.queued;
       match.playerTimeSinceMove = data.playerTimeSinceMove;
       match.lastMoveTime = data.lastMoveTime;
-      match.activeColor = data.activeColor;
       match.flipped = data.flipped;
       return match;
    }
@@ -403,20 +329,9 @@ export class Match {
       if (!this.lastMoveTime) return;
 
       const elapsed = currentTime - this.lastMoveTime;
-      if (this.activeColor) this.whiteTime = this.playerTimeSinceMove - elapsed;
-      else this.blackTime = this.playerTimeSinceMove - elapsed;
-   }
+      if (this.chess.turn) this.whiteTime -= elapsed;
+      else this.blackTime -= elapsed;
 
-   switchTurn(currentTime: number): void {
-      this.updateTime(currentTime);
-      this.activeColor = this.chess.turn;
-      this.playerTimeSinceMove = this.activeColor
-         ? this.whiteTime
-         : this.blackTime;
       this.lastMoveTime = currentTime;
-   }
-
-   clearPremoves(): void {
-      this.premoves.length = 0;
    }
 }

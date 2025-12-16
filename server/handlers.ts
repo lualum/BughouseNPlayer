@@ -91,13 +91,14 @@ export function setupHandlers(socket: GameSocket): void {
          !socket.room ||
          socket.room.status !== RoomStatus.PLAYING ||
          socket.room.game.matches[boardID].getPlayer(color)?.id !==
-            socket.player.id
+            socket.player.id ||
+         !socket.room.game.matches[boardID].chess.isLegal(move, false)
       )
          return;
 
       const currentTime = Date.now();
-      socket.room.game.matches[boardID].switchTurn(currentTime);
-      socket.room.game.tryAddMove(boardID, move);
+      socket.room.game.matches[boardID].updateTime(currentTime);
+      socket.room.game.doMove(boardID, move);
 
       io.to(socket.room.code).emit("p-moved-board", boardID, move, currentTime);
 

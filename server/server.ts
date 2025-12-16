@@ -1,6 +1,6 @@
-import { randomBytes } from "node:crypto";
 import express from "express";
 import { setupHandlers } from "handlers";
+import { randomBytes } from "node:crypto";
 import http from "node:http";
 import path from "node:path";
 import { Server, Socket } from "socket.io";
@@ -62,8 +62,8 @@ io.on("connection", (socket: Socket) => {
       gameSocket.player = player;
       profiles.set(id, {
          name: player.name,
-         id: id,
-         auth: auth,
+         id,
+         auth,
       });
 
       gameSocket.emit("created-player", id, auth);
