@@ -141,7 +141,7 @@ export class Chess {
       return true;
    }
 
-   findKing(color: Color): BoardPosition | undefined {
+   private findKing(color: Color): BoardPosition | undefined {
       for (let row = 0; row < 8; row++) {
          for (let col = 0; col < 8; col++) {
             const piece = this.board[row][col];
@@ -152,7 +152,7 @@ export class Chess {
       return undefined;
    }
 
-   isSquareAttacked(pos: BoardPosition, color: Color): boolean {
+   private isSquareAttacked(pos: BoardPosition, color: Color): boolean {
       for (let row = 0; row < 8; row++) {
          for (let col = 0; col < 8; col++) {
             const piece = this.board[row][col];
@@ -167,7 +167,7 @@ export class Chess {
       return false;
    }
 
-   canPieceAttack(from: BoardPosition, to: BoardPosition): boolean {
+   private canPieceAttack(from: BoardPosition, to: BoardPosition): boolean {
       const piece = this.board[from.row][from.col];
       if (!piece) return false;
 
@@ -208,13 +208,13 @@ export class Chess {
       }
    }
 
-   isInCheck(color: Color): boolean {
+   private isInCheck(color: Color): boolean {
       const kingPos = this.findKing(color);
       if (!kingPos) return false;
       return this.isSquareAttacked(kingPos, color ? Color.BLACK : Color.WHITE);
    }
 
-   isPathClear(from: BoardPosition, to: BoardPosition): boolean {
+   private isPathClear(from: BoardPosition, to: BoardPosition): boolean {
       const rowStep = to.row > from.row ? 1 : to.row < from.row ? -1 : 0;
       const colStep = to.col > from.col ? 1 : to.col < from.col ? -1 : 0;
 
@@ -230,21 +230,21 @@ export class Chess {
       return true;
    }
 
-   isDiagonalPath(from: BoardPosition, to: BoardPosition): boolean {
+   private isDiagonalPath(from: BoardPosition, to: BoardPosition): boolean {
       return (
          Math.abs(from.row - to.row) === Math.abs(from.col - to.col) &&
          this.isPathClear(from, to)
       );
    }
 
-   isStraightPath(from: BoardPosition, to: BoardPosition): boolean {
+   private isStraightPath(from: BoardPosition, to: BoardPosition): boolean {
       return (
          (from.row === to.row || from.col === to.col) &&
          this.isPathClear(from, to)
       );
    }
 
-   canCastle(color: Color, side: CastleMove): boolean {
+   private canCastle(color: Color, side: CastleMove): boolean {
       // Check if castling rights exist
       if (color) {
          if (side === CastleMove.SHORT && !this.whiteCastleShort) return false;
@@ -284,7 +284,7 @@ export class Chess {
       return true;
    }
 
-   isEnPassantMove(from: BoardPosition, to: BoardPosition): boolean {
+   private isEnPassantMove(from: BoardPosition, to: BoardPosition): boolean {
       if (!this.enPassantTarget) return false;
       const piece = this.board[from.row][from.col];
       if (!piece || piece.type !== PieceType.PAWN) return false;
@@ -418,7 +418,7 @@ export class Chess {
       }
    }
 
-   isLegalMove(
+   private isLegalMove(
       from: BoardPosition,
       to: BoardPosition,
       premove: boolean = false
@@ -472,7 +472,7 @@ export class Chess {
       return !inCheck;
    }
 
-   isLegalDrop(
+   private isLegalDrop(
       from: PocketPosition,
       to: BoardPosition,
       premove: boolean = false
@@ -501,46 +501,34 @@ export class Chess {
       return !inCheck;
    }
 
-   move(action: Move, premove = false): MoveResult {
-      if (action.to.loc === "pocket")
-         return { success: false, captured: undefined };
-
-      return action.from.loc === "pocket"
-         ? this.dropPiece(action.from, action.to, premove)
-         : this.movePiece(action.from, action.to, premove);
+   isLegal(move: Move, premove = false): boolean {
+      if (move.to.loc === "pocket") return true;
+      return move.from.loc === "pocket"
+         ? this.isLegalDrop(move.from, move.to, premove)
+         : this.isLegalMove(move.from, move.to, premove);
    }
 
-   dropPiece(
-      from: PocketPosition,
-      to: BoardPosition,
-      premove = false
-   ): MoveResult {
-      if (!this.isLegalDrop(from, to, premove))
-         return { success: false, captured: undefined };
+   doMove(move: Move, premove = false): MoveResult {
+      if (move.to.loc === "pocket") return {};
 
-      this.board[to.row][to.col] = {
-         type: from.type,
-         color: from.color,
-      };
+      const from = move.from;
+      const to = move.to;
 
-      this.removeFromPocket(from.type, from.color);
-      this.enPassantTarget = undefined;
+      if (from.loc === "pocket") {
+         this.board[to.row][to.col] = {
+            type: from.type,
+            color: from.color,
+         };
 
-      if (!premove) this.turn = invertColor(this.turn);
-      return { success: true, captured: undefined };
-   }
+         this.removeFromPocket(from.type, from.color);
+         this.enPassantTarget = undefined;
 
-   movePiece(
-      from: BoardPosition,
-      to: BoardPosition,
-      premove = false
-   ): MoveResult {
-      if (!this.isLegalMove(from, to, premove))
-         return { success: false, captured: undefined };
+         if (!premove) this.turn = invertColor(this.turn);
+         return {};
+      }
 
       const piece = this.board[from.row][from.col];
-
-      if (!piece) return { success: false, captured: undefined };
+      if (!piece) return {};
 
       let captured =
          this.board[to.row][to.col]?.type === PieceType.PROMOTED_QUEEN
@@ -629,7 +617,7 @@ export class Chess {
          else if (to.row === 0 && to.col === 0) this.blackCastleLong = false;
 
       if (!premove) this.turn = invertColor(this.turn);
-      return { success: true, captured: captured };
+      return { captured };
    }
 
    isCheckmate(): Color | undefined {
@@ -759,8 +747,7 @@ export interface Move {
 }
 
 export interface MoveResult {
-   success: boolean;
-   captured: Piece | undefined;
+   captured?: Piece;
 }
 
 export enum CastleMove {

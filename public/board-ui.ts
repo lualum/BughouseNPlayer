@@ -28,6 +28,8 @@ const PIECE_IMAGES = {
    p: "/pieces/bp.png",
 };
 
+// MARK: Global Variables
+
 let selected:
    | {
         boardID: number;
@@ -38,11 +40,92 @@ let selected:
      }
    | undefined;
 
-// MARK: Utility Functions
-
-function getBoard(id: number): Chess {
-   return gs.room.game.matches[id].chess;
+interface BoardMarks {
+   marked: boolean[][];
+   premoved: boolean[][];
 }
+
+interface VisualChessState {
+   chess: Chess;
+   marks: BoardMarks;
+}
+
+const visualChessStates: Map<number, VisualChessState> = new Map();
+
+// MARK: Visual Chess State
+
+function resetMarks(matchIndex: number): void {
+   visualChessStates.get(matchIndex)!.marks = {
+      marked: Array.from({ length: 8 }, () =>
+         Array.from({ length: 8 }, () => false)
+      ),
+      premoved: Array.from({ length: 8 }, () =>
+         Array.from({ length: 8 }, () => false)
+      ),
+   };
+}
+
+function updateVisualChessState(matchIndex: number): void {
+   const match = gs.room.game.matches[matchIndex];
+   const chess = gs.room.game.getFinalChess(matchIndex);
+   const previousState = visualChessStates.get(matchIndex);
+
+   if (previousState && match.queued.moves.length === 0) {
+      visualChessStates.set(matchIndex, {
+         chess,
+         marks: {
+            marked: previousState.marks.marked,
+            premoved: Array.from({ length: 8 }, () =>
+               Array.from({ length: 8 }, () => false)
+            ),
+         },
+      });
+
+      return;
+   }
+
+   const marks: BoardMarks = {
+      marked:
+         previousState?.marks.marked ||
+         Array.from({ length: 8 }, () =>
+            Array.from({ length: 8 }, () => false)
+         ),
+      premoved: Array.from({ length: 8 }, () =>
+         Array.from({ length: 8 }, () => false)
+      ),
+   };
+
+   for (let index = 0; index < match.queued.moves.length; index++) {
+      const move = gs.room.game.matches[matchIndex].queued.moves[index];
+
+      if (
+         index === 0 &&
+         gs.room.game.matches[matchIndex].chess.turn ===
+            gs.room.game.matches[matchIndex].chess.getPiece(move.from)!.color
+      ) {
+         continue;
+      }
+
+      if (move.from.loc === "board")
+         marks.premoved[move.from.row][move.from.col] = true;
+      if (move.to.loc === "board")
+         marks.premoved[move.to.row][move.to.col] = true;
+   }
+
+   visualChessStates.set(matchIndex, {
+      chess,
+      marks,
+   });
+}
+
+function getVisualChess(matchIndex: number): VisualChessState {
+   if (!visualChessStates.has(matchIndex)) {
+      updateVisualChessState(matchIndex);
+   }
+   return visualChessStates.get(matchIndex)!;
+}
+
+// MARK: Utility Functions
 
 function isFlipped(id: number): boolean {
    return gs.room.game.matches[id].flipped !== visualFlipped;
@@ -65,7 +148,7 @@ function getPieceImagePath(piece: Piece): string {
    return PIECE_IMAGES[key as keyof typeof PIECE_IMAGES];
 }
 
-function setPositionToElement(element: HTMLElement, pos: Position, id: number) {
+function setPositionToElement(element: HTMLElement, id: number, pos: Position) {
    element.dataset.id = id.toString();
    element.dataset.loc = pos.loc;
    if (pos.loc === "board") {
@@ -105,7 +188,6 @@ function getSquareElement(id: number, pos: BoardPosition): HTMLElement {
 function getPieceElement(id: number, pos: Position): HTMLImageElement {
    if (pos.loc === "board") {
       const square = getSquareElement(id, pos);
-
       return square.querySelector("img") as HTMLImageElement;
    }
 
@@ -129,10 +211,11 @@ export function createBoardElement(id: number): HTMLDivElement {
          square.className = `square ${
             (row + col) % 2 === 0 ? "light" : "dark"
          }`;
-         setPositionToElement(square, createPosition(row, col), id);
+         setPositionToElement(square, id, createPosition(row, col));
 
          square.addEventListener("mousedown", handleSquareMouseDown);
          square.addEventListener("mouseup", handleSquareMouseUp);
+         square.addEventListener("contextmenu", handleSquareRightClick);
 
          board.append(square);
       }
@@ -207,7 +290,7 @@ function selectPiece(id: number, pos: Position): void {
 
    deselectPiece();
 
-   const piece = getBoard(id).getPiece(pos);
+   const piece = getVisualChess(id).chess.getPiece(pos);
 
    if (!piece) {
       return;
@@ -221,13 +304,11 @@ function selectPiece(id: number, pos: Position): void {
       dragElement: undefined,
    };
 
-   updateAnnotations();
+   updateAnnotations(id);
 }
 
 function deselectPiece(): void {
-   if (!selected) {
-      return;
-   }
+   if (!selected) return;
 
    dropSelectedPiece();
 
@@ -240,8 +321,9 @@ function deselectPiece(): void {
 // MARK: UI Update Funcs
 
 export function updateUIChess(id: number): void {
-   const board = getBoard(id);
-   if (!board) return;
+   updateVisualChessState(id);
+
+   const chess = getVisualChess(id).chess;
 
    const squares = document.querySelectorAll(`.square[data-id="${id}"]`);
    const flipped = isFlipped(id);
@@ -256,7 +338,7 @@ export function updateUIChess(id: number): void {
       const col = flipped ? 7 - visualCol : visualCol;
       const pos = createPosition(row, col);
 
-      setPositionToElement(element, pos, id);
+      setPositionToElement(element, id, pos);
 
       element.innerHTML = "";
 
@@ -277,14 +359,14 @@ export function updateUIChess(id: number): void {
          element.append(fileLabel);
       }
 
-      const piece = board.getPiece(pos);
+      const piece = chess.getPiece(pos);
       if (piece) {
          const img = document.createElement("img");
 
          img.src = getPieceImagePath(piece);
          img.className = "piece";
 
-         const isMyTurn = board.turn === piece.color;
+         const isMyTurn = chess.turn === piece.color;
          const isMyPiece =
             gs.room.status === RoomStatus.PLAYING &&
             gs.room.game.matches[id].getPlayer(piece.color)?.id ===
@@ -312,10 +394,10 @@ export function updateUIChess(id: number): void {
    const topColor = flipped ? Color.WHITE : Color.BLACK;
    const bottomColor = flipped ? Color.BLACK : Color.WHITE;
 
-   updatePocket("top-pocket", board.getPocket(topColor), topColor, id);
-   updatePocket("bottom-pocket", board.getPocket(bottomColor), bottomColor, id);
+   updatePocket("top-pocket", chess.getPocket(topColor), topColor, id);
+   updatePocket("bottom-pocket", chess.getPocket(bottomColor), bottomColor, id);
 
-   updateAnnotations();
+   updateAnnotations(id);
 }
 
 function updatePocket(
@@ -338,7 +420,6 @@ function updatePocket(
       PieceType.QUEEN,
    ];
 
-   const isMyTurn = getBoard(boardID).turn === color;
    const isMyPiece =
       gs.room.status === RoomStatus.PLAYING &&
       gs.room.game.matches[boardID].getPlayer(color)?.id === gs.player.id;
@@ -355,14 +436,14 @@ function updatePocket(
          const img = document.createElement("img");
 
          img.src = getPieceImagePath({ type: pieceType, color });
-         setPositionToElement(
-            img,
-            { loc: "pocket", type: pieceType, color },
-            boardID
-         );
+         setPositionToElement(img, boardID, {
+            loc: "pocket",
+            type: pieceType,
+            color,
+         });
          img.addEventListener("dragstart", () => false);
 
-         if (isMyTurn && isMyPiece) {
+         if (isMyPiece) {
             img.style.cursor = "grab";
             img.addEventListener("mousedown", handlePocketMouseDown);
             img.addEventListener("mouseup", handlePocketMouseUp);
@@ -401,14 +482,21 @@ function annotateSquare(
    }
 }
 
-function updateAnnotations(): void {
+function updateAnnotations(id: number): void {
    // Clear board highlights
-   const squares = document.querySelectorAll(`.square`);
+   const boardElement = document.querySelectorAll(`.board[data-id="${id}"]`)[0];
+   const squares = boardElement.querySelectorAll(`.square`);
 
    for (const square of squares) {
       const element = square as HTMLElement;
 
-      element.classList.remove("highlight", "legal-move", "has-piece");
+      element.classList.remove(
+         "highlight",
+         "legal-move",
+         "has-piece",
+         "premoved",
+         "marked"
+      );
    }
 
    // Clear pocket highlights
@@ -420,36 +508,34 @@ function updateAnnotations(): void {
       element.classList.remove("highlight");
    }
 
-   if (!selected) {
-      return;
+   const { chess, marks } = getVisualChess(id);
+   for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+         if (marks.premoved[r][c] || marks.marked[r][c]) {
+            annotateSquare(id, r, c, ["premoved"]);
+         }
+      }
    }
-   const { boardID, pos } = selected;
-   const board = getBoard(boardID);
 
-   if (!board) {
-      return;
-   }
+   if (!selected) return;
+   const { boardID, pos } = selected;
+   const board = getVisualChess(boardID).chess;
 
    if (pos.loc === "board") {
       annotateSquare(boardID, pos.row, pos.col, ["highlight"]);
    } else {
       const pocketImg = getPieceElement(boardID, pos);
-
       const pocketPiece = pocketImg.closest(".pocket-piece") as HTMLElement;
-
       pocketPiece.classList.add("highlight");
    }
+
+   const premove = chess.getPiece(pos)?.color !== board.turn;
 
    // Show legal moves
    for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
-         const toPosition = createPosition(r, c);
-         const isLegal =
-            pos.loc === "pocket"
-               ? board.isLegalDrop(pos, toPosition)
-               : board.isLegalMove(pos, toPosition);
-
-         if (isLegal) {
+         const move = { from: pos, to: createPosition(r, c) };
+         if (board.isLegal(move, premove)) {
             annotateSquare(boardID, r, c, ["legal-move"]);
          }
       }
@@ -459,9 +545,8 @@ function updateAnnotations(): void {
 // MARK: Mouse Handlers
 
 function handleMouseMove(event: MouseEvent): void {
-   if (!selected?.dragElement) {
-      return;
-   }
+   if (!selected?.dragElement) return;
+
    event.preventDefault();
 
    const centerOffsetX = selected.dragElement.offsetWidth / 2;
@@ -476,8 +561,8 @@ function handleSquareMouseDown(event: MouseEvent): void {
 
    const { pos, id } = getPositionFromElement(square);
 
-   const board = getBoard(id);
-   const pieceAtTarget = board.getPiece(pos);
+   const board = getVisualChess(id).chess;
+   const targetPiece = board.getPiece(pos);
 
    event.preventDefault();
 
@@ -486,42 +571,33 @@ function handleSquareMouseDown(event: MouseEvent): void {
          from: selected.pos,
          to: pos,
       };
-      const result = gs.room.game.tryApplyMove(id, move);
 
-      if (result.success) {
-         gs.socket.emit("move-board", id, selected.piece.color, move);
+      const premove = board.turn !== board.getPiece(move.from)?.color;
+
+      if (board.isLegal(move, premove)) {
+         if (!premove)
+            gs.socket.emit("move-board", id, selected.piece.color, move);
+
+         gs.room.game.matches[id].queued.color = selected.piece.color;
+         gs.room.game.matches[id].queued.moves.push(move);
          deselectPiece();
-      } else if (!pieceAtTarget || !isMyPiece(id, pieceAtTarget)) {
-         deselectPiece();
-      } else if (
-         isMyPiece(id, pieceAtTarget) &&
-         board.turn === pieceAtTarget.color
-      ) {
-         selectPiece(id, pos);
-         holdPiece(event);
+         return;
       }
-   } else if (
-      pieceAtTarget &&
-      isMyPiece(id, pieceAtTarget) &&
-      board.turn === pieceAtTarget.color
-   ) {
+   }
+
+   if (targetPiece && isMyPiece(id, targetPiece)) {
       selectPiece(id, pos);
       holdPiece(event);
+   } else {
+      deselectPiece();
    }
 }
 
 function handleSquareMouseUp(event: MouseEvent): void {
    const square = event.currentTarget as HTMLElement;
-
-   if (!selected) {
-      return;
-   }
-
+   if (!selected) return;
    const { pos, id } = getPositionFromElement(square);
-
-   if (selected.boardID !== id) {
-      return;
-   }
+   if (selected.boardID !== id) return;
 
    event.preventDefault();
 
@@ -530,10 +606,16 @@ function handleSquareMouseUp(event: MouseEvent): void {
       to: pos,
    };
 
-   const result = gs.room.game.tryApplyMove(id, move);
+   const board = getVisualChess(id).chess;
+   const premove = board.turn !== board.getPiece(move.from)?.color;
+   const result = board.isLegal(move, premove);
 
-   if (result.success) {
-      gs.socket.emit("move-board", id, selected.piece.color, move);
+   if (result) {
+      if (!premove)
+         gs.socket.emit("move-board", id, selected.piece.color, move);
+
+      gs.room.game.matches[id].queued.color = selected.piece.color;
+      gs.room.game.matches[id].queued.moves.push(move);
       deselectPiece();
    } else if (!selected.justSelected && positionsEqual(selected.pos, pos)) {
       deselectPiece();
@@ -542,9 +624,29 @@ function handleSquareMouseUp(event: MouseEvent): void {
    }
 }
 
+function handleSquareRightClick(event: MouseEvent): void {
+   event.preventDefault(); // Prevent the default context menu
+
+   const square = event.currentTarget as HTMLElement;
+   const { id, pos } = getPositionFromElement(square);
+
+   if (pos.loc !== "board") return;
+
+   deselectPiece();
+
+   if (gs.room.game.matches[id].queued.moves.length > 0) {
+      gs.room.game.matches[id].queued.moves = [];
+      resetMarks(id);
+      updateUIChess(id);
+   } else {
+      const marked = getVisualChess(id).marks.marked;
+      marked[pos.row][pos.col] = !marked[pos.row][pos.col];
+      updateAnnotations(id);
+   }
+}
+
 function handlePocketMouseDown(event: MouseEvent): void {
    const target = event.target as HTMLElement;
-
    const { pos, id } = getPositionFromElement(target);
 
    event.preventDefault();
@@ -555,16 +657,9 @@ function handlePocketMouseDown(event: MouseEvent): void {
 
 function handlePocketMouseUp(event: MouseEvent): void {
    const target = event.target as HTMLElement;
-
-   if (!selected) {
-      return;
-   }
-
+   if (!selected) return;
    const { pos, id } = getPositionFromElement(target);
-
-   if (selected.boardID !== id) {
-      return;
-   }
+   if (selected.boardID !== id) return;
 
    event.preventDefault();
 

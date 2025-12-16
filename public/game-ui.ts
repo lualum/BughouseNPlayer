@@ -2,13 +2,12 @@ import { ChatMessage } from "../shared/chat";
 import { Color } from "../shared/chess";
 import { PlayerStatus } from "../shared/player";
 import {
-   toggleVisualFlipped,
-   updateUIAllGame,
    createMatchElements,
    setVisualFlipped,
+   toggleVisualFlipped,
+   updateUIAllGame,
 } from "./match-ui";
 import { leaveRoom } from "./menu-ui";
-
 import { gs } from "./session";
 
 export function initGameControls(): void {
@@ -31,6 +30,8 @@ export function initGameControls(): void {
       }
    });
 }
+
+// MARK: Sidebar UI
 
 export function showRoomElements(): void {
    const gameScreen = document.querySelector("#game");
@@ -60,16 +61,6 @@ export function showRoomElements(): void {
          totalBoardsSpan.textContent = gs.room.game.matches.length.toString();
 
       initScrollControls();
-   }
-}
-
-export function sendChatMessage(): void {
-   const chatInput = document.querySelector("#chat-input") as HTMLInputElement;
-
-   const message = chatInput.value.trim();
-   if (message.length > 0) {
-      gs.socket.emit("send-chat", message);
-      chatInput.value = "";
    }
 }
 
@@ -129,6 +120,8 @@ export function updateUIPlayerList(): void {
    }
 }
 
+// MARK: Chat UI
+
 export function updateUIAllChat(): void {
    const chatMessagesDiv = document.querySelector("#chat-messages");
    if (!chatMessagesDiv) return;
@@ -163,6 +156,19 @@ export function updateUIPushChat(message: ChatMessage): void {
    chatMessagesDiv.append(messageDiv);
    chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
+
+export function sendChatMessage(): void {
+   const chatInput = document.querySelector("#chat-input") as HTMLInputElement;
+
+   const message = chatInput.value.trim();
+   if (message.length > 0) {
+      gs.socket.emit("send-chat", message);
+      chatInput.value = "";
+   }
+}
+
+// MARK: Scrolling UI
+
 function getBoardAreaDimensions(): { board: number; gap: number } {
    const boardArea = document.querySelectorAll(
       ".match-container"
@@ -240,6 +246,8 @@ export function initScrollControls(): void {
 
    updateScrollButtonsBound();
 }
+
+// MARK: Start/End Game UI
 
 export function startGameUI(): void {
    const readyButton = document.querySelector(

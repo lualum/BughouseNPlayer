@@ -1,4 +1,4 @@
-import type { Color, Move } from "../shared/chess";
+import { type Color, type Move } from "../shared/chess";
 import { Player, type PlayerStatus } from "../shared/player";
 import {
    Game,
@@ -112,12 +112,43 @@ export function initGameSocket(): void {
    gs.socket.on(
       "p-moved-board",
       (boardID: number, move: Move, newTime: number) => {
-         gs.room.game.tryApplyMove(boardID, move);
-         gs.room.game.matches[boardID].updateTime(newTime);
-         gs.room.game.matches[boardID].switchTurn(newTime);
-         gs.room.game.matches[boardID].updateTime(Date.now());
+         const currentMatch = gs.room.game.matches[boardID];
+
+         currentMatch.updateTime(newTime);
+
+         if (currentMatch.queued.color === currentMatch.chess.turn)
+            currentMatch.queued.moves.shift();
+
+         gs.room.game.doMove(boardID, move);
+
+         for (const match of gs.room.game.matches) {
+            if (match.queued.moves.length === 0) continue;
+            if (
+               !match.chess.isLegal(
+                  match.queued.moves[0],
+                  currentMatch.queued.color !== currentMatch.chess.turn
+               )
+            ) {
+               console.log("Cleared queued", match.queued.moves[0]);
+               match.queued.moves.length = 0;
+            }
+         }
+
+         currentMatch.updateTime(Date.now());
          updateUITime();
          updateUIAllBoards();
+
+         if (
+            currentMatch.queued.moves[0] &&
+            currentMatch.chess.isLegal(currentMatch.queued.moves[0])
+         ) {
+            gs.socket.emit(
+               "move-board",
+               boardID,
+               currentMatch.chess.turn,
+               currentMatch.queued.moves[0]
+            );
+         }
       }
    );
 
