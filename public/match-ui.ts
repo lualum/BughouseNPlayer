@@ -105,8 +105,9 @@ export function createMatchElements(boardID: number): void {
 
 // UI Update Functions - Players
 export function updateUIAllPlayers(): void {
-   for (let index = 0; index < gs.room.game.matches.length; index++)
+   for (let index = 0; index < gs.room.game.matches.length; index++) {
       updateUIPlayers(index);
+   }
 }
 
 export function updateUIPlayers(boardID: number): void {
@@ -166,8 +167,9 @@ function createEmptySlot(boardID: number, color: Color): HTMLElement {
             getMatchInstance(boardID).getTeam(color) === Team.RED
                ? Team.BLUE
                : Team.RED;
-         for (const match of gs.room.game.matches)
+         for (const match of gs.room.game.matches) {
             if (match.getPlayerTeam(oppTeam)?.id === gs.player.id) return;
+         }
 
          gs.socket.emit("join-board", boardID, color);
       });
@@ -268,9 +270,9 @@ function updateTimeDisplay(
       if (
          gs.room.status === RoomStatus.PLAYING &&
          color === getMatchInstance(boardID).chess.turn
-      )
+      ) {
          (timeDisplay as HTMLElement).style.color = "var(--hidden-text)";
-      else (timeDisplay as HTMLElement).style.color = "#FFFFFF";
+      } else (timeDisplay as HTMLElement).style.color = "#FFFFFF";
    }
 }
 
@@ -298,8 +300,9 @@ export function stopTimeUpdates(): void {
 
 // Global Update Functions
 export function updateUIAllBoards(): void {
-   for (let index = 0; index < gs.room.game.matches.length; index++)
+   for (let index = 0; index < gs.room.game.matches.length; index++) {
       updateUIChess(index);
+   }
 }
 
 export function updateUIAllGame(): void {

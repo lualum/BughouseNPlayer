@@ -106,10 +106,12 @@ function updateVisualChessState(matchIndex: number): void {
          continue;
       }
 
-      if (move.from.loc === "board")
+      if (move.from.loc === "board") {
          marks.premoved[move.from.row][move.from.col] = true;
-      if (move.to.loc === "board")
+      }
+      if (move.to.loc === "board") {
          marks.premoved[move.to.row][move.to.col] = true;
+      }
    }
 
    visualChessStates.set(matchIndex, {
@@ -575,8 +577,9 @@ function handleSquareMouseDown(event: MouseEvent): void {
       const premove = board.turn !== board.getPiece(move.from)?.color;
 
       if (board.isLegal(move, premove)) {
-         if (!premove)
+         if (!premove) {
             gs.socket.emit("move-board", id, selected.piece.color, move);
+         }
 
          gs.room.game.matches[id].queued.color = selected.piece.color;
          gs.room.game.matches[id].queued.moves.push(move);
@@ -611,8 +614,9 @@ function handleSquareMouseUp(event: MouseEvent): void {
    const result = board.isLegal(move, premove);
 
    if (result) {
-      if (!premove)
+      if (!premove) {
          gs.socket.emit("move-board", id, selected.piece.color, move);
+      }
 
       gs.room.game.matches[id].queued.color = selected.piece.color;
       gs.room.game.matches[id].queued.moves.push(move);

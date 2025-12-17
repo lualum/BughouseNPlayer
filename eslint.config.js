@@ -25,7 +25,15 @@ export default [
          ...tseslint.configs.recommended.rules,
          ...pluginUnicorn.configs.recommended.rules,
          "object-shorthand": ["error", "always"],
+         "brace-style": ["error", "1tbs"],
       },
    },
    prettierConfig,
+   {
+      // Override Prettier config for specific rules
+      files: ["**/*.ts", "**/*.tsx"],
+      rules: {
+         curly: ["error", "multi-line"],
+      },
+   },
 ];

@@ -48,16 +48,18 @@ export function initMenuControls(): void {
             checkAndPromptForName(() => {
                sn.socket.emit("create-room");
             })
-         )
+         ) {
             sn.socket.emit("create-room");
+         }
       } else if (roomCode.length === 4) {
          // Join room
          if (
             checkAndPromptForName(() => {
                sn.socket.emit("join-room", roomCode);
             })
-         )
+         ) {
             sn.socket.emit("join-room", roomCode);
+         }
       } else showError("menu-error", "Room code must be 4 characters");
    });
 
@@ -272,8 +274,9 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
             checkAndPromptForName(() => {
                sn.socket.emit("join-room", lobby.code);
             })
-         )
+         ) {
             sn.socket.emit("join-room", lobby.code);
+         }
       });
 
       lobbiesContainer.append(lobbyDiv);

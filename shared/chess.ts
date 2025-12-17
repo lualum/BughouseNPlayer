@@ -63,12 +63,14 @@ export class Chess {
       const chess = new Chess();
       chess.board = data.board;
       chess.whitePocket = new Map();
-      for (const [key, value] of Object.entries(data.whitePocket))
+      for (const [key, value] of Object.entries(data.whitePocket)) {
          chess.whitePocket.set(key as PieceType, value);
+      }
 
       chess.blackPocket = new Map();
-      for (const [key, value] of Object.entries(data.blackPocket))
+      for (const [key, value] of Object.entries(data.blackPocket)) {
          chess.blackPocket.set(key as PieceType, value);
+      }
 
       chess.turn = data.turn;
       chess.whiteCastleShort = data.whiteCastleShort;
@@ -145,8 +147,13 @@ export class Chess {
       for (let row = 0; row < 8; row++) {
          for (let col = 0; col < 8; col++) {
             const piece = this.board[row][col];
-            if (piece && piece.type === PieceType.KING && piece.color === color)
+            if (
+               piece &&
+               piece.type === PieceType.KING &&
+               piece.color === color
+            ) {
                return { loc: "board", row, col };
+            }
          }
       }
       return undefined;
@@ -160,8 +167,9 @@ export class Chess {
                piece &&
                piece.color === color &&
                this.canPieceAttack({ loc: "board", row, col }, pos)
-            )
+            ) {
                return true;
+            }
          }
       }
       return false;
@@ -261,10 +269,12 @@ export class Chess {
       const king = this.board[row][kingCol];
       const rook = this.board[row][rookCol];
 
-      if (!king || king.type !== PieceType.KING || king.color !== color)
+      if (!king || king.type !== PieceType.KING || king.color !== color) {
          return false;
-      if (!rook || rook.type !== PieceType.ROOK || rook.color !== color)
+      }
+      if (!rook || rook.type !== PieceType.ROOK || rook.color !== color) {
          return false;
+      }
       if (this.isInCheck(color)) return false;
 
       // Check if squares are empty and not under attack
@@ -278,8 +288,9 @@ export class Chess {
          if (
             (col >= start && col < end && this.board[row][col]) ||
             this.isSquareAttacked({ loc: "board", row, col }, enemyColor)
-         )
+         ) {
             return false;
+         }
       }
       return true;
    }
@@ -395,15 +406,19 @@ export class Chess {
 
                // Check castling rights
                if (piece.color) {
-                  if (side === CastleMove.SHORT && !this.whiteCastleShort)
+                  if (side === CastleMove.SHORT && !this.whiteCastleShort) {
                      return false;
-                  if (side === CastleMove.LONG && !this.whiteCastleLong)
+                  }
+                  if (side === CastleMove.LONG && !this.whiteCastleLong) {
                      return false;
+                  }
                } else {
-                  if (side === CastleMove.SHORT && !this.blackCastleShort)
+                  if (side === CastleMove.SHORT && !this.blackCastleShort) {
                      return false;
-                  if (side === CastleMove.LONG && !this.blackCastleLong)
+                  }
+                  if (side === CastleMove.LONG && !this.blackCastleLong) {
                      return false;
+                  }
                }
 
                return premove || this.canCastle(piece.color, side);
@@ -482,8 +497,9 @@ export class Chess {
       if ((pocket.get(from.type) ?? 0) <= 0) return false;
 
       // Pawns can't be dropped on back rank
-      if (from.type === PieceType.PAWN && (to.row === 0 || to.row === 7))
+      if (from.type === PieceType.PAWN && (to.row === 0 || to.row === 7)) {
          return false;
+      }
 
       // In premove mode, skip turn and check validation
       if (premove) return true;
@@ -582,14 +598,15 @@ export class Chess {
       } else this.enPassantTarget = undefined;
 
       // Pawn promotion - use PROMOTED_QUEEN instead of QUEEN
-      if (piece.type === PieceType.PAWN && to.row === (piece.color ? 0 : 7))
+      if (piece.type === PieceType.PAWN && to.row === (piece.color ? 0 : 7)) {
          this.board[to.row][to.col] = {
             type: PieceType.PROMOTED_QUEEN,
             color: piece.color,
          };
+      }
 
       // Update castling rights
-      if (piece.type === PieceType.KING)
+      if (piece.type === PieceType.KING) {
          if (piece.color) {
             this.whiteCastleShort = false;
             this.whiteCastleLong = false;
@@ -597,24 +614,29 @@ export class Chess {
             this.blackCastleShort = false;
             this.blackCastleLong = false;
          }
+      }
 
-      if (piece.type === PieceType.ROOK)
+      if (piece.type === PieceType.ROOK) {
          if (piece.color) {
             if (from.row === 7 && from.col === 7) this.whiteCastleShort = false;
-            else if (from.row === 7 && from.col === 0)
+            else if (from.row === 7 && from.col === 0) {
                this.whiteCastleLong = false;
-         } else if (from.row === 0 && from.col === 7)
+            }
+         } else if (from.row === 0 && from.col === 7) {
             this.blackCastleShort = false;
-         else if (from.row === 0 && from.col === 0)
+         } else if (from.row === 0 && from.col === 0) {
             this.blackCastleLong = false;
+         }
+      }
 
       // If a rook is captured, remove castling rights
-      if (captured && captured.type === PieceType.ROOK)
+      if (captured && captured.type === PieceType.ROOK) {
          if (captured.color) {
             if (to.row === 7 && to.col === 7) this.whiteCastleShort = false;
             else if (to.row === 7 && to.col === 0) this.whiteCastleLong = false;
          } else if (to.row === 0 && to.col === 7) this.blackCastleShort = false;
          else if (to.row === 0 && to.col === 0) this.blackCastleLong = false;
+      }
 
       if (!premove) this.turn = invertColor(this.turn);
       return { captured };
@@ -624,13 +646,13 @@ export class Chess {
       if (!this.isInCheck(this.turn)) return undefined;
 
       // Try all possible moves for the current player
-      for (let fromRow = 0; fromRow < 8; fromRow++)
+      for (let fromRow = 0; fromRow < 8; fromRow++) {
          for (let fromCol = 0; fromCol < 8; fromCol++) {
             const piece = this.board[fromRow][fromCol];
             if (!piece || piece.color !== this.turn) continue;
 
             // Try moving this piece to all squares
-            for (let toRow = 0; toRow < 8; toRow++)
+            for (let toRow = 0; toRow < 8; toRow++) {
                for (let toCol = 0; toCol < 8; toCol++) {
                   const from: Position = {
                      loc: "board",
@@ -643,17 +665,18 @@ export class Chess {
                      col: toCol,
                   };
 
-                  if (this.isLegalMove(from, to))
-                     // Found a legal move, not checkmate
-                     return undefined;
+                  // Found a legal move, not checkmate
+                  if (this.isLegalMove(from, to)) return undefined;
                }
+            }
          }
+      }
 
       // Try dropping pieces from pocket on all squares
       const pocket = this.getPocket(this.turn);
-      for (const [pieceType, count] of pocket.entries())
-         if (count > 0)
-            for (let row = 0; row < 8; row++)
+      for (const [pieceType, count] of pocket.entries()) {
+         if (count > 0) {
+            for (let row = 0; row < 8; row++) {
                for (let col = 0; col < 8; col++) {
                   const pos: Position = { loc: "board", row, col };
                   if (
@@ -661,10 +684,14 @@ export class Chess {
                         { loc: "pocket", color: this.turn, type: pieceType },
                         pos
                      )
-                  )
-                     // Found a legal drop, not checkmate
+                  ) // Found a legal drop, not checkmate
+                  {
                      return undefined;
+                  }
                }
+            }
+         }
+      }
 
       return this.turn;
    }
@@ -706,10 +733,12 @@ export function createPosition(
 
 export function positionsEqual(a: Position, b: Position): boolean {
    if (a.loc !== b.loc) return false;
-   if (a.loc === "board" && b.loc === "board")
+   if (a.loc === "board" && b.loc === "board") {
       return a.row === b.row && a.col === b.col;
-   if (a.loc === "pocket" && b.loc === "pocket")
+   }
+   if (a.loc === "pocket" && b.loc === "pocket") {
       return a.color === b.color && a.type === b.type;
+   }
    return false;
 }
 

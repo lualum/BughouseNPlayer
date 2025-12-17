@@ -128,8 +128,9 @@ export class Room {
 
    allPlayersDisconnected(): boolean {
       if (this.players.size === 0) return true;
-      for (const player of this.players.values())
+      for (const player of this.players.values()) {
          if (player.status !== PlayerStatus.DISCONNECTED) return false;
+      }
 
       return true;
    }
@@ -141,8 +142,9 @@ export class Room {
          if (
             match.whitePlayer.status !== PlayerStatus.READY ||
             match.blackPlayer.status !== PlayerStatus.READY
-         )
+         ) {
             return false;
+         }
       }
 
       this.status = RoomStatus.PLAYING;
@@ -160,10 +162,11 @@ export class Room {
    endRoom(): void {
       this.status = RoomStatus.LOBBY;
 
-      for (const player of this.players.values())
-         if (player.status === PlayerStatus.DISCONNECTED)
+      for (const player of this.players.values()) {
+         if (player.status === PlayerStatus.DISCONNECTED) {
             this.removePlayer(player.id);
-         else player.status = PlayerStatus.NOT_READY;
+         } else player.status = PlayerStatus.NOT_READY;
+      }
    }
 }
 
@@ -190,8 +193,9 @@ export class Game {
 
    getFinalChess(matchIndex: number): Chess {
       const chess = this.matches[matchIndex].chess.clone();
-      for (const move of this.matches[matchIndex].queued.moves)
+      for (const move of this.matches[matchIndex].queued.moves) {
          chess.doMove(move, true);
+      }
       return chess;
    }
 

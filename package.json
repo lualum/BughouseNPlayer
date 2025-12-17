@@ -1,4 +1,5 @@
 {
+   "type": "module",
    "scripts": {
       "clean": "rm -rf public/dist server/dist shared/dist",
       "prebuild": "pnpm run clean && mkdir -p public/dist server/dist shared/dist",

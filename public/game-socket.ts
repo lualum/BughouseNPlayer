@@ -116,8 +116,9 @@ export function initGameSocket(): void {
 
          currentMatch.updateTime(newTime);
 
-         if (currentMatch.queued.color === currentMatch.chess.turn)
+         if (currentMatch.queued.color === currentMatch.chess.turn) {
             currentMatch.queued.moves.shift();
+         }
 
          gs.room.game.doMove(boardID, move);
 

@@ -53,12 +53,14 @@ export function showRoomElements(): void {
    }
 
    if (gs.room.game.matches) {
-      for (let index = 0; index < gs.room.game.matches.length; index++)
+      for (let index = 0; index < gs.room.game.matches.length; index++) {
          createMatchElements(index);
+      }
 
       const totalBoardsSpan = document.querySelector("#totalBoards");
-      if (totalBoardsSpan)
+      if (totalBoardsSpan) {
          totalBoardsSpan.textContent = gs.room.game.matches.length.toString();
+      }
 
       initScrollControls();
    }
@@ -215,11 +217,12 @@ function updateScrollButtons(
    const currentBoardSpan = document.querySelector("#boardRange");
    const totalBoardsSpan = document.querySelector("#totalBoards");
 
-   if (currentBoardSpan)
+   if (currentBoardSpan) {
       if (leftBoard > rightBoard) currentBoardSpan.textContent = "_";
-      else if (leftBoard === rightBoard)
+      else if (leftBoard === rightBoard) {
          currentBoardSpan.textContent = `${leftBoard}`;
-      else currentBoardSpan.textContent = `${leftBoard}-${rightBoard}`;
+      } else currentBoardSpan.textContent = `${leftBoard}-${rightBoard}`;
+   }
 
    if (totalBoardsSpan) totalBoardsSpan.textContent = totalBoards.toString();
 }

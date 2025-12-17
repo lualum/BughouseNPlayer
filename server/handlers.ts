@@ -74,8 +74,9 @@ export function setupHandlers(socket: GameSocket): void {
             ? Team.BLUE
             : Team.RED;
 
-      for (const match of socket.room.game.matches)
+      for (const match of socket.room.game.matches) {
          if (match.getPlayerTeam(oppTeam)?.id === socket.player.id) return;
+      }
 
       socket.room.game.matches[boardID].setPlayer(socket.player, color);
       io.to(socket.room.code).emit(
@@ -93,8 +94,9 @@ export function setupHandlers(socket: GameSocket): void {
          socket.room.game.matches[boardID].getPlayer(color)?.id !==
             socket.player.id ||
          !socket.room.game.matches[boardID].chess.isLegal(move, false)
-      )
+      ) {
          return;
+      }
 
       const currentTime = Date.now();
       socket.room.game.matches[boardID].updateTime(currentTime);
@@ -146,10 +148,11 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
    socket.join(code);
    socket.room = room;
 
-   if (room.status === RoomStatus.PLAYING)
+   if (room.status === RoomStatus.PLAYING) {
       for (const match of room.game.matches) {
          match.updateTime(Date.now());
       }
+   }
 
    const playerInRoom = room.players.get(socket.player.id);
    if (playerInRoom) {
@@ -215,8 +218,9 @@ function randomCode(): string {
    let result = "";
    do {
       result = "";
-      for (let index = 0; index < 4; index++)
+      for (let index = 0; index < 4; index++) {
          result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
    } while (rooms.has(result)); // Ensure unique code
 
    return result;
