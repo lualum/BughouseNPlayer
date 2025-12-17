@@ -222,7 +222,7 @@ export class Chess {
       let currentCol = from.col + colStep;
 
       while (currentRow !== to.row || currentCol !== to.col) {
-         if (this.board[currentRow][currentCol] !== undefined) return false;
+         if (this.board[currentRow][currentCol]) return false;
          currentRow += rowStep;
          currentCol += colStep;
       }
@@ -276,7 +276,7 @@ export class Chess {
 
       for (let col = kingCol; col !== kingDestinationCol + step; col += step) {
          if (
-            (col >= start && col < end && this.board[row][col] !== undefined) ||
+            (col >= start && col < end && this.board[row][col]) ||
             this.isSquareAttacked({ loc: "board", row, col }, enemyColor)
          )
             return false;
@@ -477,8 +477,6 @@ export class Chess {
       to: BoardPosition,
       premove: boolean = false
    ): boolean {
-      if (this.board[to.row][to.col] !== undefined) return false;
-
       // Check if piece is in pocket
       const pocket = this.getPocket(from.color);
       if ((pocket.get(from.type) ?? 0) <= 0) return false;
@@ -491,6 +489,8 @@ export class Chess {
       if (premove) return true;
 
       if (this.turn !== from.color) return false;
+
+      if (this.board[to.row][to.col]) return false;
 
       this.board[to.row][to.col] = { type: from.type, color: from.color };
 

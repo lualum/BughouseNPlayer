@@ -160,6 +160,7 @@
 #chat-input {
    flex: 1;
    padding: 1.25vh 1.5vh;
+   outline: none;
    border-radius: 0.75vh;
    font-size: 1.625vh;
    color: white;
@@ -167,6 +168,11 @@
 
 #chat-input::placeholder {
    color: #b3b3b3;
+}
+
+#chat-input::selection {
+   background: transparent;
+   color: inherit;
 }
 
 #game-area {
@@ -265,9 +271,9 @@
 
 .rank-label {
    position: absolute;
-   top: 2px;
-   left: 2px;
-   font-size: 12px;
+   top: calc(var(--square-size) * 0.05);
+   left: calc(var(--square-size) * 0.05);
+   font-size: calc(var(--square-size) * 0.2);
    font-weight: bold;
    pointer-events: none;
    user-select: none;
@@ -275,9 +281,9 @@
 
 .file-label {
    position: absolute;
-   bottom: 2px;
-   right: 2px;
-   font-size: 12px;
+   bottom: calc(var(--square-size) * 0.05);
+   right: calc(var(--square-size) * 0.05);
+   font-size: calc(var(--square-size) * 0.2);
    font-weight: bold;
    pointer-events: none;
    user-select: none;

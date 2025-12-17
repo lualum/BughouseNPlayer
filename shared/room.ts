@@ -35,7 +35,6 @@ export interface SerializedMatch {
    whiteTime: number;
    blackTime: number;
    queued: { moves: Move[]; color: Color };
-   playerTimeSinceMove: number;
    lastMoveTime: number | undefined;
    flipped: boolean;
 }
@@ -48,7 +47,7 @@ export interface SerializedRoom {
    code: string;
    status: RoomStatus;
    game: SerializedGame;
-   chat: Chat;
+   chat: string;
    players: Record<string, Player>;
 }
 
@@ -84,7 +83,7 @@ export class Room {
          code: this.code,
          status: this.status,
          game: this.game.serialize(),
-         chat: this.chat,
+         chat: this.chat.serialize(),
          players: serializedPlayers,
       };
    }
@@ -93,7 +92,7 @@ export class Room {
       const room = new Room(data.code);
       room.status = data.status;
       room.game = Game.deserialize(data.game);
-      room.chat = data.chat;
+      room.chat = Chat.deserialize(data.chat);
 
       const playersData = data.players;
       for (const [id, playerData] of Object.entries(playersData)) {
@@ -151,7 +150,6 @@ export class Room {
       for (const match of this.game.matches) {
          match.whiteTime = defaultTime;
          match.blackTime = defaultTime;
-         match.playerTimeSinceMove = defaultTime;
          match.lastMoveTime = currentTime;
          match.chess.reset();
       }
@@ -257,7 +255,6 @@ export class Match {
    whiteTime: number;
    blackTime: number;
    queued: { moves: Move[]; color: Color };
-   playerTimeSinceMove: number;
    lastMoveTime: number | undefined;
    flipped: boolean; // normal has bottom as white
 
@@ -268,7 +265,6 @@ export class Match {
       this.whiteTime = time;
       this.blackTime = time;
       this.queued = { moves: [], color: Color.WHITE };
-      this.playerTimeSinceMove = time;
       this.lastMoveTime = Date.now();
       this.flipped = flipped;
    }
@@ -281,7 +277,6 @@ export class Match {
          whiteTime: this.whiteTime,
          blackTime: this.blackTime,
          queued: this.queued,
-         playerTimeSinceMove: this.playerTimeSinceMove,
          lastMoveTime: this.lastMoveTime,
          flipped: this.flipped,
       };
@@ -295,7 +290,6 @@ export class Match {
       match.whiteTime = data.whiteTime;
       match.blackTime = data.blackTime;
       match.queued = data.queued;
-      match.playerTimeSinceMove = data.playerTimeSinceMove;
       match.lastMoveTime = data.lastMoveTime;
       match.flipped = data.flipped;
       return match;
