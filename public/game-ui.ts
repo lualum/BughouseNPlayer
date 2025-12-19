@@ -10,6 +10,8 @@ import {
 import { leaveRoom } from "./menu-ui";
 import { gs } from "./session";
 
+let isGridMode = false;
+
 let pingIntervalID: NodeJS.Timeout;
 let pingStartTime: number = 0;
 
@@ -17,6 +19,11 @@ export function initGameControls(): void {
    const leaveGameButton = document.querySelector("#leave-game-btn");
    leaveGameButton?.addEventListener("click", () => {
       leaveRoom();
+   });
+
+   const gridToggleButton = document.querySelector("#grid-toggle-btn");
+   gridToggleButton?.addEventListener("click", () => {
+      toggleGridMode();
    });
 
    const chatInput = document.querySelector("#chat-input");
@@ -42,6 +49,10 @@ export function initGameControls(): void {
       if (keyEvent.key === "x") {
          toggleVisualFlipped();
          updateUIAllGame();
+      }
+
+      if (keyEvent.key === "g" || keyEvent.key === "G") {
+         toggleGridMode();
       }
 
       // Navigate boards with arrow keys or A/D
@@ -140,6 +151,15 @@ export function showRoomElements(): void {
       }
    }
 
+   // Reset grid mode when creating room elements
+   if (isGridMode) {
+      isGridMode = false;
+      const gameArea = document.querySelector("#game-area") as HTMLDivElement;
+      gameArea?.classList.remove("grid-mode");
+      window.removeEventListener("resize", updateGridLayout);
+      resetToFlexLayout();
+   }
+
    if (gs.room.game.matches) {
       for (let index = 0; index < gs.room.game.matches.length; index++) {
          createMatchElements(index);
@@ -152,6 +172,19 @@ export function showRoomElements(): void {
 
       initScrollControls();
       initPingIndicator();
+   }
+
+   // Reset button icon to scroll view
+   const gridToggleButton = document.querySelector(
+      "#grid-toggle-btn"
+   ) as HTMLButtonElement;
+   if (gridToggleButton) {
+      gridToggleButton.innerHTML = `
+         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="18"></rect>
+            <rect x="14" y="3" width="7" height="18"></rect>
+         </svg>
+      `;
    }
 }
 
@@ -355,6 +388,100 @@ export function initScrollControls(): void {
    gameArea.addEventListener("scroll", updateScrollButtonsBound);
 
    updateScrollButtonsBound();
+}
+
+// MARK: Grid Mode UI
+
+export function toggleGridMode(): void {
+   isGridMode = !isGridMode;
+   const gameArea = document.querySelector("#game-area") as HTMLDivElement;
+   const gridToggleButton = document.querySelector(
+      "#grid-toggle-btn"
+   ) as HTMLButtonElement;
+
+   if (isGridMode) {
+      gameArea.classList.add("grid-mode");
+      if (gridToggleButton) {
+         gridToggleButton.innerHTML = `
+         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+         </svg>
+      `;
+      }
+      updateGridLayout();
+      window.addEventListener("resize", updateGridLayout);
+   } else {
+      gameArea.classList.remove("grid-mode");
+      if (gridToggleButton) {
+         gridToggleButton.innerHTML = `
+         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="18"></rect>
+            <rect x="14" y="3" width="7" height="18"></rect>
+         </svg>
+      `;
+      }
+      window.removeEventListener("resize", updateGridLayout);
+      resetToFlexLayout();
+   }
+}
+
+function updateGridLayout(): void {
+   if (!isGridMode) return;
+
+   const gameArea = document.querySelector("#game-area") as HTMLDivElement;
+   const matches = gameArea.querySelectorAll(".match-container");
+   const boardCount = matches.length;
+   if (boardCount === 0) return;
+
+   // Margin/Padding offset
+   const winW = gameArea.clientWidth - 40;
+   const winH = gameArea.clientHeight - 40;
+
+   // Match Aspect Ratio: Width (8 squares) / Height (10 squares) = 0.8
+   const ratio = 0.8;
+
+   let bestW = 0;
+   let bestCols = 1;
+
+   for (let cols = 1; cols <= boardCount; cols++) {
+      const rows = Math.ceil(boardCount / cols);
+      let w = winW / cols;
+      // Check if height exceeds available space
+      if (w * (1 / ratio) * rows > winH) {
+         w = (winH / rows) * ratio;
+      }
+
+      if (w > bestW) {
+         bestW = w;
+         bestCols = cols;
+      }
+   }
+
+   gameArea.style.gridTemplateColumns = `repeat(${bestCols}, auto)`;
+
+   for (const match of matches) {
+      const m = match as HTMLElement;
+      // Apply the calculated width, height follows aspect ratio
+      m.style.width = `${bestW - 10}px`;
+      m.style.height = `${(bestW - 10) * (1 / ratio)}px`;
+      m.style.setProperty("--square-size", `${(bestW - 10) / 8}px`);
+   }
+}
+
+function resetToFlexLayout(): void {
+   const gameArea = document.querySelector("#game-area") as HTMLDivElement;
+   const matches = gameArea.querySelectorAll(".match-container");
+
+   gameArea.style.gridTemplateColumns = "";
+   for (const match of matches) {
+      const m = match as HTMLElement;
+      m.style.width = "";
+      m.style.height = "";
+      m.style.removeProperty("--square-size");
+   }
 }
 
 // MARK: Start/End Game UI
