@@ -5,7 +5,10 @@ import { Room, RoomStatus, Team } from "../shared/room";
 import { emitRoomList, GameSocket, io, MENU_ROOM, rooms } from "./server";
 
 export function setupHandlers(socket: GameSocket): void {
-   // Menu handlers
+   socket.on("ping", () => {
+      socket.emit("pong");
+   });
+
    socket.on("set-name", (name: string) => {
       socket.player.name = name.trim().slice(0, 20);
    });
@@ -35,7 +38,6 @@ export function setupHandlers(socket: GameSocket): void {
       handlePlayerLeave(socket);
    });
 
-   // Lobby handlers
    socket.on("toggle-ready", () => {
       if (!socket.room || socket.room.status === RoomStatus.PLAYING) return;
 
@@ -57,7 +59,6 @@ export function setupHandlers(socket: GameSocket): void {
             socket.room.game.serialize(),
             currentTime
          );
-         console.log(`Game started in room ${socket.room.code}`);
       }
    });
 
@@ -109,8 +110,8 @@ export function setupHandlers(socket: GameSocket): void {
          io.to(socket.room.code).emit(
             "ended-room",
             socket.room.game.matches[boardID].getTeam(color),
-            socket.room.game.matches[boardID].getPlayer(color)?.name +
-               " got checkmated."
+            socket.room.game.matches[boardID].getPlayer(color)?.name + " won!",
+            currentTime
          );
       }
    });
@@ -124,13 +125,9 @@ export function setupHandlers(socket: GameSocket): void {
 
 function createRoom(roomCode?: string): string | undefined {
    if (rooms.size >= 10_000) return;
-
    const code = roomCode || randomCode();
    const room = new Room(code);
-
    rooms.set(code, room);
-   console.log(`Room created with code: ${code}`);
-
    return code;
 }
 
@@ -169,8 +166,6 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
       );
       socket.emit("joined-room", room.serialize());
    }
-
-   console.log(`${socket.player.name || "[unnamed]"} joined room ${code}`);
 }
 
 function handlePlayerLeave(socket: GameSocket): void {
@@ -210,7 +205,6 @@ function shouldDeleteRoom(room: Room): boolean {
 function deleteRoom(roomCode: string): void {
    rooms.delete(roomCode);
    emitRoomList();
-   console.log(`Room ${roomCode} deleted - all players disconnected`);
 }
 
 function randomCode(): string {

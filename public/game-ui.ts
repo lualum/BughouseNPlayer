@@ -10,6 +10,9 @@ import {
 import { leaveRoom } from "./menu-ui";
 import { gs } from "./session";
 
+let pingIntervalID: NodeJS.Timeout;
+let pingStartTime: number = 0;
+
 export function initGameControls(): void {
    const leaveGameButton = document.querySelector("#leave-game-btn");
    leaveGameButton?.addEventListener("click", () => {
@@ -22,13 +25,98 @@ export function initGameControls(): void {
       if (keyEvent.key === "Enter") sendChatMessage();
    });
 
+   // Prevent chat input from triggering keyboard shortcuts
+   chatInput?.addEventListener("keydown", (event: Event) => {
+      event.stopPropagation();
+   });
+
    document.addEventListener("keydown", (event: Event) => {
       const keyEvent = event as KeyboardEvent;
+
+      // Check if user is typing in an input or textarea
+      const target = keyEvent.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+         return;
+      }
+
       if (keyEvent.key === "x") {
          toggleVisualFlipped();
          updateUIAllGame();
       }
+
+      // Navigate boards with arrow keys or A/D
+      if (
+         keyEvent.key === "ArrowLeft" ||
+         keyEvent.key === "a" ||
+         keyEvent.key === "A"
+      ) {
+         keyEvent.preventDefault(); // Override default HTML behavior
+         navigateBoards(-1);
+      } else if (
+         keyEvent.key === "ArrowRight" ||
+         keyEvent.key === "d" ||
+         keyEvent.key === "D"
+      ) {
+         keyEvent.preventDefault(); // Override default HTML behavior
+         navigateBoards(1);
+      }
    });
+}
+
+// MARK: Ping Indicator
+
+function initPingIndicator(): void {
+   gs.socket.on("pong", () => {
+      const pingTime = Date.now() - pingStartTime;
+      updatePingDisplay(pingTime);
+   });
+
+   startPingUpdates();
+}
+
+function updatePingDisplay(ping: number): void {
+   // Determine bars and color based on ping ranges
+   const ranges = [
+      { max: 50, bars: 5, color: "#5DA061" }, // Green
+      { max: 100, bars: 4, color: "#7DB86D" }, // Light green
+      { max: 150, bars: 3, color: "#D4AF37" }, // Yellow
+      { max: 250, bars: 2, color: "#E67E22" }, // Orange
+      { max: Infinity, bars: 1, color: "#E74C3C" }, // Red
+   ];
+
+   const { bars: activeBars, color } = ranges.find((r) => ping < r.max)!;
+
+   // Update bar colors
+   for (const [index, bar] of document
+      .querySelectorAll(".ping-bar")
+      .entries()) {
+      const barElement = bar as HTMLElement;
+      if (index < activeBars) {
+         barElement.style.backgroundColor = color;
+         barElement.style.opacity = "1";
+      } else {
+         barElement.style.backgroundColor = "#333";
+         barElement.style.opacity = "0.3";
+      }
+   }
+}
+
+function sendPing(): void {
+   pingStartTime = Date.now();
+   gs.socket.emit("ping");
+}
+
+export function startPingUpdates(): void {
+   stopPingUpdates();
+   sendPing();
+   pingIntervalID = globalThis.setInterval(() => {
+      sendPing();
+   }, 5000);
+}
+
+export function stopPingUpdates(): void {
+   if (!pingIntervalID) return;
+   clearInterval(pingIntervalID);
 }
 
 // MARK: Sidebar UI
@@ -63,6 +151,7 @@ export function showRoomElements(): void {
       }
 
       initScrollControls();
+      initPingIndicator();
    }
 }
 
@@ -227,6 +316,24 @@ function updateScrollButtons(
    if (totalBoardsSpan) totalBoardsSpan.textContent = totalBoards.toString();
 }
 
+// Navigate boards with keyboard
+function navigateBoards(direction: number): void {
+   const gameArea = document.querySelector("#game-area") as HTMLDivElement;
+   const leftButton = document.querySelector(
+      "#scrollLeft"
+   ) as HTMLButtonElement;
+   const rightButton = document.querySelector(
+      "#scrollRight"
+   ) as HTMLButtonElement;
+
+   if (!gameArea) return;
+
+   const updateScrollButtonsBound = () =>
+      updateScrollButtons(gameArea, leftButton, rightButton);
+
+   scrollBoards(gameArea, direction, updateScrollButtonsBound);
+}
+
 export function initScrollControls(): void {
    const gameArea = document.querySelector("#game-area") as HTMLDivElement;
    const leftButton = document.querySelector(
@@ -284,6 +391,7 @@ export function endGameUI(): void {
    if (readyButton) readyButton.style.display = "block";
 
    updateUIAllGame();
+   updateUIPlayerList();
 }
 
 function escapeHtml(text: string): string {

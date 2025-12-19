@@ -68,12 +68,9 @@ io.on("connection", (socket: Socket) => {
 
       gameSocket.emit("created-player", id, auth);
    }
-   console.log("User connected:", gameSocket.player.name || "[unnamed]");
 
    gameSocket.join(MENU_ROOM);
-
    setupHandlers(gameSocket);
-
    emitRoomList();
 });
 
@@ -92,15 +89,41 @@ setInterval(() => {
          const timeout = room.game.checkTimeout();
          if (timeout) {
             room.endRoom();
-            console.log(timeout.player.name + " timed out.");
             io.to(code).emit(
                "ended-room",
                timeout.team,
-               timeout.player.name + " timed out."
+               timeout.player.name + " timed out.",
+               currentTime
             );
          }
       }
    }
+
+   // // Live room status display
+   // const roomsInfo = [...rooms.entries()]
+   //    .map(([code, room]) => {
+   //       const times =
+   //          room.game?.matches
+   //             .map((match, index) => {
+   //                const white = match.whiteTime
+   //                   ? (match.whiteTime / 1000).toFixed(1)
+   //                   : "N/A";
+   //                const black = match.blackTime
+   //                   ? (match.blackTime / 1000).toFixed(1)
+   //                   : "N/A";
+
+   //                // Show Red (bottom) first, then Blue (top)
+   //                const redTime = match.flipped ? white : black;
+   //                const blueTime = match.flipped ? black : white;
+
+   //                return `M${index + 1}[R:${redTime}s B:${blueTime}s]`;
+   //             })
+   //             .join(" ") || "N/A";
+
+   //       return `${code} ${times}`;
+   //    })
+   //    .join(" | ");
+   // process.stdout.write(`\r${roomsInfo.padEnd(100)} `);
 }, 100);
 
 function randomPlayerID(): string {

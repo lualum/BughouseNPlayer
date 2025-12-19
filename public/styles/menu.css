@@ -140,7 +140,6 @@ button {
    justify-content: space-between;
    align-items: center;
    gap: 15px;
-   transition: border-color 0.2s, background 0.2s;
 }
 
 .lobby-item:hover {

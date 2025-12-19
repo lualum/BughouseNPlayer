@@ -106,7 +106,6 @@ export function initGameSocket(): void {
       gs.room.tryStartRoom(timeStarted);
       startGameUI();
       startTimeUpdates();
-      console.log(`Game started in room ${gs.room.code}`);
    });
 
    gs.socket.on(
@@ -127,10 +126,9 @@ export function initGameSocket(): void {
             if (
                !match.chess.isLegal(
                   match.queued.moves[0],
-                  currentMatch.queued.color !== currentMatch.chess.turn
+                  match.queued.color !== match.chess.turn
                )
             ) {
-               console.log("Cleared queued", match.queued.moves[0]);
                match.queued.moves.length = 0;
             }
          }
@@ -153,7 +151,10 @@ export function initGameSocket(): void {
       }
    );
 
-   gs.socket.on("ended-room", (raw: Team, reason: string) => {
+   gs.socket.on("ended-room", (raw: Team, reason: string, time: number) => {
+      for (const match of gs.room.game.matches) {
+         match.updateTime(time);
+      }
       gs.room.endRoom();
       endGameUI();
       stopTimeUpdates();
@@ -162,7 +163,6 @@ export function initGameSocket(): void {
    });
 
    gs.socket.on("p-sent-chat", (id: string, message: string) => {
-      console.log(`Chat message from ${id}: ${message}`);
       gs.room.chat.push(id, message);
       updateUIPushChat({ id, message });
    });

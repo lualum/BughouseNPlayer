@@ -30,27 +30,20 @@
                </button>
                <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="4" autocomplete="off" />
             </div>
-
             <div class="form-group">
                <button id="setting-btn" class="util-btns">
                   <p>⚙</p>
                </button>
-
                <button id="info-btn" class="util-btns">
                   <p>?</p>
                </button>
-
             </div>
-
          </div>
-
          <!-- RIGHT SIDE: ROOM LISTING -->
          <div id="lobbies-list"></div>
       </div>
-
       <div id="menu-error"></div>
    </div>
-
    <!-- LOBBY + GAME SCREEN -->
    <div id="game" class="screen hidden">
       <div id="game-sidebar">
@@ -58,6 +51,15 @@
             <button id="leave-game-btn">⎋</button>
             <div id="game-title">
                Room: <span id="game-room-code"></span>
+            </div>
+            <div class="ping-indicator" id="ping-indicator">
+               <div class="ping-bars">
+                  <div class="ping-bar" data-bar-index="0"></div>
+                  <div class="ping-bar" data-bar-index="1"></div>
+                  <div class="ping-bar" data-bar-index="2"></div>
+                  <div class="ping-bar" data-bar-index="3"></div>
+                  <div class="ping-bar" data-bar-index="4"></div>
+               </div>
             </div>
          </div>
          <div id="player-list"></div>
@@ -79,7 +81,6 @@
          <div id="game-area" class="hide-scrollbar"></div>
       </div>
    </div>
-
    <!-- NAME MODAL -->
    <div id="name-modal" class="modal hidden">
       <div class="modal-content">
@@ -95,7 +96,6 @@
          </div>
       </div>
    </div>
-
    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
    <script type="module" src="/dist/client.js"></script>
 </body>

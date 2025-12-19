@@ -1,12 +1,5 @@
 import { Chat } from "./chat";
-import {
-   Chess,
-   Color,
-   invertColor,
-   Move,
-   MoveResult,
-   SerializedChess,
-} from "./chess";
+import { Chess, Color, Move, MoveResult, SerializedChess } from "./chess";
 import { Player, PlayerStatus } from "./player";
 
 const defaultTime = 180_000; // 3 minutes in milliseconds
@@ -68,9 +61,9 @@ export class Room {
       // Initialize two chess games for the room
       this.game.matches.push(
          new Match(defaultTime, false),
-         new Match(defaultTime, true)
+         new Match(defaultTime, true),
+         new Match(defaultTime, false)
       );
-      // this.game.matches.push(new Match(defaultTime, false));
    }
 
    serialize(): SerializedRoom {
@@ -202,23 +195,38 @@ export class Game {
    doMove(matchIndex: number, move: Move): void {
       const match = this.matches[matchIndex];
       const result = match.chess.doMove(move);
-      this.moveResultEffects(matchIndex, result);
+      this.moveResultEffects(matchIndex, move, result);
    }
 
-   private moveResultEffects(matchID: number, result: MoveResult): void {
-      if (!result.captured) return;
+   private moveResultEffects(
+      matchID: number,
+      move: Move,
+      result: MoveResult
+   ): void {
+      if (result.captured) {
+         for (let index = 0; index < this.matches.length; index++) {
+            if (index === matchID) continue;
+            if (this.matches[index].flipped === this.matches[matchID].flipped) {
+               continue;
+            }
+            this.matches[index].chess.addToPocket({
+               type: result.captured.type,
+               color: result.captured.color,
+            });
+         }
+      }
 
-      for (let index = 0; index < this.matches.length; index++) {
-         const shouldInvert =
-            this.matches[index].flipped === this.matches[matchID].flipped;
-         const color = shouldInvert
-            ? invertColor(result.captured.color)
-            : result.captured.color;
-
-         this.matches[index].chess.addToPocket({
-            type: result.captured.type,
-            color,
-         });
+      if (move.from.loc === "pocket") {
+         for (let index = 0; index < this.matches.length; index++) {
+            if (index === matchID) continue;
+            if (this.matches[index].flipped !== this.matches[matchID].flipped) {
+               continue;
+            }
+            this.matches[index].chess.removeFromPocket(
+               move.from.type,
+               move.from.color
+            );
+         }
       }
    }
 
@@ -232,14 +240,13 @@ export class Game {
       let minPlayer: Player | undefined;
 
       for (const match of this.matches) {
-         if (match.flipped ? match.blackTime : match.whiteTime < minTime) {
+         if ((match.flipped ? match.blackTime : match.whiteTime) < minTime) {
             minTime = match.flipped ? match.blackTime : match.whiteTime;
             minSide = Team.BLUE;
             minPlayer = match.flipped ? match.blackPlayer : match.whitePlayer;
          }
 
-         // Bottom side
-         if (match.flipped ? match.whiteTime : match.blackTime < minTime) {
+         if ((match.flipped ? match.whiteTime : match.blackTime) < minTime) {
             minTime = match.flipped ? match.whiteTime : match.blackTime;
             minSide = Team.RED;
             minPlayer = match.flipped ? match.whitePlayer : match.blackPlayer;

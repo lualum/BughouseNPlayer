@@ -642,8 +642,8 @@ export class Chess {
       return { captured };
    }
 
-   isCheckmate(): Color | undefined {
-      if (!this.isInCheck(this.turn)) return undefined;
+   isCheckmate(): boolean {
+      if (!this.isInCheck(this.turn)) return false;
 
       // Try all possible moves for the current player
       for (let fromRow = 0; fromRow < 8; fromRow++) {
@@ -666,34 +666,29 @@ export class Chess {
                   };
 
                   // Found a legal move, not checkmate
-                  if (this.isLegalMove(from, to)) return undefined;
+                  if (this.isLegalMove(from, to)) return false;
                }
             }
          }
       }
 
-      // Try dropping pieces from pocket on all squares
-      const pocket = this.getPocket(this.turn);
-      for (const [pieceType, count] of pocket.entries()) {
-         if (count > 0) {
-            for (let row = 0; row < 8; row++) {
-               for (let col = 0; col < 8; col++) {
-                  const pos: Position = { loc: "board", row, col };
-                  if (
-                     this.isLegalDrop(
-                        { loc: "pocket", color: this.turn, type: pieceType },
-                        pos
-                     )
-                  ) // Found a legal drop, not checkmate
-                  {
-                     return undefined;
-                  }
-               }
+      const testDropPiece = { type: PieceType.QUEEN, color: this.turn };
+
+      for (let row = 0; row < 8; row++) {
+         for (let col = 0; col < 8; col++) {
+            if (this.board[row][col]) continue;
+
+            this.board[row][col] = testDropPiece;
+            if (!this.isInCheck(this.turn)) {
+               this.board[row][col] = undefined;
+               return false;
             }
+
+            this.board[row][col] = undefined;
          }
       }
 
-      return this.turn;
+      return true;
    }
 }
 

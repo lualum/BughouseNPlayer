@@ -1,4 +1,5 @@
 import { RoomListing } from "../shared/room";
+import { stopPingUpdates } from "./game-ui";
 import { stopTimeUpdates } from "./match-ui";
 import { sn } from "./session";
 
@@ -216,6 +217,7 @@ export function showMenuScreen(): void {
    if (gameArea) gameArea.innerHTML = "";
    sn.socket.emit("list-rooms");
 
+   stopPingUpdates();
    stopTimeUpdates();
 }
 

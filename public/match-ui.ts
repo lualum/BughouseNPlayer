@@ -118,8 +118,8 @@ export function updateUIPlayers(boardID: number): void {
    const { topPlayer, bottomPlayer, topColor, bottomColor } =
       getPlayerPositions(matchInstance, isFlipped);
 
-   updatePlayerSlot(boardID, "top", topPlayer, topColor);
-   updatePlayerSlot(boardID, "bottom", bottomPlayer, bottomColor);
+   updateUIPlayerSlot(boardID, "top", topPlayer, topColor);
+   updateUIPlayerSlot(boardID, "bottom", bottomPlayer, bottomColor);
 }
 
 function getPlayerPositions(matchInstance: Match, isFlipped: boolean) {
@@ -135,7 +135,7 @@ function getPlayerPositions(matchInstance: Match, isFlipped: boolean) {
    };
 }
 
-function updatePlayerSlot(
+function updateUIPlayerSlot(
    boardID: number,
    side: "top" | "bottom",
    player: Player | undefined,
@@ -259,7 +259,9 @@ function updateTimeDisplay(
       `#${position}-info-${boardID}`
    ) as HTMLElement;
 
-   const timeDisplay = playerInfo.querySelector(".player-time-display");
+   const timeDisplay = playerInfo.querySelector(
+      ".player-time-display"
+   ) as HTMLElement;
    if (timeDisplay) {
       timeDisplay.textContent = timeString;
 
@@ -267,12 +269,14 @@ function updateTimeDisplay(
          (position === "top") === getBoardFlipState(boardID)
             ? Color.BLACK
             : Color.WHITE;
-      if (
+      const playing =
          gs.room.status === RoomStatus.PLAYING &&
-         color === getMatchInstance(boardID).chess.turn
-      ) {
-         (timeDisplay as HTMLElement).style.color = "var(--hidden-text)";
-      } else (timeDisplay as HTMLElement).style.color = "#FFFFFF";
+         color !== getMatchInstance(boardID).chess.turn;
+      timeDisplay.style.color =
+         playing || gs.room.status === RoomStatus.LOBBY
+            ? "#FFFFFF"
+            : "var(--hidden-text)";
+      playerInfo.style.border = playing ? "3px solid #5DA061" : "none";
    }
 }
 
