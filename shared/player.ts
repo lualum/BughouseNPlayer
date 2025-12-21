@@ -1,3 +1,5 @@
+import { Team } from "./room";
+
 export enum PlayerStatus {
    READY = "ready",
    NOT_READY = "not-ready",
@@ -7,7 +9,9 @@ export enum PlayerStatus {
 export class Player {
    id: string;
    name: string;
+
    status: PlayerStatus;
+   team: Team | undefined;
 
    constructor(
       id: string,

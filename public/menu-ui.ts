@@ -91,12 +91,7 @@ export function checkAndPromptForName(action: () => void): boolean {
    ) as HTMLInputElement;
    const currentName = nameInput.value.trim() || "";
 
-   // Check if name is default or empty (adjust "Player" to match your actual default)
-   if (
-      !currentName ||
-      currentName === "Player" ||
-      currentName.startsWith("Player")
-   ) {
+   if (!currentName) {
       pendingAction = action;
       showNameModal();
       return false;

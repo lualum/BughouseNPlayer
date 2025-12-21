@@ -260,16 +260,16 @@ export function updateUIPushChat(message: ChatMessage): void {
    const chatMessagesDiv = document.querySelector("#chat-messages");
    if (!chatMessagesDiv) return;
 
-   const messageDiv = document.createElement("div");
-   messageDiv.className = `chat-message ${
-      message.id === gs.player.id ? "own" : ""
-   }`;
-
    const getSenderName = () => {
       if (message.id === gs.player.id) return "You";
       if (message.id === "server") return "Server";
       return gs.room.players?.get(message.id)?.name ?? "Unknown";
    };
+
+   const messageDiv = document.createElement("div");
+   messageDiv.className = `chat-message ${
+      message.id === gs.player.id ? "own" : ""
+   } ${message.id === "server" ? "server" : ""}`.trim();
 
    const senderName = getSenderName();
 
@@ -294,12 +294,13 @@ export function sendChatMessage(): void {
 // MARK: Scrolling UI
 
 function getBoardAreaDimensions(): { board: number; gap: number } {
+   const gameArea = document.querySelector("#game-area") as HTMLElement;
    const boardArea = document.querySelectorAll(
       ".match-container"
    )[0] as HTMLElement;
    return {
       board: boardArea.clientWidth,
-      gap: Number.parseFloat(getComputedStyle(boardArea).gap) || 0,
+      gap: Number.parseFloat(getComputedStyle(gameArea).gap) || 0,
    };
 }
 
@@ -522,12 +523,10 @@ export function endGameUI(): void {
 }
 
 function escapeHtml(text: string): string {
-   const map: Record<string, string> = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;",
-   };
-   return text.replaceAll(/[&<>"']/g, (m: string | number) => map[m]);
+   return text
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
 }

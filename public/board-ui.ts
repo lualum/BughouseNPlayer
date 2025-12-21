@@ -350,7 +350,7 @@ export function updateUIChess(id: number): void {
          const rankLabel = document.createElement("div");
 
          rankLabel.className = "rank-label";
-         rankLabel.textContent = (row + 1).toString();
+         rankLabel.textContent = (8 - row).toString();
          element.append(rankLabel);
       }
 

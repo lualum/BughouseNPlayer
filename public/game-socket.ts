@@ -158,8 +158,7 @@ export function initGameSocket(): void {
       gs.room.endRoom();
       endGameUI();
       stopTimeUpdates();
-      updateUIPushChat({ id: "server", message: reason });
-      // TODO: Show modal end game screen
+      updateUIPushChat({ id: "server", message: `Team ${raw} won! ${reason}` });
    });
 
    gs.socket.on("p-sent-chat", (id: string, message: string) => {

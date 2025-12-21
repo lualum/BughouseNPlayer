@@ -10,7 +10,7 @@
 }
 
 #game-sidebar {
-   max-width: 33.75vh;
+   width: 33.75vh;
    background: var(--secondary);
    color: white;
    display: flex;
@@ -184,19 +184,21 @@
    font-size: 1.625vh;
    word-wrap: break-word;
    background: #5a5a5a;
+   color: white;
 }
 
 .chat-message.own {
    background: #3498db;
-   color: white;
-   align-self: flex-end;
+}
+
+.chat-message.server {
+   background: #4caf50;
 }
 
 .chat-sender {
    font-weight: 700;
    margin-bottom: 0.25vh;
    font-size: 1.5vh;
-   color: #ecf0f1;
 }
 
 #chat-input-container {
@@ -216,11 +218,6 @@
 
 #chat-input::placeholder {
    color: #b3b3b3;
-}
-
-#chat-input::selection {
-   background: transparent;
-   color: inherit;
 }
 
 #game-area {
@@ -384,7 +381,7 @@
    width: 90%;
    height: 90%;
    background-color: transparent;
-   border: 0.625vh solid rgba(0, 0, 0, 0.14);
+   border: calc(var(--square-size) * 0.06) solid rgba(0, 0, 0, 0.14);
 }
 
 .square.legal-move.has-piece:hover::after {
