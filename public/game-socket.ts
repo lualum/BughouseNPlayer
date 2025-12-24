@@ -57,9 +57,7 @@ export function initGameSocket(): void {
    });
 
    gs.socket.on("p-joined-room", (id: string, name: string) => {
-      if (id === gs.player.id) {
-         return;
-      }
+      if (id === gs.player.id) return;
 
       gs.room.addPlayer(new Player(id, name));
       updateUIPlayerList();
@@ -75,9 +73,7 @@ export function initGameSocket(): void {
       (id: string, boardID: number, color: Color) => {
          const player = gs.room.getPlayer(id);
 
-         if (!player) {
-            return;
-         }
+         if (!player) return;
 
          gs.room.game.matches[boardID].setPlayer(player, color);
          updateUIPlayers(boardID);
@@ -92,9 +88,7 @@ export function initGameSocket(): void {
    gs.socket.on("p-set-status", (id: string, status: PlayerStatus) => {
       const player = gs.room.getPlayer(id);
 
-      if (!player) {
-         return;
-      }
+      if (!player) return;
 
       player.status = status;
       updateUIPlayerList();
@@ -115,9 +109,8 @@ export function initGameSocket(): void {
 
          currentMatch.updateTime(newTime);
 
-         if (currentMatch.queued.color === currentMatch.chess.turn) {
+         if (currentMatch.queued.color === currentMatch.chess.turn)
             currentMatch.queued.moves.shift();
-         }
 
          gs.room.game.doMove(boardID, move);
 
@@ -128,9 +121,8 @@ export function initGameSocket(): void {
                   match.queued.moves[0],
                   match.queued.color !== match.chess.turn
                )
-            ) {
+            )
                match.queued.moves.length = 0;
-            }
          }
 
          currentMatch.updateTime(Date.now());
@@ -152,9 +144,8 @@ export function initGameSocket(): void {
    );
 
    gs.socket.on("ended-room", (raw: Team, reason: string, time: number) => {
-      for (const match of gs.room.game.matches) {
-         match.updateTime(time);
-      }
+      for (const match of gs.room.game.matches) match.updateTime(time);
+
       gs.room.endRoom();
       endGameUI();
       stopTimeUpdates();

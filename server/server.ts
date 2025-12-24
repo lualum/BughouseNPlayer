@@ -5,7 +5,8 @@ import http from "node:http";
 import path from "node:path";
 import { Server, Socket } from "socket.io";
 import { Player } from "../shared/player";
-import { Room, RoomStatus } from "../shared/room";
+import type { Room } from "../shared/room";
+import { RoomStatus } from "../shared/room";
 
 const app = express();
 const server = http.createServer(app);
@@ -17,7 +18,7 @@ export const profiles = new Map<string, Profile>();
 export const MENU_ROOM = "*";
 
 export class GameSocket extends Socket {
-   room!: Room;
+   room: Room | undefined;
    player!: Player;
 }
 
@@ -32,9 +33,9 @@ const publicPath = path.join(__dirname, "..", "..", "public");
 app.use(express.static(publicPath));
 app.get("/games/:roomCode", (request, response) => {
    const roomCode = request.params.roomCode as string;
-   if (!/^[A-Z0-9]{4}$/.test(roomCode)) {
+   if (!/^[A-Z0-9]{4}$/.test(roomCode))
       return response.status(404).send("Invalid room code format");
-   }
+
    response.sendFile("index.html", { root: publicPath });
 });
 

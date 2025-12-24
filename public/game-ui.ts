@@ -1,4 +1,4 @@
-import { ChatMessage } from "../shared/chat";
+import type { ChatMessage } from "../shared/chat";
 import { Color } from "../shared/chess";
 import { PlayerStatus } from "../shared/player";
 import {
@@ -42,18 +42,14 @@ export function initGameControls(): void {
 
       // Check if user is typing in an input or textarea
       const target = keyEvent.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
-         return;
-      }
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
 
       if (keyEvent.key === "x") {
          toggleVisualFlipped();
          updateUIAllGame();
       }
 
-      if (keyEvent.key === "g" || keyEvent.key === "G") {
-         toggleGridMode();
-      }
+      if (keyEvent.key === "g" || keyEvent.key === "G") toggleGridMode();
 
       // Navigate boards with arrow keys or A/D
       if (
@@ -126,73 +122,65 @@ export function startPingUpdates(): void {
 }
 
 export function stopPingUpdates(): void {
-   if (!pingIntervalID) return;
    clearInterval(pingIntervalID);
 }
 
 // MARK: Sidebar UI
 
 export function showRoomElements(): void {
-   const gameScreen = document.querySelector("#game");
-   for (const screen of document.querySelectorAll(".screen")) {
+   const gameScreen = document.querySelector("#game") as HTMLDivElement;
+   for (const screen of document.querySelectorAll(".screen"))
       screen.classList.add("hidden");
-   }
-   gameScreen?.classList.remove("hidden");
+
+   gameScreen.classList.remove("hidden");
 
    const gameRoomCode = document.querySelector(
       "#game-room-code"
-   ) as HTMLElement;
+   ) as HTMLSpanElement;
    gameRoomCode.textContent = gs.room.code || "";
 
-   const boardsArea = document.querySelector("#game-area");
-   if (boardsArea) {
-      for (const container of boardsArea.querySelectorAll(".game-container")) {
-         container.remove();
-      }
-   }
+   const boardsArea = document.querySelector("#game-area") as HTMLDivElement;
+   for (const container of boardsArea.querySelectorAll(".game-container"))
+      container.remove();
 
    // Reset grid mode when creating room elements
    if (isGridMode) {
       isGridMode = false;
       const gameArea = document.querySelector("#game-area") as HTMLDivElement;
-      gameArea?.classList.remove("grid-mode");
+      gameArea.classList.remove("grid-mode");
       window.removeEventListener("resize", updateGridLayout);
       resetToFlexLayout();
    }
 
-   if (gs.room.game.matches) {
-      for (let index = 0; index < gs.room.game.matches.length; index++) {
-         createMatchElements(index);
-      }
+   for (let index = 0; index < gs.room.game.matches.length; index++)
+      createMatchElements(index);
 
-      const totalBoardsSpan = document.querySelector("#totalBoards");
-      if (totalBoardsSpan) {
-         totalBoardsSpan.textContent = gs.room.game.matches.length.toString();
-      }
+   const totalBoardsSpan = document.querySelector("#totalBoards");
+   if (totalBoardsSpan)
+      totalBoardsSpan.textContent = gs.room.game.matches.length.toString();
 
-      initScrollControls();
-      initPingIndicator();
-   }
+   initScrollControls();
+   initPingIndicator();
 
    // Reset button icon to scroll view
    const gridToggleButton = document.querySelector(
       "#grid-toggle-btn"
    ) as HTMLButtonElement;
-   if (gridToggleButton) {
-      gridToggleButton.innerHTML = `
+
+   gridToggleButton.innerHTML = `
          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="18"></rect>
             <rect x="14" y="3" width="7" height="18"></rect>
          </svg>
       `;
-   }
 }
 
 export function updateReadyButton(): void {
-   const readyButton = document.querySelector("#ready-btn");
-   if (!readyButton) return;
+   const readyButton = document.querySelector(
+      "#ready-btn"
+   ) as HTMLButtonElement;
 
-   if (gs.player && gs.player.status) {
+   if (gs.player.status === PlayerStatus.READY) {
       readyButton.textContent = "Not Ready";
       readyButton.classList.add("ready");
    } else {
@@ -251,9 +239,7 @@ export function updateUIAllChat(): void {
    if (!chatMessagesDiv) return;
 
    chatMessagesDiv.innerHTML = "";
-   for (const message of gs.room.chat.messages) {
-      updateUIPushChat(message);
-   }
+   for (const message of gs.room.chat.messages) updateUIPushChat(message);
 }
 
 export function updateUIPushChat(message: ChatMessage): void {
@@ -263,7 +249,7 @@ export function updateUIPushChat(message: ChatMessage): void {
    const getSenderName = () => {
       if (message.id === gs.player.id) return "You";
       if (message.id === "server") return "Server";
-      return gs.room.players?.get(message.id)?.name ?? "Unknown";
+      return gs.room.players.get(message.id)?.name ?? "Unknown";
    };
 
    const messageDiv = document.createElement("div");
@@ -342,9 +328,9 @@ function updateScrollButtons(
 
    if (currentBoardSpan) {
       if (leftBoard > rightBoard) currentBoardSpan.textContent = "_";
-      else if (leftBoard === rightBoard) {
+      else if (leftBoard === rightBoard)
          currentBoardSpan.textContent = `${leftBoard}`;
-      } else currentBoardSpan.textContent = `${leftBoard}-${rightBoard}`;
+      else currentBoardSpan.textContent = `${leftBoard}-${rightBoard}`;
    }
 
    if (totalBoardsSpan) totalBoardsSpan.textContent = totalBoards.toString();
@@ -359,8 +345,6 @@ function navigateBoards(direction: number): void {
    const rightButton = document.querySelector(
       "#scrollRight"
    ) as HTMLButtonElement;
-
-   if (!gameArea) return;
 
    const updateScrollButtonsBound = () =>
       updateScrollButtons(gameArea, leftButton, rightButton);
@@ -402,8 +386,7 @@ export function toggleGridMode(): void {
 
    if (isGridMode) {
       gameArea.classList.add("grid-mode");
-      if (gridToggleButton) {
-         gridToggleButton.innerHTML = `
+      gridToggleButton.innerHTML = `
          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7"></rect>
             <rect x="14" y="3" width="7" height="7"></rect>
@@ -411,19 +394,18 @@ export function toggleGridMode(): void {
             <rect x="14" y="14" width="7" height="7"></rect>
          </svg>
       `;
-      }
+
       updateGridLayout();
       window.addEventListener("resize", updateGridLayout);
    } else {
       gameArea.classList.remove("grid-mode");
-      if (gridToggleButton) {
-         gridToggleButton.innerHTML = `
+      gridToggleButton.innerHTML = `
          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="18"></rect>
             <rect x="14" y="3" width="7" height="18"></rect>
          </svg>
       `;
-      }
+
       window.removeEventListener("resize", updateGridLayout);
       resetToFlexLayout();
    }
@@ -451,9 +433,7 @@ function updateGridLayout(): void {
       const rows = Math.ceil(boardCount / cols);
       let w = winW / cols;
       // Check if height exceeds available space
-      if (w * (1 / ratio) * rows > winH) {
-         w = (winH / rows) * ratio;
-      }
+      if (w * (1 / ratio) * rows > winH) w = (winH / rows) * ratio;
 
       if (w > bestW) {
          bestW = w;
@@ -491,7 +471,7 @@ export function startGameUI(): void {
    const readyButton = document.querySelector(
       "#ready-btn"
    ) as HTMLButtonElement;
-   if (readyButton) readyButton.style.display = "none";
+   readyButton.style.display = "none";
 
    // Put current player on bottom
    let topBottomDelta = 0; // # of this player on top - # on bottom
@@ -516,7 +496,7 @@ export function endGameUI(): void {
    const readyButton = document.querySelector(
       "#ready-btn"
    ) as HTMLButtonElement;
-   if (readyButton) readyButton.style.display = "block";
+   readyButton.style.display = "block";
 
    updateUIAllGame();
    updateUIPlayerList();

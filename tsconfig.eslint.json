@@ -1,11 +1,12 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "composite": false
+    "composite": false,
+    "strict": true
   },
   "include": [
     "public/**/*.ts",
-    "server/**/*.ts", 
+    "server/**/*.ts",
     "shared/**/*.ts"
   ],
   "exclude": [

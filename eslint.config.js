@@ -33,7 +33,13 @@ export default [
       // Override Prettier config for specific rules
       files: ["**/*.ts", "**/*.tsx"],
       rules: {
-         curly: ["error", "multi-line"],
+         curly: ["error", "multi-or-nest", "consistent"],
+         "@typescript-eslint/no-unnecessary-condition": "error",
+         "@typescript-eslint/no-unused-vars": [
+            "error",
+            { argsIgnorePattern: "^_" },
+         ],
+         "@typescript-eslint/consistent-type-imports": "error",
       },
    },
 ];

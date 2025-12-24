@@ -1,6 +1,6 @@
 import { Player } from "../shared/player";
-import { RoomListing } from "../shared/room";
-import { updateLobbiesList, showError } from "./menu-ui";
+import type { RoomListing } from "../shared/room";
+import { showError, updateLobbiesList } from "./menu-ui";
 import { sn } from "./session";
 
 export function initMenuSocket(): void {

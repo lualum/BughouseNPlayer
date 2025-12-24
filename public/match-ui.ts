@@ -1,6 +1,7 @@
 import { Color } from "../shared/chess";
-import { Player } from "../shared/player";
-import { Match, RoomStatus, Team } from "../shared/room";
+import type { Player } from "../shared/player";
+import type { Match } from "../shared/room";
+import { RoomStatus, Team } from "../shared/room";
 import {
    createBoardElement,
    createPocketElement,
@@ -26,7 +27,7 @@ export function getMatchInstance(boardID: number): Match {
 
 export function getBoardFlipState(boardID: number): boolean {
    const match = gs.room.game.matches[boardID];
-   const matchFlipped = match?.flipped || false;
+   const matchFlipped = match.flipped || false;
    // XOR: if both are flipped or both are not flipped, result is false (not flipped)
    // if one is flipped and the other is not, result is true (flipped)
    return matchFlipped !== visualFlipped;
@@ -105,15 +106,12 @@ export function createMatchElements(boardID: number): void {
 
 // UI Update Functions - Players
 export function updateUIAllPlayers(): void {
-   for (let index = 0; index < gs.room.game.matches.length; index++) {
+   for (let index = 0; index < gs.room.game.matches.length; index++)
       updateUIPlayers(index);
-   }
 }
 
 export function updateUIPlayers(boardID: number): void {
    const matchInstance = getMatchInstance(boardID);
-   if (!matchInstance) return;
-
    const isFlipped = getBoardFlipState(boardID);
    const { topPlayer, bottomPlayer, topColor, bottomColor } =
       getPlayerPositions(matchInstance, isFlipped);
@@ -167,9 +165,8 @@ function createEmptySlot(boardID: number, color: Color): HTMLElement {
             getMatchInstance(boardID).getTeam(color) === Team.RED
                ? Team.BLUE
                : Team.RED;
-         for (const match of gs.room.game.matches) {
+         for (const match of gs.room.game.matches)
             if (match.getPlayerTeam(oppTeam)?.id === gs.player.id) return;
-         }
 
          gs.socket.emit("join-board", boardID, color);
       });
@@ -202,7 +199,7 @@ function createPlayerIcon(
    if (shouldShowLeaveButton) {
       const leaveButton = createLeaveButton(boardID, color);
       iconContainer.append(leaveButton);
-   } else slot.style.opacity = RoomStatus.PLAYING ? "1" : "0.4";
+   }
 
    return iconContainer;
 }
@@ -221,21 +218,16 @@ function updatePlayerName(
    playerInfo: HTMLElement,
    player: Player | undefined
 ): void {
-   const name = playerInfo.querySelector(".player-name-display");
-   if (name) {
-      name.textContent = player ? player.name : "";
-      (name as HTMLElement).style.color =
-         player && player.id === gs.player.id
-            ? "#FFFFFF"
-            : "var(--hidden-text)";
-   }
+   const name = playerInfo.querySelector(".player-name-display") as HTMLElement;
+   name.textContent = player ? player.name : "";
+   name.style.color =
+      player && player.id === gs.player.id ? "#FFFFFF" : "var(--hidden-text)";
 }
 
 // UI Update Functions - Time
 export function updateUITime(): void {
    for (let index = 0; index < gs.room.game.matches.length; index++) {
       const matchInstance = getMatchInstance(index);
-      if (!matchInstance) continue;
 
       const isFlipped = getBoardFlipState(index);
 
@@ -262,29 +254,26 @@ function updateTimeDisplay(
    const timeDisplay = playerInfo.querySelector(
       ".player-time-display"
    ) as HTMLElement;
-   if (timeDisplay) {
-      timeDisplay.textContent = timeString;
 
-      const color =
-         (position === "top") === getBoardFlipState(boardID)
-            ? Color.BLACK
-            : Color.WHITE;
-      const playing =
-         gs.room.status === RoomStatus.PLAYING &&
-         color !== getMatchInstance(boardID).chess.turn;
-      timeDisplay.style.color =
-         playing || gs.room.status === RoomStatus.LOBBY
-            ? "#FFFFFF"
-            : "var(--hidden-text)";
-      playerInfo.style.border = playing ? "3px solid #5DA061" : "none";
-   }
+   timeDisplay.textContent = timeString;
+
+   const color =
+      (position === "top") === getBoardFlipState(boardID)
+         ? Color.BLACK
+         : Color.WHITE;
+   const playing =
+      gs.room.status === RoomStatus.PLAYING &&
+      color !== getMatchInstance(boardID).chess.turn;
+   timeDisplay.style.color =
+      playing || gs.room.status === RoomStatus.LOBBY
+         ? "#FFFFFF"
+         : "var(--hidden-text)";
+   playerInfo.style.border = playing ? "3px solid #5DA061" : "none";
 }
 
 export function updateTimeLeft(currentTime: number = Date.now()): void {
    for (let index = 0; index < gs.room.game.matches.length; index++) {
       const matchInstance = getMatchInstance(index);
-      if (!matchInstance) continue;
-
       matchInstance.updateTime(currentTime);
    }
 }
@@ -304,9 +293,8 @@ export function stopTimeUpdates(): void {
 
 // Global Update Functions
 export function updateUIAllBoards(): void {
-   for (let index = 0; index < gs.room.game.matches.length; index++) {
+   for (let index = 0; index < gs.room.game.matches.length; index++)
       updateUIChess(index);
-   }
 }
 
 export function updateUIAllGame(): void {

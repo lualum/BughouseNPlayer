@@ -1,4 +1,4 @@
-import { RoomListing } from "../shared/room";
+import type { RoomListing } from "../shared/room";
 import { stopPingUpdates } from "./game-ui";
 import { stopTimeUpdates } from "./match-ui";
 import { sn } from "./session";
@@ -49,19 +49,19 @@ export function initMenuControls(): void {
             checkAndPromptForName(() => {
                sn.socket.emit("create-room");
             })
-         ) {
+         )
             sn.socket.emit("create-room");
-         }
       } else if (roomCode.length === 4) {
          // Join room
          if (
             checkAndPromptForName(() => {
                sn.socket.emit("join-room", roomCode);
             })
-         ) {
+         )
             sn.socket.emit("join-room", roomCode);
-         }
-      } else showError("menu-error", "Room code must be 4 characters");
+      } else {
+         showError("menu-error", "Room code must be 4 characters");
+      }
    });
 
    roomCodeInput.addEventListener("keypress", (event: Event) => {
@@ -112,19 +112,19 @@ function setupNameModal(): void {
       "#modal-name-input"
    ) as HTMLInputElement;
 
-   closeButton?.addEventListener("click", () => {
+   closeButton.addEventListener("click", () => {
       pendingAction = undefined;
       hideNameModal();
    });
 
-   modal?.addEventListener("click", (event) => {
+   modal.addEventListener("click", (event) => {
       if (event.target === modal) {
          pendingAction = undefined;
          hideNameModal();
       }
    });
 
-   submitButton?.addEventListener("click", () => {
+   submitButton.addEventListener("click", () => {
       const name = modalInput.value.trim();
       if (name) {
          const mainInput = document.querySelector(
@@ -146,7 +146,7 @@ function setupNameModal(): void {
 
    modalInput.addEventListener("keypress", (event: Event) => {
       const keyEvent = event as KeyboardEvent;
-      if (keyEvent.key === "Enter") submitButton?.click();
+      if (keyEvent.key === "Enter") submitButton.click();
    });
 }
 
@@ -198,9 +198,9 @@ export function leaveRoom(): void {
 }
 
 export function showScreen(screenId: string): void {
-   for (const screen of document.querySelectorAll(".screen")) {
+   for (const screen of document.querySelectorAll(".screen"))
       screen.classList.add("hidden");
-   }
+
    const targetScreen = document.querySelector(`#${screenId}`);
    targetScreen?.classList.remove("hidden");
 }
@@ -227,9 +227,8 @@ export function showError(elementId: string, message: string): void {
 }
 
 export function clearErrors(): void {
-   for (const error of document.querySelectorAll(".error")) {
+   for (const error of document.querySelectorAll(".error"))
       error.textContent = "";
-   }
 }
 
 export function updateLobbiesList(lobbies: RoomListing[]): void {
@@ -271,9 +270,8 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
             checkAndPromptForName(() => {
                sn.socket.emit("join-room", lobby.code);
             })
-         ) {
+         )
             sn.socket.emit("join-room", lobby.code);
-         }
       });
 
       lobbiesContainer.append(lobbyDiv);

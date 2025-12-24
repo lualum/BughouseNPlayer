@@ -12,5 +12,15 @@
       "sourceMap": true
    },
    "files": [],
-   "references": [{ "path": "./shared" }, { "path": "./server" }, { "path": "./public" }]
+   "references": [
+      {
+         "path": "./shared"
+      },
+      {
+         "path": "./server"
+      },
+      {
+         "path": "./public"
+      }
+   ]
 }

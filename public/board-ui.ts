@@ -102,16 +102,14 @@ function updateVisualChessState(matchIndex: number): void {
          index === 0 &&
          gs.room.game.matches[matchIndex].chess.turn ===
             gs.room.game.matches[matchIndex].chess.getPiece(move.from)!.color
-      ) {
+      )
          continue;
-      }
 
-      if (move.from.loc === "board") {
+      if (move.from.loc === "board")
          marks.premoved[move.from.row][move.from.col] = true;
-      }
-      if (move.to.loc === "board") {
+
+      if (move.to.loc === "board")
          marks.premoved[move.to.row][move.to.col] = true;
-      }
    }
 
    visualChessStates.set(matchIndex, {
@@ -121,9 +119,8 @@ function updateVisualChessState(matchIndex: number): void {
 }
 
 function getVisualChess(matchIndex: number): VisualChessState {
-   if (!visualChessStates.has(matchIndex)) {
-      updateVisualChessState(matchIndex);
-   }
+   if (!visualChessStates.has(matchIndex)) updateVisualChessState(matchIndex);
+
    return visualChessStates.get(matchIndex)!;
 }
 
@@ -184,7 +181,7 @@ function getPositionFromElement(element: HTMLElement): {
 function getSquareElement(id: number, pos: BoardPosition): HTMLElement {
    return document.querySelector(
       `.square[data-id="${id}"][data-row="${pos.row}"][data-col="${pos.col}"]`
-   ) as HTMLElement;
+   ) as HTMLDivElement;
 }
 
 function getPieceElement(id: number, pos: Position): HTMLImageElement {
@@ -242,9 +239,7 @@ export function createPocketElement(
 // MARK: Piece Selection
 
 function holdPiece(mouseEvent: MouseEvent): void {
-   if (!selected) {
-      return;
-   }
+   if (!selected) return;
 
    dropSelectedPiece();
 
@@ -272,9 +267,7 @@ function holdPiece(mouseEvent: MouseEvent): void {
 }
 
 function dropSelectedPiece(): void {
-   if (!selected?.dragElement) {
-      return;
-   }
+   if (!selected?.dragElement) return;
 
    selected.dragElement.remove();
    selected.dragElement = undefined;
@@ -294,9 +287,7 @@ function selectPiece(id: number, pos: Position): void {
 
    const piece = getVisualChess(id).chess.getPiece(pos);
 
-   if (!piece) {
-      return;
-   }
+   if (!piece) return;
 
    selected = {
       boardID: id,
@@ -382,9 +373,8 @@ export function updateUIChess(id: number): void {
             selected.dragElement &&
             selected.boardID === id &&
             positionsEqual(selected.pos, pos)
-         ) {
+         )
             img.style.opacity = "0";
-         }
 
          img.addEventListener("dragstart", () => false);
          element.append(img);
@@ -409,7 +399,6 @@ function updatePocket(
    boardID: number
 ): void {
    const pocket = document.querySelector(`#${id}-${boardID}`) as HTMLElement;
-   if (!pocket) return;
 
    pocket.innerHTML = "";
    pocket.dataset.id = boardID.toString();
@@ -476,17 +465,17 @@ function annotateSquare(
 ): void {
    const square = getSquareElement(boardID, { loc: "board", row, col });
 
-   for (const cls of classes) {
-      square.classList.add(cls);
-   }
-   if (classes.includes("legal-move") && square.querySelector(".piece")) {
+   for (const cls of classes) square.classList.add(cls);
+
+   if (classes.includes("legal-move") && square.querySelector(".piece"))
       square.classList.add("has-piece");
-   }
 }
 
 function updateAnnotations(id: number): void {
    // Clear board highlights
-   const boardElement = document.querySelectorAll(`.board[data-id="${id}"]`)[0];
+   const boardElement = document.querySelector(
+      `.board[data-id="${id}"]`
+   ) as HTMLElement;
    const squares = boardElement.querySelectorAll(`.square`);
 
    for (const square of squares) {
@@ -513,33 +502,30 @@ function updateAnnotations(id: number): void {
    const { chess, marks } = getVisualChess(id);
    for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
-         if (marks.premoved[r][c] || marks.marked[r][c]) {
+         if (marks.premoved[r][c] || marks.marked[r][c])
             annotateSquare(id, r, c, ["premoved"]);
-         }
       }
    }
 
-   if (!selected) return;
-   const { boardID, pos } = selected;
-   const board = getVisualChess(boardID).chess;
+   if (!selected || selected.boardID !== id) return;
+   const { pos } = selected;
 
    if (pos.loc === "board") {
-      annotateSquare(boardID, pos.row, pos.col, ["highlight"]);
+      annotateSquare(id, pos.row, pos.col, ["highlight"]);
    } else {
-      const pocketImg = getPieceElement(boardID, pos);
+      const pocketImg = getPieceElement(id, pos);
       const pocketPiece = pocketImg.closest(".pocket-piece") as HTMLElement;
       pocketPiece.classList.add("highlight");
    }
 
-   const premove = chess.getPiece(pos)?.color !== board.turn;
+   const premove = chess.getPiece(pos)?.color !== chess.turn;
 
    // Show legal moves
    for (let r = 0; r < 8; r++) {
       for (let c = 0; c < 8; c++) {
          const move = { from: pos, to: createPosition(r, c) };
-         if (board.isLegal(move, premove)) {
-            annotateSquare(boardID, r, c, ["legal-move"]);
-         }
+         if (chess.isLegal(move, premove))
+            annotateSquare(id, r, c, ["legal-move"]);
       }
    }
 }
@@ -577,9 +563,8 @@ function handleSquareMouseDown(event: MouseEvent): void {
       const premove = board.turn !== board.getPiece(move.from)?.color;
 
       if (board.isLegal(move, premove)) {
-         if (!premove) {
+         if (!premove)
             gs.socket.emit("move-board", id, selected.piece.color, move);
-         }
 
          gs.room.game.matches[id].queued.color = selected.piece.color;
          gs.room.game.matches[id].queued.moves.push(move);
@@ -614,9 +599,8 @@ function handleSquareMouseUp(event: MouseEvent): void {
    const result = board.isLegal(move, premove);
 
    if (result) {
-      if (!premove) {
+      if (!premove)
          gs.socket.emit("move-board", id, selected.piece.color, move);
-      }
 
       gs.room.game.matches[id].queued.color = selected.piece.color;
       gs.room.game.matches[id].queued.moves.push(move);
@@ -667,9 +651,7 @@ function handlePocketMouseUp(event: MouseEvent): void {
 
    event.preventDefault();
 
-   if (!selected.justSelected && positionsEqual(selected.pos, pos)) {
+   if (!selected.justSelected && positionsEqual(selected.pos, pos))
       deselectPiece();
-   } else {
-      dropSelectedPiece();
-   }
+   else dropSelectedPiece();
 }

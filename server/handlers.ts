@@ -1,8 +1,9 @@
-import { Server } from "socket.io";
-import { Color, Move } from "../shared/chess";
+import type { Server } from "socket.io";
+import type { Color, Move } from "../shared/chess";
 import { PlayerStatus } from "../shared/player";
 import { Room, RoomStatus, Team } from "../shared/room";
-import { emitRoomList, GameSocket, io, MENU_ROOM, rooms } from "./server";
+import type { GameSocket } from "./server";
+import { emitRoomList, io, MENU_ROOM, rooms } from "./server";
 
 export function setupHandlers(socket: GameSocket): void {
    socket.on("ping", () => {
@@ -70,14 +71,14 @@ export function setupHandlers(socket: GameSocket): void {
 
    socket.on("join-board", (boardID: number, color: Color) => {
       if (!socket.room || socket.room.status !== RoomStatus.LOBBY) return;
+
       const oppTeam =
          socket.room.game.matches[boardID].getTeam(color) === Team.RED
             ? Team.BLUE
             : Team.RED;
 
-      for (const match of socket.room.game.matches) {
+      for (const match of socket.room.game.matches)
          if (match.getPlayerTeam(oppTeam)?.id === socket.player.id) return;
-      }
 
       socket.room.game.matches[boardID].setPlayer(socket.player, color);
       io.to(socket.room.code).emit(
@@ -95,9 +96,8 @@ export function setupHandlers(socket: GameSocket): void {
          socket.room.game.matches[boardID].getPlayer(color)?.id !==
             socket.player.id ||
          !socket.room.game.matches[boardID].chess.isLegal(move, false)
-      ) {
+      )
          return;
-      }
 
       const currentTime = Date.now();
       socket.room.game.matches[boardID].updateTime(currentTime);
@@ -120,6 +120,31 @@ export function setupHandlers(socket: GameSocket): void {
       if (!socket.room || socket.room.status !== RoomStatus.LOBBY) return;
       socket.room.game.matches[boardID].removePlayer(color);
       io.to(socket.room.code).emit("p-left-board", boardID, color);
+   });
+
+   // TODO: Make team a property of the player
+   socket.on("resign-room", () => {
+      if (!socket.room || socket.room.status !== RoomStatus.PLAYING) return;
+
+      const playerTeam = (() => {
+         for (const match of socket.room.game.matches) {
+            if (match.getPlayerTeam(Team.BLUE)?.id === socket.player.id)
+               return Team.BLUE;
+            if (match.getPlayerTeam(Team.RED)?.id === socket.player.id)
+               return Team.RED;
+         }
+         return;
+      })();
+
+      if (!playerTeam) return;
+
+      socket.room.endRoom();
+      io.to(socket.room.code).emit(
+         "ended-room",
+         playerTeam,
+         "Draw",
+         Date.now()
+      );
    });
 }
 
@@ -145,11 +170,8 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
    socket.join(code);
    socket.room = room;
 
-   if (room.status === RoomStatus.PLAYING) {
-      for (const match of room.game.matches) {
-         match.updateTime(Date.now());
-      }
-   }
+   if (room.status === RoomStatus.PLAYING)
+      for (const match of room.game.matches) match.updateTime(Date.now());
 
    const playerInRoom = room.players.get(socket.player.id);
    if (playerInRoom) {
@@ -161,17 +183,16 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
       room.addPlayer(socket.player);
       io.to(socket.room.code).emit(
          "p-joined-room",
-         socket.player?.id,
-         socket.player?.name
+         socket.player.id,
+         socket.player.name
       );
       socket.emit("joined-room", room.serialize());
    }
 }
 
 function handlePlayerLeave(socket: GameSocket): void {
-   if (!socket.room) return;
-
    const room = socket.room;
+   if (!room) return;
 
    socket.leave(room.code);
 
@@ -212,9 +233,8 @@ function randomCode(): string {
    let result = "";
    do {
       result = "";
-      for (let index = 0; index < 4; index++) {
+      for (let index = 0; index < 4; index++)
          result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
    } while (rooms.has(result)); // Ensure unique code
 
    return result;

@@ -1,6 +1,8 @@
 import { Chat } from "./chat";
-import { Chess, Color, Move, MoveResult, SerializedChess } from "./chess";
-import { Player, PlayerStatus } from "./player";
+import type { Move, MoveResult, SerializedChess } from "./chess";
+import { Chess, Color } from "./chess";
+import type { Player } from "./player";
+import { PlayerStatus } from "./player";
 
 const defaultTime = 180_000; // 3 minutes in milliseconds
 
@@ -70,9 +72,8 @@ export class Room {
 
    serialize(): SerializedRoom {
       const serializedPlayers: Record<string, Player> = {};
-      for (const [id, player] of this.players.entries()) {
+      for (const [id, player] of this.players.entries())
          serializedPlayers[id] = player;
-      }
 
       return {
          code: this.code,
@@ -90,9 +91,8 @@ export class Room {
       room.chat = Chat.deserialize(data.chat);
 
       const playersData = data.players;
-      for (const [id, playerData] of Object.entries(playersData)) {
+      for (const [id, playerData] of Object.entries(playersData))
          room.players.set(id, playerData);
-      }
 
       return room;
    }
@@ -123,9 +123,8 @@ export class Room {
 
    allPlayersDisconnected(): boolean {
       if (this.players.size === 0) return true;
-      for (const player of this.players.values()) {
+      for (const player of this.players.values())
          if (player.status !== PlayerStatus.DISCONNECTED) return false;
-      }
 
       return true;
    }
@@ -137,9 +136,8 @@ export class Room {
          if (
             match.whitePlayer.status !== PlayerStatus.READY ||
             match.blackPlayer.status !== PlayerStatus.READY
-         ) {
+         )
             return false;
-         }
       }
 
       this.status = RoomStatus.PLAYING;
@@ -158,9 +156,9 @@ export class Room {
       this.status = RoomStatus.LOBBY;
 
       for (const player of this.players.values()) {
-         if (player.status === PlayerStatus.DISCONNECTED) {
+         if (player.status === PlayerStatus.DISCONNECTED)
             this.removePlayer(player.id);
-         } else player.status = PlayerStatus.NOT_READY;
+         else player.status = PlayerStatus.NOT_READY;
       }
    }
 }
@@ -188,9 +186,9 @@ export class Game {
 
    getFinalChess(matchIndex: number): Chess {
       const chess = this.matches[matchIndex].chess.clone();
-      for (const move of this.matches[matchIndex].queued.moves) {
+      for (const move of this.matches[matchIndex].queued.moves)
          chess.doMove(move, true);
-      }
+
       return chess;
    }
 
@@ -208,9 +206,9 @@ export class Game {
       if (result.captured) {
          for (let index = 0; index < this.matches.length; index++) {
             if (index === matchID) continue;
-            if (this.matches[index].flipped === this.matches[matchID].flipped) {
+            if (this.matches[index].flipped === this.matches[matchID].flipped)
                continue;
-            }
+
             this.matches[index].chess.addToPocket({
                type: result.captured.type,
                color: result.captured.color,
@@ -221,9 +219,9 @@ export class Game {
       if (move.from.loc === "pocket") {
          for (let index = 0; index < this.matches.length; index++) {
             if (index === matchID) continue;
-            if (this.matches[index].flipped !== this.matches[matchID].flipped) {
+            if (this.matches[index].flipped !== this.matches[matchID].flipped)
                continue;
-            }
+
             this.matches[index].chess.removeFromPocket(
                move.from.type,
                move.from.color
