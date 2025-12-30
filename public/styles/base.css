@@ -1,17 +1,20 @@
 * {
+   box-sizing: border-box;
    margin: 0;
    padding: 0;
-   box-sizing: border-box;
+   color: var(--text);
 }
 
-body {
-   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-   min-height: 100vh;
-   overflow: hidden;
-   background-color: #040404;
-   background-size: 160px 160px;
-   background-position: center center;
-   position: relative;
+::-webkit-input-placeholder {
+   color: var(--hidden-text);
+}
+
+:-ms-input-placeholder {
+   color: var(--hidden-text);
+}
+
+::placeholder {
+   color: var(--hidden-text);
 }
 
 :root {
@@ -19,18 +22,38 @@ body {
    --primary: #1c1c20;
    --secondary: #17171a;
    --accent: #242429;
-   --text: #94959B;
-   --hidden-text: #50515B;
+   --text: rgba(255, 255, 255, 0.9);
+   --hidden-text: rgba(255, 255, 255, 0.5);
+
+   --blue: #3a7cd5;
+
+   --green: #5da061;
+   --yellow: #c2985e;
+   --red: #c13d3f;
+
+   --green-yellow: color-mix(in lch, var(--green), var(--yellow));
+   --yellow-red: color-mix(in lch, var(--yellow), var(--red));
+
    --sidebar-margin: 2.5vh;
+}
+
+body {
+   position: relative;
+   background-position: center center;
+   background-size: 160px 160px;
+   background-color: #040404;
+   min-height: 100vh;
+   overflow: hidden;
+   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .screen {
    display: flex;
-   align-items: center;
-   justify-content: center;
-   min-height: 100vh;
    position: relative;
+   justify-content: center;
+   align-items: center;
    z-index: 1;
+   min-height: 100vh;
 }
 
 .hidden {
@@ -46,14 +69,11 @@ label {
 /* Error messages */
 #menu-error,
 #lobby-error {
-   color: #ea4179;
-   font-weight: bold;
    margin-top: 15px;
-   text-align: center;
-   background: #fae0de;
-   padding: 10px;
    border-radius: 6px;
-   border: 1px solid #f9c7c4;
+   padding: 10px;
+   font-weight: bold;
+   text-align: center;
 }
 
 #menu-error:empty,
@@ -67,12 +87,12 @@ label {
 
 .hide-scrollbar {
    -ms-overflow-style: none;
-   scrollbar-width: none;
    overscroll-behavior: none;
+   scrollbar-width: none;
 }
 
 input {
+   display: flex;
    border: none;
    background: var(--accent);
-   display: flex;
 }

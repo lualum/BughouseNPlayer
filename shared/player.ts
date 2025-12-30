@@ -7,8 +7,10 @@ export enum PlayerStatus {
 export class Player {
    id: string;
    name: string;
-
    status: PlayerStatus;
+
+   wins: number = 0;
+   total: number = 0;
 
    constructor(
       id: string,

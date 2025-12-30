@@ -28,23 +28,29 @@ export class Session {
       this.settings = new Settings();
 
       if (this.settings.logSocket) {
-         // Log all incoming socket events
+         const ignoredEvents = new Set(["ping", "pong"]);
+
+         // Log all incoming socket events (filtered)
          this.socket.onAny((event, ...arguments_) => {
-            console.log(
-               `%c⬇ [RECEIVE] ${event}`,
-               "color: #2196F3; font-weight: bold",
-               arguments_
-            );
+            if (!ignoredEvents.has(event)) {
+               console.log(
+                  `%c⬇ [RECEIVE] ${event}`,
+                  "color: #2196F3; font-weight: bold",
+                  arguments_
+               );
+            }
          });
 
-         // Log all outgoing socket events
+         // Log all outgoing socket events (filtered)
          const originalEmit = this.socket.emit.bind(this.socket);
          this.socket.emit = function (event: string, ...arguments_: unknown[]) {
-            console.log(
-               `%c⬆ [EMIT] ${event}`,
-               "color: #4CAF50; font-weight: bold",
-               arguments_
-            );
+            if (!ignoredEvents.has(event)) {
+               console.log(
+                  `%c⬆ [EMIT] ${event}`,
+                  "color: #4CAF50; font-weight: bold",
+                  arguments_
+               );
+            }
             return originalEmit(event, ...arguments_);
          };
       }

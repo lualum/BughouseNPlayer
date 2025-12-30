@@ -8,7 +8,7 @@
       "build": "npm run build:public && npm run build:server && npm run build:shared",
       "build:public:watch": "esbuild public/*.ts --bundle --outdir=public/dist --sourcemap --minify --watch",
       "build:server:watch": "esbuild server/*.ts --bundle --platform=node --external:express --external:socket.io --outdir=server/dist --sourcemap --minify --watch",
-      "build:shared:watch": "esbuild shared/*.ts --bundle --platform=node --outdir=shared/dist --sourcemap --minify --watch",
+      "build:shared:watch": "4esbuild shared/*.ts --bundle --platform=node --outdir=shared/dist --sourcemap --minify --watch",
       "build:watch": "concurrently -n public,server,shared \"npm run build:public:watch\" \"npm run build:server:watch\" \"npm run build:shared:watch\"",
       "start:server": "nodemon --watch server/dist --watch public/dist --watch shared/dist --exec 'clear && node --no-deprecation' server/dist/server.js",
       "start": "npm run build && node --no-deprecation server/dist/server.js",

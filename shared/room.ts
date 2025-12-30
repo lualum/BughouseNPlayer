@@ -65,7 +65,7 @@ export class Room {
          new Match(defaultTime, false),
          new Match(defaultTime, true),
          new Match(defaultTime, false)
-         // new Match(defaultTime, true),
+         // new Match(defaultTime, true)
          // new Match(defaultTime, false)
       );
    }
@@ -159,6 +159,11 @@ export class Room {
          if (player.status === PlayerStatus.DISCONNECTED)
             this.removePlayer(player.id);
          else player.status = PlayerStatus.NOT_READY;
+      }
+
+      for (const player of this.players.values()) {
+         player.wins = 0;
+         player.total++;
       }
    }
 }

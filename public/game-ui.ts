@@ -10,7 +10,7 @@ import {
 import { leaveRoom } from "./menu-ui";
 import { gs } from "./session";
 
-let isGridMode = false;
+let gridMode = false;
 
 let pingIntervalID: NodeJS.Timeout;
 let pingStartTime: number = 0;
@@ -35,6 +35,12 @@ export function initGameControls(): void {
    // Prevent chat input from triggering keyboard shortcuts
    chatInput?.addEventListener("keydown", (event: Event) => {
       event.stopPropagation();
+   });
+
+   // Add resign button event listener
+   const resignButton = document.querySelector("#resign-btn");
+   resignButton?.addEventListener("click", () => {
+      handleResign();
    });
 
    document.addEventListener("keydown", (event: Event) => {
@@ -70,6 +76,25 @@ export function initGameControls(): void {
    });
 }
 
+// MARK: Resign Functionality
+
+function handleResign(): void {
+   if (confirm("Are you sure you want to resign? This will end the game."))
+      gs.socket.emit("resign-room");
+}
+
+function isPlayerInGame(): boolean {
+   // Check if current player is playing in any match
+   for (const match of gs.room.game.matches) {
+      const whitePlayer = match.getPlayer(Color.WHITE);
+      const blackPlayer = match.getPlayer(Color.BLACK);
+
+      if (whitePlayer?.id === gs.player.id || blackPlayer?.id === gs.player.id)
+         return true;
+   }
+   return false;
+}
+
 // MARK: Ping Indicator
 
 function initPingIndicator(): void {
@@ -82,27 +107,29 @@ function initPingIndicator(): void {
 }
 
 function updatePingDisplay(ping: number): void {
-   // Determine bars and color based on ping ranges
    const ranges = [
-      { max: 50, bars: 5, color: "#5DA061" }, // Green
-      { max: 100, bars: 4, color: "#7DB86D" }, // Light green
-      { max: 150, bars: 3, color: "#D4AF37" }, // Yellow
-      { max: 250, bars: 2, color: "#E67E22" }, // Orange
-      { max: Infinity, bars: 1, color: "#E74C3C" }, // Red
+      { max: 50, bars: 5, color: "var(--green)" },
+      { max: 100, bars: 4, color: "var(--green-yellow)" },
+      { max: 150, bars: 3, color: "var(--yellow)" },
+      { max: 250, bars: 2, color: "var(--yellow-red)" },
+      { max: Infinity, bars: 1, color: "var(--red)" },
    ];
 
-   const { bars: activeBars, color } = ranges.find((r) => ping < r.max)!;
+   const foundRange = ranges.find((r) => ping < r.max);
+   if (!foundRange) return;
+
+   const { bars: activeBars, color } = foundRange;
 
    // Update bar colors
-   for (const [index, bar] of document
-      .querySelectorAll(".ping-bar")
-      .entries()) {
+   const bars = document.querySelectorAll(".ping-bar");
+   for (const [index, bar] of bars.entries()) {
       const barElement = bar as HTMLElement;
+      // We check from the bottom up (index < activeBars)
       if (index < activeBars) {
          barElement.style.backgroundColor = color;
          barElement.style.opacity = "1";
       } else {
-         barElement.style.backgroundColor = "#333";
+         barElement.style.backgroundColor = "var(--background)";
          barElement.style.opacity = "0.3";
       }
    }
@@ -144,8 +171,8 @@ export function showRoomElements(): void {
       container.remove();
 
    // Reset grid mode when creating room elements
-   if (isGridMode) {
-      isGridMode = false;
+   if (gridMode) {
+      gridMode = false;
       const gameArea = document.querySelector("#game-area") as HTMLDivElement;
       gameArea.classList.remove("grid-mode");
       window.removeEventListener("resize", updateGridLayout);
@@ -173,6 +200,9 @@ export function showRoomElements(): void {
             <rect x="14" y="3" width="7" height="18"></rect>
          </svg>
       `;
+
+   // Reset buttons to initial state (show ready, hide resign)
+   resetGameButtons();
 }
 
 export function updateReadyButton(): void {
@@ -187,6 +217,18 @@ export function updateReadyButton(): void {
       readyButton.textContent = "Ready";
       readyButton.classList.remove("ready");
    }
+}
+
+function resetGameButtons(): void {
+   const readyButton = document.querySelector(
+      "#ready-btn"
+   ) as HTMLButtonElement;
+   const resignButton = document.querySelector(
+      "#resign-btn"
+   ) as HTMLButtonElement;
+
+   readyButton.style.display = "block";
+   resignButton.style.display = "none";
 }
 
 export function updateUIPlayerList(): void {
@@ -281,9 +323,7 @@ export function sendChatMessage(): void {
 
 function getBoardAreaDimensions(): { board: number; gap: number } {
    const gameArea = document.querySelector("#game-area") as HTMLElement;
-   const boardArea = document.querySelectorAll(
-      ".match-container"
-   )[0] as HTMLElement;
+   const boardArea = document.querySelector(".match-container") as HTMLElement;
    return {
       board: boardArea.clientWidth,
       gap: Number.parseFloat(getComputedStyle(gameArea).gap) || 0,
@@ -378,13 +418,13 @@ export function initScrollControls(): void {
 // MARK: Grid Mode UI
 
 export function toggleGridMode(): void {
-   isGridMode = !isGridMode;
+   gridMode = !gridMode;
    const gameArea = document.querySelector("#game-area") as HTMLDivElement;
    const gridToggleButton = document.querySelector(
       "#grid-toggle-btn"
    ) as HTMLButtonElement;
 
-   if (isGridMode) {
+   if (gridMode) {
       gameArea.classList.add("grid-mode");
       gridToggleButton.innerHTML = `
          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -412,7 +452,7 @@ export function toggleGridMode(): void {
 }
 
 function updateGridLayout(): void {
-   if (!isGridMode) return;
+   if (!gridMode) return;
 
    const gameArea = document.querySelector("#game-area") as HTMLDivElement;
    const matches = gameArea.querySelectorAll(".match-container");
@@ -471,7 +511,18 @@ export function startGameUI(): void {
    const readyButton = document.querySelector(
       "#ready-btn"
    ) as HTMLButtonElement;
-   readyButton.style.display = "none";
+   const resignButton = document.querySelector(
+      "#resign-btn"
+   ) as HTMLButtonElement;
+
+   // Show resign button only if player is in the game
+   if (isPlayerInGame()) {
+      readyButton.style.display = "none";
+      resignButton.style.display = "block";
+   } else {
+      readyButton.style.display = "none";
+      resignButton.style.display = "none";
+   }
 
    // Put current player on bottom
    let topBottomDelta = 0; // # of this player on top - # on bottom
@@ -496,7 +547,12 @@ export function endGameUI(): void {
    const readyButton = document.querySelector(
       "#ready-btn"
    ) as HTMLButtonElement;
+   const resignButton = document.querySelector(
+      "#resign-btn"
+   ) as HTMLButtonElement;
+
    readyButton.style.display = "block";
+   resignButton.style.display = "none";
 
    updateUIAllGame();
    updateUIPlayerList();

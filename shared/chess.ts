@@ -420,6 +420,38 @@ export class Chess {
       }
    }
 
+   getLegalMoveType(move: Move, premove = false): MoveType {
+      if (!this.isLegal(move, premove)) return MoveType.ILLEGAL;
+
+      if (premove) return MoveType.PREMOVE;
+      if (move.to.loc === "pocket") return MoveType.NORMAL;
+      if (move.from.loc === "pocket") return MoveType.NORMAL;
+
+      const piece = this.board[move.from.row][move.from.col];
+      const captured = this.board[move.to.row][move.to.col];
+
+      if (
+         piece?.type === PieceType.KING &&
+         Math.abs(move.from.col - move.to.col) === 2
+      )
+         return MoveType.CASTLE;
+
+      if (
+         piece?.type === PieceType.PAWN &&
+         move.to.row === (piece.color ? 0 : 7)
+      )
+         return MoveType.PROMOTION;
+
+      if (
+         captured ||
+         (piece?.type === PieceType.PAWN &&
+            this.isEnPassantMove(move.from, move.to))
+      )
+         return MoveType.CAPTURE;
+
+      return MoveType.NORMAL;
+   }
+
    private isLegalMove(
       from: BoardPosition,
       to: BoardPosition,
@@ -758,6 +790,16 @@ export interface Move {
 
 export interface MoveResult {
    captured?: Piece;
+}
+
+// Move Types: Aligns with audio
+export enum MoveType {
+   ILLEGAL = "illegal",
+   NORMAL = "normal",
+   CAPTURE = "capture",
+   CASTLE = "castle",
+   PROMOTION = "promote",
+   PREMOVE = "premove",
 }
 
 export enum CastleMove {

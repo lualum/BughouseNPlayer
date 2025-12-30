@@ -6,7 +6,7 @@ import {
    createBoardElement,
    createPocketElement,
    updateUIChess,
-} from "./board-ui";
+} from "./chess-ui";
 import { gs } from "./session";
 
 export let visualFlipped: boolean = false;
@@ -221,7 +221,9 @@ function updatePlayerName(
    const name = playerInfo.querySelector(".player-name-display") as HTMLElement;
    name.textContent = player ? player.name : "";
    name.style.color =
-      player && player.id === gs.player.id ? "#FFFFFF" : "var(--hidden-text)";
+      player && player.id === gs.player.id
+         ? "var(--text)"
+         : "var(--hidden-text)";
 }
 
 // UI Update Functions - Time
@@ -266,9 +268,9 @@ function updateTimeDisplay(
       color !== getMatchInstance(boardID).chess.turn;
    timeDisplay.style.color =
       playing || gs.room.status === RoomStatus.LOBBY
-         ? "#FFFFFF"
+         ? "var(--text)"
          : "var(--hidden-text)";
-   playerInfo.style.border = playing ? "3px solid #5DA061" : "none";
+   playerInfo.style.border = playing ? "3px solid var(--green)" : "none";
 }
 
 export function updateTimeLeft(currentTime: number = Date.now()): void {

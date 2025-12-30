@@ -24,11 +24,11 @@ export function initMenuControls(): void {
 
       if (roomCode.length === 0) {
          actionButtonText.textContent = "+";
-         actionButton.style.background = "#5DA061";
+         actionButton.style.background = "var(--green)";
          actionButtonText.style.transform = "translateY(0px)";
       } else {
          actionButtonText.textContent = "↪";
-         actionButton.style.background = "#C74748";
+         actionButton.style.background = "var(--red)";
          actionButtonText.style.transform = "translateY(3px)";
       }
    };
@@ -253,7 +253,7 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
       <div class="lobby-info">
         <div class="lobby-code">${lobby.code}</div>
         <div class="lobby-players">
-          <span style="color: #C74748; font-weight: 700;">${lobby.numPlayers}</span>
+          <span style="color: var(--red); font-weight: 700;">${lobby.numPlayers}</span>
         </div>
       </div>
       <button class="lobby-join-btn">Join</button>

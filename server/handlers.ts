@@ -142,7 +142,7 @@ export function setupHandlers(socket: GameSocket): void {
       io.to(socket.room.code).emit(
          "ended-room",
          playerTeam,
-         "Draw",
+         "Resigned by " + socket.player.name,
          Date.now()
       );
    });
