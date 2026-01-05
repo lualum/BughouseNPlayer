@@ -11,6 +11,7 @@ import {
    positionsEqual,
 } from "../shared/chess";
 import { RoomStatus } from "../shared/room";
+import { playAudio } from "./game-ui";
 import { visualFlipped } from "./match-ui";
 import { gs } from "./session";
 
@@ -533,12 +534,6 @@ function updateAnnotations(id: number): void {
 
 // MARK: Audio Handlers
 
-function playAudio(source: string): void {
-   const audio = new Audio("/audio/" + source);
-   console.log(`Playing audio: ${source}`);
-   audio.play().catch((error) => console.error("Audio play failed:", error));
-}
-
 function playMoveSound(type: MoveType): void {
    playAudio("move-" + type + ".mp3");
 }
@@ -582,7 +577,7 @@ function handleSquareMouseDown(event: MouseEvent): void {
          gs.room.game.matches[id].queued.color = selected.piece.color;
          gs.room.game.matches[id].queued.moves.push(move);
 
-         // playMoveSound(board.getLegalMoveType(move, premove));
+         playMoveSound(board.getLegalMoveType(move, premove));
 
          deselectPiece();
          return;

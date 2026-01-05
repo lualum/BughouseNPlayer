@@ -25,10 +25,10 @@
                   required />
             </div>
             <div class="form-group">
-               <button id="action-btn">
-                  <p>+</p>
-               </button>
-               <input type="text" id="room-code-input" placeholder="Enter room code" maxlength="4" autocomplete="off" />
+               <button id="create-game-btn" class="game-action-btn">Create Game</button>
+            </div>
+            <div class="form-group">
+               <button id="join-game-btn" class="game-action-btn">Join from ID</button>
             </div>
             <div class="form-group">
                <button id="setting-btn" class="util-btns">
@@ -44,6 +44,24 @@
       </div>
       <div id="menu-error"></div>
    </div>
+
+   <!-- JOIN MODAL -->
+   <div id="join-modal" class="modal hidden">
+      <div class="modal-content">
+         <h2>Join Game</h2>
+         <p>Enter the 4-character room code</p>
+         <div class="form-group">
+            <input type="text" id="join-room-code-input" placeholder="Room code" maxlength="4" autocomplete="off"
+               required />
+         </div>
+         <div id="join-modal-error" class="error"></div>
+         <div class="modal-buttons">
+            <button id="submit-join-btn" class="primary-btn">Join</button>
+            <button id="close-join-modal" class="secondary-btn">Cancel</button>
+         </div>
+      </div>
+   </div>
+
    <!-- LOBBY + GAME SCREEN -->
    <div id="game" class="screen hidden">
       <div id="game-sidebar">

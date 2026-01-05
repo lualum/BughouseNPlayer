@@ -152,6 +152,14 @@ export function stopPingUpdates(): void {
    clearInterval(pingIntervalID);
 }
 
+// MARK: Audio
+
+export function playAudio(source: string): void {
+   const audio = new Audio("/audio/" + source);
+   console.log(`Playing audio: ${source}`);
+   audio.play().catch((error) => console.error("Audio play failed:", error));
+}
+
 // MARK: Sidebar UI
 
 export function showRoomElements(): void {

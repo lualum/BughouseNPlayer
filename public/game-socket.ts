@@ -10,6 +10,7 @@ import {
 } from "../shared/room";
 import {
    endGameUI,
+   playAudio,
    showRoomElements,
    startGameUI,
    updateUIAllChat,
@@ -100,6 +101,8 @@ export function initGameSocket(): void {
       gs.room.tryStartRoom(timeStarted);
       startGameUI();
       startTimeUpdates();
+
+      playAudio("game-start.mp3");
    });
 
    gs.socket.on(
@@ -150,6 +153,8 @@ export function initGameSocket(): void {
       endGameUI();
       stopTimeUpdates();
       updateUIPushChat({ id: "server", message: `Team ${raw} won! ${reason}` });
+
+      playAudio("game-end.mp3");
    });
 
    gs.socket.on("p-sent-chat", (id: string, message: string) => {

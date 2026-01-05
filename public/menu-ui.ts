@@ -7,66 +7,32 @@ import { sn } from "./session";
 let pendingAction: (() => void) | undefined;
 
 export function initMenuControls(): void {
-   // Combined action button
-   const actionButton = document.querySelector(
-      "#action-btn"
+   const createGameButton = document.querySelector(
+      "#create-game-btn"
    ) as HTMLButtonElement;
-   const actionButtonText = actionButton.querySelector(
-      "p"
-   ) as HTMLParagraphElement;
-   const roomCodeInput = document.querySelector(
-      "#room-code-input"
+   const joinGameButton = document.querySelector(
+      "#join-game-btn"
+   ) as HTMLButtonElement;
+   const playerNameInput = document.querySelector(
+      "#player-name-input"
    ) as HTMLInputElement;
 
-   // Update button appearance based on input
-   const updateActionButton = () => {
-      const roomCode = roomCodeInput.value.trim() || "";
-
-      if (roomCode.length === 0) {
-         actionButtonText.textContent = "+";
-         actionButton.style.background = "var(--green)";
-         actionButtonText.style.transform = "translateY(0px)";
-      } else {
-         actionButtonText.textContent = "↪";
-         actionButton.style.background = "var(--red)";
-         actionButtonText.style.transform = "translateY(3px)";
-      }
-   };
-
-   // Initial update
-   updateActionButton();
-
-   // Update on input
-   roomCodeInput.addEventListener("input", updateActionButton);
-
-   // Handle button click
-   actionButton.addEventListener("click", () => {
-      const roomCode = roomCodeInput.value.trim() || "";
-
-      if (roomCode.length === 0) {
-         // Create room
-         if (
-            checkAndPromptForName(() => {
-               sn.socket.emit("create-room");
-            })
-         )
+   // Handle create game button
+   createGameButton.addEventListener("click", () => {
+      if (
+         checkAndPromptForName(() => {
             sn.socket.emit("create-room");
-      } else if (roomCode.length === 4) {
-         // Join room
-         if (
-            checkAndPromptForName(() => {
-               sn.socket.emit("join-room", roomCode);
-            })
-         )
-            sn.socket.emit("join-room", roomCode);
-      } else {
-         showError("menu-error", "Room code must be 4 characters");
-      }
+         })
+      )
+         sn.socket.emit("create-room");
    });
 
-   roomCodeInput.addEventListener("keypress", (event: Event) => {
-      const keyEvent = event as KeyboardEvent;
-      if (keyEvent.key === "Enter") actionButton.click();
+   // Handle join game button
+   joinGameButton.addEventListener("click", () => {
+      checkAndPromptForName(() => {
+         showJoinModal();
+      });
+      if (playerNameInput.value.trim()) showJoinModal();
    });
 
    setupNameInput("player-name-input");
@@ -82,6 +48,7 @@ export function initMenuControls(): void {
    });
 
    setupNameModal();
+   setupJoinModal();
 }
 
 // Export this function so it can be used in other files
@@ -150,6 +117,42 @@ function setupNameModal(): void {
    });
 }
 
+function setupJoinModal(): void {
+   const modal = document.querySelector("#join-modal") as HTMLDivElement;
+   const closeButton = document.querySelector(
+      "#close-join-modal"
+   ) as HTMLButtonElement;
+   const submitButton = document.querySelector(
+      "#submit-join-btn"
+   ) as HTMLButtonElement;
+   const modalInput = document.querySelector(
+      "#join-room-code-input"
+   ) as HTMLInputElement;
+
+   closeButton.addEventListener("click", () => {
+      hideJoinModal();
+   });
+
+   modal.addEventListener("click", (event) => {
+      if (event.target === modal) hideJoinModal();
+   });
+
+   submitButton.addEventListener("click", () => {
+      const roomCode = modalInput.value.trim();
+      if (roomCode.length === 4) {
+         sn.socket.emit("join-room", roomCode);
+         hideJoinModal();
+      } else {
+         showError("join-modal-error", "Room code must be 4 characters");
+      }
+   });
+
+   modalInput.addEventListener("keypress", (event: Event) => {
+      const keyEvent = event as KeyboardEvent;
+      if (keyEvent.key === "Enter") submitButton.click();
+   });
+}
+
 function showNameModal(): void {
    const modal = document.querySelector("#name-modal");
    const modalInput = document.querySelector(
@@ -167,6 +170,30 @@ function hideNameModal(): void {
       "#modal-name-input"
    ) as HTMLInputElement;
    const errorElement = document.querySelector("#modal-error");
+   if (modal) {
+      modal.classList.add("hidden");
+      modalInput.value = "";
+      if (errorElement) errorElement.textContent = "";
+   }
+}
+
+function showJoinModal(): void {
+   const modal = document.querySelector("#join-modal");
+   const modalInput = document.querySelector(
+      "#join-room-code-input"
+   ) as HTMLInputElement;
+   if (modal) {
+      modal.classList.remove("hidden");
+      modalInput.focus();
+   }
+}
+
+function hideJoinModal(): void {
+   const modal = document.querySelector("#join-modal");
+   const modalInput = document.querySelector(
+      "#join-room-code-input"
+   ) as HTMLInputElement;
+   const errorElement = document.querySelector("#join-modal-error");
    if (modal) {
       modal.classList.add("hidden");
       modalInput.value = "";
@@ -260,12 +287,6 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
     `;
 
       lobbyDiv.addEventListener("click", () => {
-         const roomCodeInput = document.querySelector(
-            "#room-code-input"
-         ) as HTMLInputElement;
-
-         roomCodeInput.value = lobby.code;
-
          if (
             checkAndPromptForName(() => {
                sn.socket.emit("join-room", lobby.code);
