@@ -142,8 +142,6 @@ function setupJoinModal(): void {
       if (roomCode.length === 4) {
          sn.socket.emit("join-room", roomCode);
          hideJoinModal();
-      } else {
-         showError("join-modal-error", "Room code must be 4 characters");
       }
    });
 
@@ -265,8 +263,8 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
    if (lobbies.length === 0) {
       lobbiesContainer.innerHTML = `
       <div class="no-lobbies">
-        <p>No Lobbies Found!</p>
-        <p style="font-size: 12px; margin-top: 5px">Create a new room or wait for others to host!</p>
+        <p style="font-size: 20px; font-weight: 700; color: var(--hidden-text);">No Lobbies Found!</p>
+        <p style="font-size: 14px; margin-top: 5px; color: var(--hidden-text);">Create a new room or wait for others to host!</p>
       </div>`;
       return;
    }

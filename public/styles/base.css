@@ -82,4 +82,17 @@ input {
    display: flex;
    border: none;
    background: var(--accent);
+   border-radius: 8px;
+   background: var(--accent);
+   padding: 12px 15px;
+   font-size: 15px;
+}
+
+button {
+   cursor: pointer;
+   border: none;
+   border-radius: 8px;
+   padding: 12px 20px;
+   font-weight: 600;
+   font-size: 15px;
 }

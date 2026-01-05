@@ -43,7 +43,7 @@
    flex-direction: column;
    justify-content: center;
    align-items: center;
-   gap: 30px;
+   gap: 15px;
    background: var(--secondary);
    padding: 15px;
    height: 50vh;
@@ -67,28 +67,6 @@
    font-size: 14px;
 }
 
-.form-group input {
-   border-radius: 8px;
-   background: var(--accent);
-   padding: 12px 15px;
-   font-size: 15px;
-}
-
-.form-group input:focus {
-   outline: none;
-   background: var(--primary);
-}
-
-button {
-   cursor: pointer;
-   border: none;
-   border-radius: 8px;
-   padding: 12px 20px;
-   font-weight: 600;
-   font-size: 15px;
-}
-
-/* Lobbies list */
 #lobbies-list {
    display: flex;
    flex: 2;
@@ -264,11 +242,10 @@ button {
 }
 
 #action-btn {
-   display: flex;
+   display: block;
+   width: 100%;
    justify-content: center;
    align-items: center;
-   width: 44px;
-   height: 44px;
    font-weight: bold;
    font-size: 20px;
 }

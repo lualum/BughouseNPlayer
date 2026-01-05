@@ -20,16 +20,10 @@
       <div id="menu-container">
          <!-- LEFT SIDE: CONTROLS -->
          <div id="section">
-            <div class="form-group">
-               <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" autocomplete="off"
-                  required />
-            </div>
-            <div class="form-group">
-               <button id="create-game-btn" class="game-action-btn">Create Game</button>
-            </div>
-            <div class="form-group">
-               <button id="join-game-btn" class="game-action-btn">Join from ID</button>
-            </div>
+            <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" autocomplete="off"
+               required />
+            <button id="create-game-btn" class="game-action-btn">Create Game</button>
+            <button id="join-game-btn" class="game-action-btn">Join from ID</button>
             <div class="form-group">
                <button id="setting-btn" class="util-btns">
                   <p>⚙</p>
@@ -54,7 +48,6 @@
             <input type="text" id="join-room-code-input" placeholder="Room code" maxlength="4" autocomplete="off"
                required />
          </div>
-         <div id="join-modal-error" class="error"></div>
          <div class="modal-buttons">
             <button id="submit-join-btn" class="primary-btn">Join</button>
             <button id="close-join-modal" class="secondary-btn">Cancel</button>

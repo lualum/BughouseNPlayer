@@ -15,7 +15,7 @@
    z-index: 10;
    background: var(--secondary);
    padding: 0;
-   width: 29vh;
+   width: 30vh;
    height: 100vh;
 }
 
@@ -260,6 +260,7 @@
    border: none;
    background: none;
    padding: 0;
+   width: 2%;
 }
 
 .match-container {

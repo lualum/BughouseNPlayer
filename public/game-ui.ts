@@ -355,11 +355,15 @@ function scrollBoards(
    setTimeout(updateScrollButtons, 300);
 }
 
-function updateScrollButtons(
-   gameArea: HTMLDivElement,
-   leftButton: HTMLButtonElement,
-   rightButton: HTMLButtonElement
-): void {
+function updateScrollButtons(): void {
+   const gameArea = document.querySelector("#game-area") as HTMLDivElement;
+   const leftButton = document.querySelector(
+      "#scrollLeft"
+   ) as HTMLButtonElement;
+   const rightButton = document.querySelector(
+      "#scrollRight"
+   ) as HTMLButtonElement;
+
    const scrollLeft = gameArea.scrollLeft;
    const maxScroll = gameArea.scrollWidth - gameArea.clientWidth;
    leftButton.disabled = scrollLeft <= 1;
@@ -371,33 +375,30 @@ function updateScrollButtons(
    const rightBoard =
       totalBoards - Math.ceil((maxScroll - scrollLeft - gap) / (board + gap));
 
-   const currentBoardSpan = document.querySelector("#boardRange");
-   const totalBoardsSpan = document.querySelector("#totalBoards");
+   const currentBoardSpan = document.querySelector(
+      "#boardRange"
+   ) as HTMLSpanElement;
+   const totalBoardsSpan = document.querySelector(
+      "#totalBoards"
+   ) as HTMLSpanElement;
 
-   if (currentBoardSpan) {
+   if (gridMode) {
+      currentBoardSpan.textContent = `[All]`;
+   } else {
       if (leftBoard > rightBoard) currentBoardSpan.textContent = "_";
       else if (leftBoard === rightBoard)
          currentBoardSpan.textContent = `${leftBoard}`;
       else currentBoardSpan.textContent = `${leftBoard}-${rightBoard}`;
    }
 
-   if (totalBoardsSpan) totalBoardsSpan.textContent = totalBoards.toString();
+   totalBoardsSpan.textContent = totalBoards.toString();
 }
 
 // Navigate boards with keyboard
 function navigateBoards(direction: number): void {
    const gameArea = document.querySelector("#game-area") as HTMLDivElement;
-   const leftButton = document.querySelector(
-      "#scrollLeft"
-   ) as HTMLButtonElement;
-   const rightButton = document.querySelector(
-      "#scrollRight"
-   ) as HTMLButtonElement;
 
-   const updateScrollButtonsBound = () =>
-      updateScrollButtons(gameArea, leftButton, rightButton);
-
-   scrollBoards(gameArea, direction, updateScrollButtonsBound);
+   scrollBoards(gameArea, direction, updateScrollButtons);
 }
 
 export function initScrollControls(): void {
@@ -409,18 +410,15 @@ export function initScrollControls(): void {
       "#scrollRight"
    ) as HTMLButtonElement;
 
-   const updateScrollButtonsBound = () =>
-      updateScrollButtons(gameArea, leftButton, rightButton);
-
    leftButton.addEventListener("click", () =>
-      scrollBoards(gameArea, -1, updateScrollButtonsBound)
+      scrollBoards(gameArea, -1, updateScrollButtons)
    );
    rightButton.addEventListener("click", () =>
-      scrollBoards(gameArea, 1, updateScrollButtonsBound)
+      scrollBoards(gameArea, 1, updateScrollButtons)
    );
-   gameArea.addEventListener("scroll", updateScrollButtonsBound);
+   gameArea.addEventListener("scroll", updateScrollButtons);
 
-   updateScrollButtonsBound();
+   updateScrollButtons();
 }
 
 // MARK: Grid Mode UI
@@ -457,6 +455,7 @@ export function toggleGridMode(): void {
       window.removeEventListener("resize", updateGridLayout);
       resetToFlexLayout();
    }
+   updateScrollButtons();
 }
 
 function updateGridLayout(): void {
