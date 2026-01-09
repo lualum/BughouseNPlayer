@@ -1,6 +1,7 @@
 import { Chat } from "./chat";
 import type { Move, MoveResult, SerializedChess } from "./chess";
 import { Chess, Color } from "./chess";
+import { GameConfig } from "./config";
 import type { Player } from "./player";
 import { PlayerStatus } from "./player";
 
@@ -152,7 +153,7 @@ export class Room {
       return true;
    }
 
-   endRoom(): void {
+   endRoom(winner?: Team): void {
       this.status = RoomStatus.LOBBY;
 
       for (const player of this.players.values()) {
@@ -161,17 +162,25 @@ export class Room {
          else player.status = PlayerStatus.NOT_READY;
       }
 
+      if (!winner) return;
+
+      const playersOnTeam = [];
+      for (const match of this.game.matches)
+         playersOnTeam.push(match.getPlayerTeam(winner));
+
       for (const player of this.players.values()) {
-         player.wins = 0;
+         if (playersOnTeam.includes(player)) player.wins++;
          player.total++;
       }
    }
 }
 
 export class Game {
+   config: GameConfig;
    matches: Match[];
 
    constructor() {
+      this.config = new GameConfig();
       this.matches = [];
    }
 

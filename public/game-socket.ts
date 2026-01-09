@@ -146,13 +146,16 @@ export function initGameSocket(): void {
       }
    );
 
-   gs.socket.on("ended-room", (raw: Team, reason: string, time: number) => {
+   gs.socket.on("ended-room", (team: Team, reason: string, time: number) => {
       for (const match of gs.room.game.matches) match.updateTime(time);
 
-      gs.room.endRoom();
+      gs.room.endRoom(team);
       endGameUI();
       stopTimeUpdates();
-      updateUIPushChat({ id: "server", message: `Team ${raw} won! ${reason}` });
+      updateUIPushChat({
+         id: "server",
+         message: `Team ${team} won! ${reason}`,
+      });
 
       playAudio("game-end.mp3");
    });

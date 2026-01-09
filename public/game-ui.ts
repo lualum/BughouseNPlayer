@@ -270,6 +270,20 @@ export function updateUIPlayerList(): void {
 
          const isCurrentPlayer = id === gs.player.id;
 
+         // // Show stats only if total > 0
+         // const statsHTML =
+         //    player.total > 0
+         //       ? `<div class="player-stats" style="font-weight: bold; color: var(--hidden-text);">(${Math.floor(player.wins)}/${Math.floor(player.total)})</div>`
+         //       : "";
+
+         // playerDiv.innerHTML = `
+         //    <span class="status-checkbox ${statusClass}">${statusIcon}</span>
+         //    <div class="player-name" style="${
+         //       isCurrentPlayer ? "font-weight: bold;" : ""
+         //    }">${player.name}</div>
+         //    ${statsHTML}
+         // `;
+
          playerDiv.innerHTML = `
             <span class="status-checkbox ${statusClass}">${statusIcon}</span>
             <div class="player-name" style="${

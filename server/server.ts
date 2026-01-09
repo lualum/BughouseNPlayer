@@ -6,7 +6,7 @@ import path from "node:path";
 import { Server, Socket } from "socket.io";
 import { Player } from "../shared/player";
 import type { Room } from "../shared/room";
-import { RoomStatus } from "../shared/room";
+import { RoomStatus, Team } from "../shared/room";
 
 const app = express();
 const server = http.createServer(app);
@@ -89,7 +89,7 @@ setInterval(() => {
          room.game.updateTime(currentTime);
          const timeout = room.game.checkTimeout();
          if (timeout) {
-            room.endRoom();
+            room.endRoom(timeout.team === Team.BLUE ? Team.RED : Team.BLUE);
             io.to(code).emit(
                "ended-room",
                timeout.team,

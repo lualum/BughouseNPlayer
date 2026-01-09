@@ -106,6 +106,11 @@
    padding: 1vh 0;
 }
 
+.player-stats {
+   margin-left: auto;
+   color: var(--text-secondary);
+}
+
 .status-checkbox {
    display: flex;
    flex-shrink: 0;
@@ -260,7 +265,7 @@
    border: none;
    background: none;
    padding: 0;
-   width: 2%;
+   width: 4vh;
 }
 
 .match-container {
