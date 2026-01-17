@@ -37,7 +37,7 @@ const serverRestartPlugin = {
          if (result.errors.length === 0) {
             restartServer();
          } else {
-            console.error("❌ Server Rebuild Failed");
+            console.error("<< Server Rebuild Failed >> ");
          }
       });
    },
@@ -85,5 +85,4 @@ if (isWatch) {
 } else {
    await Promise.all(contexts.map((ctx) => ctx.rebuild()));
    await Promise.all(contexts.map((ctx) => ctx.dispose()));
-   console.log("✅ Build complete");
 }

@@ -301,7 +301,7 @@ export class Chess {
       piece: Piece,
       from: BoardPosition,
       to: BoardPosition,
-      premove: boolean
+      premove: boolean,
    ): boolean {
       switch (piece.type) {
          case PieceType.PAWN: {
@@ -455,7 +455,7 @@ export class Chess {
    private isLegalMove(
       from: BoardPosition,
       to: BoardPosition,
-      premove: boolean = false
+      premove: boolean = false,
    ): boolean {
       const piece = this.board[from.row][from.col];
       if (!piece) return false;
@@ -507,7 +507,7 @@ export class Chess {
    private isLegalDrop(
       from: PocketPosition,
       to: BoardPosition,
-      premove: boolean = false
+      premove: boolean = false,
    ): boolean {
       // Check if piece is in pocket
       const pocket = this.getPocket(from.color);
@@ -739,7 +739,7 @@ export function createPosition(row: number, col: number): BoardPosition;
 export function createPosition(color: Color, type: PieceType): PocketPosition;
 export function createPosition(
    a: number | Color,
-   b: number | PieceType
+   b: number | PieceType,
 ): Position {
    return typeof b === "number"
       ? { loc: "board", row: a, col: b as number }

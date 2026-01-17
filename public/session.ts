@@ -36,7 +36,7 @@ export class Session {
                console.log(
                   `%c⬇ [RECEIVE] ${event}`,
                   "color: #2196F3; font-weight: bold",
-                  arguments_
+                  arguments_,
                );
             }
          });
@@ -48,7 +48,7 @@ export class Session {
                console.log(
                   `%c⬆ [EMIT] ${event}`,
                   "color: #4CAF50; font-weight: bold",
-                  arguments_
+                  arguments_,
                );
             }
             return originalEmit(event, ...arguments_);

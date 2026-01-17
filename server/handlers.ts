@@ -50,7 +50,7 @@ export function setupHandlers(socket: GameSocket): void {
       io.to(socket.room.code).emit(
          "p-set-status",
          socket.player.id,
-         socket.player.status
+         socket.player.status,
       );
 
       const currentTime = Date.now();
@@ -58,7 +58,7 @@ export function setupHandlers(socket: GameSocket): void {
          io.to(socket.room.code).emit(
             "started-room",
             socket.room.game.serialize(),
-            currentTime
+            currentTime,
          );
       }
    });
@@ -71,7 +71,7 @@ export function setupHandlers(socket: GameSocket): void {
       io.to(socket.room.code).emit(
          "p-sent-chat",
          socket.player.id,
-         trimmedMessage
+         trimmedMessage,
       );
    });
 
@@ -89,7 +89,7 @@ export function setupHandlers(socket: GameSocket): void {
          "p-joined-board",
          socket.player.id,
          boardID,
-         color
+         color,
       );
    });
 
@@ -119,7 +119,7 @@ export function setupHandlers(socket: GameSocket): void {
             "ended-room",
             winningTeam,
             winnerName + " won!",
-            currentTime
+            currentTime,
          );
       }
    });
@@ -142,7 +142,7 @@ export function setupHandlers(socket: GameSocket): void {
          "ended-room",
          playerTeam,
          "Resigned by " + socket.player.name,
-         Date.now()
+         Date.now(),
       );
    });
 }
@@ -196,7 +196,7 @@ function joinRoom(socket: GameSocket, io: Server, code: string): void {
       io.to(room.code).emit(
          "p-joined-room",
          socket.player.id,
-         socket.player.name
+         socket.player.name,
       );
       socket.emit("joined-room", room.serialize());
    }

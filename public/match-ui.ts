@@ -52,7 +52,7 @@ function formatTime(time: number): string {
 
 function createPocketRowElements(
    boardID: number,
-   side: "top" | "bottom"
+   side: "top" | "bottom",
 ): HTMLDivElement {
    const row = document.createElement("div");
    row.className = "pocket-row";
@@ -137,13 +137,13 @@ function updateUIPlayerSlot(
    boardID: number,
    side: "top" | "bottom",
    player: Player | undefined,
-   color: Color
+   color: Color,
 ): void {
    const playerSlot = document.querySelector(
-      `#${side}-player-slot-${boardID}`
+      `#${side}-player-slot-${boardID}`,
    ) as HTMLElement;
    const playerInfo = document.querySelector(
-      `#${side}-info-${boardID}`
+      `#${side}-info-${boardID}`,
    ) as HTMLElement;
 
    playerSlot.innerHTML = "";
@@ -182,7 +182,7 @@ function createEmptySlot(boardID: number, color: Color): HTMLElement {
 function createPlayerIcon(
    boardID: number,
    player: Player,
-   color: Color
+   color: Color,
 ): HTMLElement {
    const iconContainer = document.createElement("div");
    iconContainer.style.position = "relative";
@@ -216,7 +216,7 @@ function createLeaveButton(boardID: number, color: Color): HTMLButtonElement {
 
 function updatePlayerName(
    playerInfo: HTMLElement,
-   player: Player | undefined
+   player: Player | undefined,
 ): void {
    const name = playerInfo.querySelector(".player-name-display") as HTMLElement;
    name.textContent = player ? player.name : "";
@@ -247,14 +247,14 @@ export function updateUITime(): void {
 function updateTimeDisplay(
    boardID: number,
    position: "top" | "bottom",
-   timeString: string
+   timeString: string,
 ): void {
    const playerInfo = document.querySelector(
-      `#${position}-info-${boardID}`
+      `#${position}-info-${boardID}`,
    ) as HTMLElement;
 
    const timeDisplay = playerInfo.querySelector(
-      ".player-time-display"
+      ".player-time-display",
    ) as HTMLElement;
 
    timeDisplay.textContent = timeString;

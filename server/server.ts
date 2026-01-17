@@ -75,10 +75,26 @@ io.on("connection", (socket: Socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
 server.listen(PORT, () => {
+   const startTime = Date.now();
    console.log(
-      `<< Started Server [${PORT}] on ${new Date().toLocaleString()} >> \n\n`,
+      `<< Started Server [${PORT}] on ${new Date().toLocaleString()} >>\n`,
    );
+
+   function writeStatus() {
+      const secondsAgo = Math.floor((Date.now() - startTime) / 1000);
+      const activeRooms = rooms.size;
+      const activePlayers = profiles.size;
+
+      process.stdout.write(
+         `\rUptime: ${secondsAgo}s | Rooms: ${activeRooms} | Players: ${activePlayers}   `,
+      );
+   }
+
+   writeStatus();
+
+   setInterval(() => writeStatus(), 1000);
 });
 
 setInterval(() => {

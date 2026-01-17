@@ -59,10 +59,10 @@ const visualChessStates: Map<number, VisualChessState> = new Map();
 function resetMarks(matchIndex: number): void {
    visualChessStates.get(matchIndex)!.marks = {
       marked: Array.from({ length: 8 }, () =>
-         Array.from({ length: 8 }, () => false)
+         Array.from({ length: 8 }, () => false),
       ),
       premoved: Array.from({ length: 8 }, () =>
-         Array.from({ length: 8 }, () => false)
+         Array.from({ length: 8 }, () => false),
       ),
    };
 }
@@ -78,7 +78,7 @@ function updateVisualChessState(matchIndex: number): void {
          marks: {
             marked: previousState.marks.marked,
             premoved: Array.from({ length: 8 }, () =>
-               Array.from({ length: 8 }, () => false)
+               Array.from({ length: 8 }, () => false),
             ),
          },
       });
@@ -90,10 +90,10 @@ function updateVisualChessState(matchIndex: number): void {
       marked:
          previousState?.marks.marked ||
          Array.from({ length: 8 }, () =>
-            Array.from({ length: 8 }, () => false)
+            Array.from({ length: 8 }, () => false),
          ),
       premoved: Array.from({ length: 8 }, () =>
-         Array.from({ length: 8 }, () => false)
+         Array.from({ length: 8 }, () => false),
       ),
    };
 
@@ -170,11 +170,11 @@ function getPositionFromElement(element: HTMLElement): {
          element.dataset.loc === "board"
             ? createPosition(
                  Number.parseInt(element.dataset.row || "0"),
-                 Number.parseInt(element.dataset.col || "0")
+                 Number.parseInt(element.dataset.col || "0"),
               )
             : createPosition(
                  Number.parseInt(element.dataset.color || "0"),
-                 element.dataset.type as PieceType
+                 element.dataset.type as PieceType,
               ),
       id: Number.parseInt(element.dataset.id || "0"),
    };
@@ -182,7 +182,7 @@ function getPositionFromElement(element: HTMLElement): {
 
 function getSquareElement(id: number, pos: BoardPosition): HTMLElement {
    return document.querySelector(
-      `.square[data-id="${id}"][data-row="${pos.row}"][data-col="${pos.col}"]`
+      `.square[data-id="${id}"][data-row="${pos.row}"][data-col="${pos.col}"]`,
    ) as HTMLDivElement;
 }
 
@@ -193,7 +193,7 @@ function getPieceElement(id: number, pos: Position): HTMLImageElement {
    }
 
    return document.querySelector(
-      `img[data-id="${id}"][data-loc="pocket"][data-type="${pos.type}"][data-color="${pos.color}"]`
+      `img[data-id="${id}"][data-loc="pocket"][data-type="${pos.type}"][data-color="${pos.color}"]`,
    ) as HTMLImageElement;
 }
 
@@ -227,7 +227,7 @@ export function createBoardElement(id: number): HTMLDivElement {
 
 export function createPocketElement(
    id: number,
-   side: "top" | "bottom"
+   side: "top" | "bottom",
 ): HTMLDivElement {
    const pocket = document.createElement("div");
 
@@ -398,7 +398,7 @@ function updatePocket(
    id: string,
    pieces: Map<PieceType, number>,
    color: Color,
-   boardID: number
+   boardID: number,
 ): void {
    const pocket = document.querySelector(`#${id}-${boardID}`) as HTMLElement;
 
@@ -463,7 +463,7 @@ function annotateSquare(
    boardID: number,
    row: number,
    col: number,
-   classes: string[]
+   classes: string[],
 ): void {
    const square = getSquareElement(boardID, { loc: "board", row, col });
 
@@ -476,7 +476,7 @@ function annotateSquare(
 function updateAnnotations(id: number): void {
    // Clear board highlights
    const boardElement = document.querySelector(
-      `.board[data-id="${id}"]`
+      `.board[data-id="${id}"]`,
    ) as HTMLElement;
    const squares = boardElement.querySelectorAll(`.square`);
 
@@ -488,7 +488,7 @@ function updateAnnotations(id: number): void {
          "legal-move",
          "has-piece",
          "premoved",
-         "marked"
+         "marked",
       );
    }
 

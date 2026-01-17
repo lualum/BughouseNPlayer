@@ -15,7 +15,7 @@ export class Player {
    constructor(
       id: string,
       name: string = "Player",
-      status: PlayerStatus = PlayerStatus.NOT_READY
+      status: PlayerStatus = PlayerStatus.NOT_READY,
    ) {
       this.id = id;
       this.name = name;

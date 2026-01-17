@@ -170,7 +170,7 @@ export function showRoomElements(): void {
    gameScreen.classList.remove("hidden");
 
    const gameRoomCode = document.querySelector(
-      "#game-room-code"
+      "#game-room-code",
    ) as HTMLSpanElement;
    gameRoomCode.textContent = gs.room.code || "";
 
@@ -199,7 +199,7 @@ export function showRoomElements(): void {
 
    // Reset button icon to scroll view
    const gridToggleButton = document.querySelector(
-      "#grid-toggle-btn"
+      "#grid-toggle-btn",
    ) as HTMLButtonElement;
 
    gridToggleButton.innerHTML = `
@@ -215,7 +215,7 @@ export function showRoomElements(): void {
 
 export function updateReadyButton(): void {
    const readyButton = document.querySelector(
-      "#ready-btn"
+      "#ready-btn",
    ) as HTMLButtonElement;
 
    if (gs.player.status === PlayerStatus.READY) {
@@ -229,10 +229,10 @@ export function updateReadyButton(): void {
 
 function resetGameButtons(): void {
    const readyButton = document.querySelector(
-      "#ready-btn"
+      "#ready-btn",
    ) as HTMLButtonElement;
    const resignButton = document.querySelector(
-      "#resign-btn"
+      "#resign-btn",
    ) as HTMLButtonElement;
 
    readyButton.style.display = "block";
@@ -359,7 +359,7 @@ function getTotalBoards(): number {
 function scrollBoards(
    gameArea: HTMLDivElement,
    direction: number,
-   updateScrollButtons: () => void
+   updateScrollButtons: () => void,
 ): void {
    const { board, gap } = getBoardAreaDimensions();
    gameArea.scrollBy({
@@ -372,10 +372,10 @@ function scrollBoards(
 function updateScrollButtons(): void {
    const gameArea = document.querySelector("#game-area") as HTMLDivElement;
    const leftButton = document.querySelector(
-      "#scrollLeft"
+      "#scrollLeft",
    ) as HTMLButtonElement;
    const rightButton = document.querySelector(
-      "#scrollRight"
+      "#scrollRight",
    ) as HTMLButtonElement;
 
    const scrollLeft = gameArea.scrollLeft;
@@ -390,10 +390,10 @@ function updateScrollButtons(): void {
       totalBoards - Math.ceil((maxScroll - scrollLeft - gap) / (board + gap));
 
    const currentBoardSpan = document.querySelector(
-      "#boardRange"
+      "#boardRange",
    ) as HTMLSpanElement;
    const totalBoardsSpan = document.querySelector(
-      "#totalBoards"
+      "#totalBoards",
    ) as HTMLSpanElement;
 
    if (gridMode) {
@@ -418,17 +418,17 @@ function navigateBoards(direction: number): void {
 export function initScrollControls(): void {
    const gameArea = document.querySelector("#game-area") as HTMLDivElement;
    const leftButton = document.querySelector(
-      "#scrollLeft"
+      "#scrollLeft",
    ) as HTMLButtonElement;
    const rightButton = document.querySelector(
-      "#scrollRight"
+      "#scrollRight",
    ) as HTMLButtonElement;
 
    leftButton.addEventListener("click", () =>
-      scrollBoards(gameArea, -1, updateScrollButtons)
+      scrollBoards(gameArea, -1, updateScrollButtons),
    );
    rightButton.addEventListener("click", () =>
-      scrollBoards(gameArea, 1, updateScrollButtons)
+      scrollBoards(gameArea, 1, updateScrollButtons),
    );
    gameArea.addEventListener("scroll", updateScrollButtons);
 
@@ -441,7 +441,7 @@ export function toggleGridMode(): void {
    gridMode = !gridMode;
    const gameArea = document.querySelector("#game-area") as HTMLDivElement;
    const gridToggleButton = document.querySelector(
-      "#grid-toggle-btn"
+      "#grid-toggle-btn",
    ) as HTMLButtonElement;
 
    if (gridMode) {
@@ -530,10 +530,10 @@ function resetToFlexLayout(): void {
 
 export function startGameUI(): void {
    const readyButton = document.querySelector(
-      "#ready-btn"
+      "#ready-btn",
    ) as HTMLButtonElement;
    const resignButton = document.querySelector(
-      "#resign-btn"
+      "#resign-btn",
    ) as HTMLButtonElement;
 
    // Show resign button only if player is in the game
@@ -566,10 +566,10 @@ export function startGameUI(): void {
 
 export function endGameUI(): void {
    const readyButton = document.querySelector(
-      "#ready-btn"
+      "#ready-btn",
    ) as HTMLButtonElement;
    const resignButton = document.querySelector(
-      "#resign-btn"
+      "#resign-btn",
    ) as HTMLButtonElement;
 
    readyButton.style.display = "block";

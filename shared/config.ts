@@ -25,7 +25,7 @@ export class GameConfig {
       timeType: TimeType = "increment",
       timeShared: boolean = false,
       initialBoard: InitialBoard = "default",
-      pocketShare: PocketShare = "color"
+      pocketShare: PocketShare = "color",
    ) {
       this.matchNum = matchNumber;
       this.timeBase = timeBase;
@@ -56,7 +56,7 @@ export class GameConfig {
          (data["time-type"] ?? "increment") as TimeType,
          (data["time-shared"] ?? false) as boolean,
          (data["initial-board"] ?? "default") as InitialBoard,
-         (data["pocket-share"] ?? "color") as PocketShare
+         (data["pocket-share"] ?? "color") as PocketShare,
       );
    }
 }

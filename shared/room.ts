@@ -65,7 +65,7 @@ export class Room {
       this.game.matches.push(
          new Match(defaultTime, false),
          new Match(defaultTime, true),
-         new Match(defaultTime, false)
+         new Match(defaultTime, false),
          // new Match(defaultTime, true)
          // new Match(defaultTime, false)
       );
@@ -193,7 +193,7 @@ export class Game {
    static deserialize(data: SerializedGame): Game {
       const state = new Game();
       state.matches = data.matches.map((matchData) =>
-         Match.deserialize(matchData)
+         Match.deserialize(matchData),
       );
       return state;
    }
@@ -215,7 +215,7 @@ export class Game {
    private moveResultEffects(
       matchID: number,
       move: Move,
-      result: MoveResult
+      result: MoveResult,
    ): void {
       if (result.captured) {
          for (let index = 0; index < this.matches.length; index++) {
@@ -238,7 +238,7 @@ export class Game {
 
             this.matches[index].chess.removeFromPocket(
                move.from.type,
-               move.from.color
+               move.from.color,
             );
          }
       }
