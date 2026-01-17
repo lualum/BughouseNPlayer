@@ -8,13 +8,13 @@ let pendingAction: (() => void) | undefined;
 
 export function initMenuControls(): void {
    const createGameButton = document.querySelector(
-      "#create-game-btn"
+      "#create-game-btn",
    ) as HTMLButtonElement;
    const joinGameButton = document.querySelector(
-      "#join-game-btn"
+      "#join-game-btn",
    ) as HTMLButtonElement;
    const playerNameInput = document.querySelector(
-      "#player-name-input"
+      "#player-name-input",
    ) as HTMLInputElement;
 
    // Handle create game button
@@ -54,7 +54,7 @@ export function initMenuControls(): void {
 // Export this function so it can be used in other files
 export function checkAndPromptForName(action: () => void): boolean {
    const nameInput = document.querySelector(
-      "#player-name-input"
+      "#player-name-input",
    ) as HTMLInputElement;
    const currentName = nameInput.value.trim() || "";
 
@@ -70,13 +70,13 @@ export function checkAndPromptForName(action: () => void): boolean {
 function setupNameModal(): void {
    const modal = document.querySelector("#name-modal") as HTMLDivElement;
    const closeButton = document.querySelector(
-      "#close-modal"
+      "#close-modal",
    ) as HTMLButtonElement;
    const submitButton = document.querySelector(
-      "#submit-name-btn"
+      "#submit-name-btn",
    ) as HTMLButtonElement;
    const modalInput = document.querySelector(
-      "#modal-name-input"
+      "#modal-name-input",
    ) as HTMLInputElement;
 
    closeButton.addEventListener("click", () => {
@@ -95,7 +95,7 @@ function setupNameModal(): void {
       const name = modalInput.value.trim();
       if (name) {
          const mainInput = document.querySelector(
-            "#player-name-input"
+            "#player-name-input",
          ) as HTMLInputElement;
 
          mainInput.value = name;
@@ -120,13 +120,13 @@ function setupNameModal(): void {
 function setupJoinModal(): void {
    const modal = document.querySelector("#join-modal") as HTMLDivElement;
    const closeButton = document.querySelector(
-      "#close-join-modal"
+      "#close-join-modal",
    ) as HTMLButtonElement;
    const submitButton = document.querySelector(
-      "#submit-join-btn"
+      "#submit-join-btn",
    ) as HTMLButtonElement;
    const modalInput = document.querySelector(
-      "#join-room-code-input"
+      "#join-room-code-input",
    ) as HTMLInputElement;
 
    closeButton.addEventListener("click", () => {
@@ -154,7 +154,7 @@ function setupJoinModal(): void {
 function showNameModal(): void {
    const modal = document.querySelector("#name-modal");
    const modalInput = document.querySelector(
-      "#modal-name-input"
+      "#modal-name-input",
    ) as HTMLInputElement;
    if (modal) {
       modal.classList.remove("hidden");
@@ -165,7 +165,7 @@ function showNameModal(): void {
 function hideNameModal(): void {
    const modal = document.querySelector("#name-modal");
    const modalInput = document.querySelector(
-      "#modal-name-input"
+      "#modal-name-input",
    ) as HTMLInputElement;
    const errorElement = document.querySelector("#modal-error");
    if (modal) {
@@ -178,7 +178,7 @@ function hideNameModal(): void {
 function showJoinModal(): void {
    const modal = document.querySelector("#join-modal");
    const modalInput = document.querySelector(
-      "#join-room-code-input"
+      "#join-room-code-input",
    ) as HTMLInputElement;
    if (modal) {
       modal.classList.remove("hidden");
@@ -189,7 +189,7 @@ function showJoinModal(): void {
 function hideJoinModal(): void {
    const modal = document.querySelector("#join-modal");
    const modalInput = document.querySelector(
-      "#join-room-code-input"
+      "#join-room-code-input",
    ) as HTMLInputElement;
    const errorElement = document.querySelector("#join-modal-error");
    if (modal) {

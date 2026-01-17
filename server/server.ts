@@ -2,7 +2,6 @@ import express from "express";
 import { setupHandlers } from "handlers";
 import { randomBytes } from "node:crypto";
 import http from "node:http";
-import path from "node:path";
 import { Server, Socket } from "socket.io";
 import { Player } from "../shared/player";
 import type { Room } from "../shared/room";
@@ -28,7 +27,7 @@ export interface Profile {
    auth: string;
 }
 
-const publicPath = path.join(__dirname, "..", "..", "public");
+const publicPath = new URL("../../public", import.meta.url).pathname;
 
 app.use(express.static(publicPath));
 app.get("/games/:roomCode", (request, response) => {
@@ -47,7 +46,7 @@ io.on("connection", (socket: Socket) => {
       if (profile && profile.auth === gameSocket.handshake.auth.token) {
          gameSocket.player = new Player(
             gameSocket.handshake.auth.playerID,
-            profile.name
+            profile.name,
          );
 
          gameSocket.emit("sent-player", profile.name);
@@ -78,7 +77,7 @@ io.on("connection", (socket: Socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
    console.log(
-      `<< Started Server [${PORT}] on ${new Date().toLocaleString()} >> \n\n`
+      `<< Started Server [${PORT}] on ${new Date().toLocaleString()} >> \n\n`,
    );
 });
 
@@ -94,7 +93,7 @@ setInterval(() => {
                "ended-room",
                timeout.team,
                timeout.player.name + " timed out.",
-               currentTime
+               currentTime,
             );
          }
       }
@@ -115,6 +114,6 @@ function randomAuth(): string {
 export function emitRoomList(): void {
    io.to(MENU_ROOM).emit(
       "listed-rooms",
-      [...rooms.values()].map((room) => room.getRoomListing())
+      [...rooms.values()].map((room) => room.getRoomListing()),
    );
 }

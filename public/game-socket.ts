@@ -78,7 +78,7 @@ export function initGameSocket(): void {
 
          gs.room.game.matches[boardID].setPlayer(player, color);
          updateUIPlayers(boardID);
-      }
+      },
    );
 
    gs.socket.on("p-left-board", (boardID: number, color: Color) => {
@@ -122,7 +122,7 @@ export function initGameSocket(): void {
             if (
                !match.chess.isLegal(
                   match.queued.moves[0],
-                  match.queued.color !== match.chess.turn
+                  match.queued.color !== match.chess.turn,
                )
             )
                match.queued.moves.length = 0;
@@ -140,10 +140,10 @@ export function initGameSocket(): void {
                "move-board",
                boardID,
                currentMatch.chess.turn,
-               currentMatch.queued.moves[0]
+               currentMatch.queued.moves[0],
             );
          }
-      }
+      },
    );
 
    gs.socket.on("ended-room", (team: Team, reason: string, time: number) => {

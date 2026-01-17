@@ -1,8 +1,11 @@
 {
+   "name": "bughouse-n-player",
+   "version": "1.0.0",
+   "type": "module",
    "scripts": {
       "clean": "rm -rf public/dist server/dist shared/dist",
-      "build": "node build.js",
-      "dev": "node build.js --watch",
+      "build": "node build.mjs",
+      "dev": "node build.mjs --watch",
       "start": "npm run build && node --no-deprecation server/dist/server.js"
    },
    "dependencies": {
