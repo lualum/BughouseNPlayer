@@ -263,7 +263,7 @@ export function updateLobbiesList(lobbies: RoomListing[]): void {
    if (lobbies.length === 0) {
       lobbiesContainer.innerHTML = `
       <div class="no-lobbies">
-        <p style="font-size: 20px; font-weight: 700; color: var(--hidden-text);">No Lobbies Found!</p>
+        <p style="font-size: 20px; color: var(--hidden-text);">No Lobbies Found!</p>
         <p style="font-size: 14px; margin-top: 5px; color: var(--hidden-text);">Create a new room or wait for others to host!</p>
       </div>`;
       return;

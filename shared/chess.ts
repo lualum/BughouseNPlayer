@@ -615,12 +615,24 @@ export class Chess {
          this.enPassantTarget = undefined;
       }
 
-      // Pawn promotion - use PROMOTED_QUEEN instead of QUEEN
+      let promoted: PieceType | undefined;
+
+      // Pawn promotion - handle underpromotion
       if (piece.type === PieceType.PAWN && to.row === (piece.color ? 0 : 7)) {
+         const promotionType = move.promotion || PieceType.QUEEN;
+
+         // Use PROMOTED_QUEEN for queen promotions to distinguish from original queens
+         const actualType =
+            promotionType === PieceType.QUEEN
+               ? PieceType.PROMOTED_QUEEN
+               : promotionType;
+
          this.board[to.row][to.col] = {
-            type: PieceType.PROMOTED_QUEEN,
+            type: actualType,
             color: piece.color,
          };
+
+         promoted = promotionType;
       }
 
       // Update castling rights
@@ -659,7 +671,7 @@ export class Chess {
       }
 
       if (!premove) this.turn = invertColor(this.turn);
-      return { captured };
+      return { captured, promoted };
    }
 
    isCheckmate(): boolean {
@@ -786,10 +798,12 @@ function createEmptyBoard(): Board {
 export interface Move {
    from: Position;
    to: Position;
+   promotion?: PieceType;
 }
 
 export interface MoveResult {
    captured?: Piece;
+   promoted?: PieceType;
 }
 
 // Move Types: Aligns with audio

@@ -1,4 +1,6 @@
 :root {
+   --font-family: "Segoe UI", Tahoma, sans-serif;
+
    --background: #000000;
    --primary: #1c1c20;
    --secondary: #17171a;
@@ -31,7 +33,7 @@
 
 body {
    min-height: 100vh;
-   font-family: "Segoe UI", Tahoma, sans-serif;
+   font-family: var(--font-family);
 }
 
 .screen {

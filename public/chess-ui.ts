@@ -42,6 +42,8 @@ let selected:
      }
    | undefined;
 
+let promotionCallback: ((pieceType: PieceType) => void) | undefined;
+
 interface BoardMarks {
    marked: boolean[][];
    premoved: boolean[][];
@@ -238,6 +240,49 @@ export function createPocketElement(
    return pocket;
 }
 
+// MARK: Promotion Dialog
+
+function showPromotionDialog(
+   boardID: number,
+   color: Color,
+   callback: (pieceType: PieceType) => void,
+): void {
+   promotionCallback = callback;
+
+   const dialog = document.createElement("div");
+   dialog.className = "promotion-dialog";
+   dialog.id = `promotion-dialog-${boardID}`;
+
+   const pieces = [
+      PieceType.QUEEN,
+      PieceType.ROOK,
+      PieceType.BISHOP,
+      PieceType.KNIGHT,
+   ];
+
+   for (const pieceType of pieces) {
+      const pieceButton = document.createElement("img");
+      pieceButton.src = getPieceImagePath({ type: pieceType, color });
+      pieceButton.className = "promotion-option";
+      pieceButton.addEventListener("click", () => {
+         handlePromotionChoice(pieceType);
+      });
+      dialog.append(pieceButton);
+   }
+
+   document.body.append(dialog);
+}
+
+function handlePromotionChoice(pieceType: PieceType): void {
+   const dialog = document.querySelector(".promotion-dialog");
+   if (dialog) dialog.remove();
+
+   if (promotionCallback) {
+      promotionCallback(pieceType);
+      promotionCallback = undefined;
+   }
+}
+
 // MARK: Piece Selection
 
 function holdPiece(mouseEvent: MouseEvent): void {
@@ -311,6 +356,50 @@ function deselectPiece(): void {
 
    selected = undefined;
    updateUIChess(boardID);
+}
+
+// MARK: Move Execution
+
+function executeMove(id: number, move: Move, premove: boolean): void {
+   const board = getVisualChess(id).chess;
+
+   if (!premove) gs.socket.emit("move-board", id, selected!.piece.color, move);
+
+   gs.room.game.matches[id].queued.color = selected!.piece.color;
+   gs.room.game.matches[id].queued.moves.push(move);
+
+   playMoveSound(board.getLegalMoveType(move, premove));
+
+   deselectPiece();
+}
+
+function attemptMove(id: number, to: Position): void {
+   if (!selected || selected.boardID !== id) return;
+
+   const move: Move = {
+      from: selected.pos,
+      to,
+   };
+
+   const board = getVisualChess(id).chess;
+   const premove = board.turn !== board.getPiece(move.from)?.color;
+
+   if (!board.isLegal(move, premove)) return;
+
+   // Check if this is a promotion move
+   if (
+      to.loc === "board" &&
+      selected.piece.type === PieceType.PAWN &&
+      to.row === (selected.piece.color ? 0 : 7)
+   ) {
+      showPromotionDialog(id, selected.piece.color, (pieceType) => {
+         move.promotion = pieceType;
+         executeMove(id, move, premove);
+      });
+      return;
+   }
+
+   executeMove(id, move, premove);
 }
 
 // MARK: UI Update Funcs
@@ -563,25 +652,8 @@ function handleSquareMouseDown(event: MouseEvent): void {
    event.preventDefault();
 
    if (selected?.boardID === id) {
-      const move: Move = {
-         from: selected.pos,
-         to: pos,
-      };
-
-      const premove = board.turn !== board.getPiece(move.from)?.color;
-
-      if (board.isLegal(move, premove)) {
-         if (!premove)
-            gs.socket.emit("move-board", id, selected.piece.color, move);
-
-         gs.room.game.matches[id].queued.color = selected.piece.color;
-         gs.room.game.matches[id].queued.moves.push(move);
-
-         playMoveSound(board.getLegalMoveType(move, premove));
-
-         deselectPiece();
-         return;
-      }
+      attemptMove(id, pos);
+      return;
    }
 
    if (targetPiece && isMyPiece(id, targetPiece)) {
@@ -610,12 +682,20 @@ function handleSquareMouseUp(event: MouseEvent): void {
    const result = board.isLegal(move, premove);
 
    if (result) {
-      if (!premove)
-         gs.socket.emit("move-board", id, selected.piece.color, move);
+      // Check if this is a promotion move
+      if (
+         pos.loc === "board" &&
+         selected.piece.type === PieceType.PAWN &&
+         pos.row === (selected.piece.color ? 0 : 7)
+      ) {
+         showPromotionDialog(id, selected.piece.color, (pieceType) => {
+            move.promotion = pieceType;
+            executeMove(id, move, premove);
+         });
+         return;
+      }
 
-      gs.room.game.matches[id].queued.color = selected.piece.color;
-      gs.room.game.matches[id].queued.moves.push(move);
-      deselectPiece();
+      executeMove(id, move, premove);
    } else if (!selected.justSelected && positionsEqual(selected.pos, pos)) {
       deselectPiece();
    } else {
