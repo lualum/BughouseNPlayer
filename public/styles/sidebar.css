@@ -1,0 +1,220 @@
+/* Game Sidebar */
+#game-sidebar {
+   display: flex;
+   flex-direction: column;
+   z-index: 10;
+   background: var(--secondary);
+   padding: 0;
+   width: 30vh;
+   height: 100vh;
+}
+
+#sidebar-header {
+   display: flex;
+   align-items: center;
+   gap: 1.25vh;
+   border-bottom: 0.2vh solid var(--accent);
+   padding: 1.63vh var(--sidebar-margin);
+}
+
+#game-title {
+   margin-bottom: 0;
+   font-weight: 600;
+   font-size: 2.25vh;
+}
+
+#leave-game-btn {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   cursor: pointer;
+   border: none;
+   border-radius: 0.75vh;
+   background: var(--red);
+   padding: 1vh 2vh;
+   width: 3.75vh;
+   height: 3.75vh;
+   font-weight: bolder;
+   font-size: 1.875vh;
+}
+
+/* Ping Indicator */
+.ping-indicator {
+   display: inline-flex;
+   flex-direction: column;
+   align-items: center;
+   vertical-align: middle;
+   gap: 0.25vh;
+   margin-left: 0.5vh;
+}
+
+.ping-bars {
+   display: flex;
+   align-items: baseline;
+   gap: 0.125vh;
+}
+
+.ping-bar {
+   opacity: 0.3;
+   border-radius: 0.125vh;
+   background-color: var(--background);
+   width: 0.5vh;
+}
+
+.ping-bar:nth-child(1) {
+   height: 0.625vh;
+}
+
+.ping-bar:nth-child(2) {
+   height: 1vh;
+}
+
+.ping-bar:nth-child(3) {
+   height: 1.375vh;
+}
+
+.ping-bar:nth-child(4) {
+   height: 1.75vh;
+}
+
+.ping-bar:nth-child(5) {
+   height: 2.125vh;
+}
+
+.ping-text {
+   font-size: 1.25vh;
+   text-align: center;
+}
+
+/* Player List */
+#player-list {
+   padding: 1.25vh var(--sidebar-margin);
+}
+
+.player-item {
+   display: flex;
+   align-items: center;
+   gap: 1.25vh;
+   padding: 1vh 0;
+}
+
+.player-stats {
+   margin-left: auto;
+   color: var(--text-secondary);
+}
+
+.status-checkbox {
+   display: flex;
+   flex-shrink: 0;
+   justify-content: center;
+   align-items: center;
+   border: 0.25vh solid var(--text);
+   border-radius: 0.375vh;
+   width: 2.25vh;
+   height: 2.25vh;
+   font-weight: bold;
+   font-size: 1.75vh;
+}
+
+.status-checkbox.status-ready {
+   border-color: var(--green);
+   background: var(--green);
+}
+
+.status-checkbox.status-not-ready {
+   background: transparent;
+}
+
+.status-checkbox.status-disconnected {
+   border-color: var(--yellow);
+   background: var(--yellow);
+}
+
+.player-name {
+   flex: 1;
+   font-size: 1.875vh;
+}
+
+/* Action Buttons */
+#ready-btn {
+   cursor: pointer;
+   margin: 2.5vh var(--sidebar-margin) 0 var(--sidebar-margin);
+   border: none;
+   border-bottom: 0.15vh solid var(--accent);
+   border-radius: 0.75vh;
+   background: var(--green);
+   padding: 1vh 0;
+   width: calc(100% - (var(--sidebar-margin) * 2));
+   font-weight: bold;
+   font-size: 1.75vh;
+}
+
+#resign-btn {
+   cursor: pointer;
+   margin: 2.5vh var(--sidebar-margin) 0 var(--sidebar-margin);
+   border: none;
+   border-bottom: 0.15vh solid var(--accent);
+   border-radius: 0.75vh;
+   background: var(--red);
+   padding: 1vh 0;
+   width: calc(100% - (var(--sidebar-margin) * 2));
+   font-weight: bold;
+   font-size: 1.75vh;
+}
+
+/* Chat Section */
+#chat-section {
+   display: flex;
+   flex: 1;
+   flex-direction: column;
+   border-top: 0.15vh solid var(--accent);
+   padding: 2.5vh var(--sidebar-margin);
+   min-height: 0;
+}
+
+#chat-messages {
+   flex: 1;
+   margin-bottom: 1.875vh;
+   border-radius: 0.75vh;
+   background: var(--primary);
+   padding: 1.875vh;
+   min-height: 0;
+   overflow-y: auto;
+}
+
+.chat-message {
+   margin-bottom: 1.25vh;
+   border-radius: 0.75vh;
+   padding: 1vh 1.5vh;
+   font-size: 1.625vh;
+   word-wrap: break-word;
+   background: #5a5a5a;
+}
+
+.chat-message.own {
+   background: var(--blue);
+}
+
+.chat-message.server {
+   background: var(--green);
+}
+
+.chat-sender {
+   margin-bottom: 0.25vh;
+   font-weight: 700;
+   font-size: 1.5vh;
+}
+
+#chat-input-container {
+   display: flex;
+   gap: 1vh;
+   width: 100%;
+}
+
+#chat-input {
+   flex: 1;
+   outline: none;
+   border-radius: 0.75vh;
+   padding: 1.25vh 1.5vh;
+   font-size: 1.625vh;
+}

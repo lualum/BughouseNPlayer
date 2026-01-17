@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 
 <head>
@@ -7,7 +7,9 @@
    <title>Bughouse</title>
    <link rel="stylesheet" href="/styles/base.css" />
    <link rel="stylesheet" href="/styles/menu.css" />
-   <link rel="stylesheet" href="/styles/game.css" />
+   <link rel="stylesheet" href="/styles/chess.css" />
+   <link rel="stylesheet" href="/styles/sidebar.css" />
+   <link rel="stylesheet" href="/styles/controls.css" />
    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 </head>
 
@@ -22,8 +24,12 @@
          <div id="section">
             <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" autocomplete="off"
                required />
-            <button id="create-game-btn" class="game-action-btn">Create Game</button>
-            <button id="join-game-btn" class="game-action-btn">Join from ID</button>
+            <button id="create-game-btn" class="game-action-btn">
+               Create Game
+            </button>
+            <button id="join-game-btn" class="game-action-btn">
+               Join from ID
+            </button>
             <div class="form-group">
                <button id="setting-btn" class="util-btns">
                   <p>⚙</p>
@@ -50,7 +56,9 @@
          </div>
          <div class="modal-buttons">
             <button id="submit-join-btn" class="primary-btn">Join</button>
-            <button id="close-join-modal" class="secondary-btn">Cancel</button>
+            <button id="close-join-modal" class="secondary-btn">
+               Cancel
+            </button>
          </div>
       </div>
    </div>
@@ -88,7 +96,9 @@
             <button class="scroll-btn" id="scrollLeft">←</button>
             <span class="scroll-indicator">Board <span id="boardRange">1</span> of
                <span id="totalBoards">1</span></span>
-            <button id="grid-toggle-btn" class="control-btn">Grid View</button>
+            <button id="grid-toggle-btn" class="control-btn">
+               Grid View
+            </button>
             <button class="scroll-btn" id="scrollRight">→</button>
          </div>
          <div id="game-area" class="hide-scrollbar"></div>

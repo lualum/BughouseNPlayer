@@ -1,0 +1,75 @@
+/* Scroll Controls */
+.scroll-controls {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   gap: 2vh;
+   border-bottom: 0.2vh solid var(--accent);
+   background: var(--primary);
+   padding: 1.5vh;
+   font-weight: bold;
+}
+
+.scroll-btn {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   cursor: pointer;
+   border: none;
+   background: var(--accent);
+   padding: 0;
+   width: 6vh;
+   height: 4vh;
+   font-size: 2vh;
+}
+
+.scroll-btn:disabled {
+   opacity: 0.3;
+   cursor: not-needed;
+}
+
+.scroll-indicator {
+   font-size: 2.5vh;
+}
+
+#grid-toggle-btn {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   cursor: pointer;
+   margin: 0;
+   border: none;
+   background: none;
+   padding: 0;
+   width: 4vh;
+}
+
+/* Promotion Dialog */
+.promotion-dialog {
+   position: fixed;
+   top: 50%;
+   left: 50%;
+   transform: translate(-50%, -50%);
+   background: white;
+   border: 2px solid #333;
+   border-radius: 8px;
+   padding: 20px;
+   display: flex;
+   gap: 15px;
+   z-index: 1000;
+}
+
+.promotion-option {
+   width: 80px;
+   height: 80px;
+   cursor: pointer;
+   border-radius: 4px;
+}
+
+.promotion-option:hover {
+   transform: scale(1.1);
+}
+
+.promotion-option:active {
+   transform: scale(1.05);
+}
