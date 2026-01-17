@@ -1,3 +1,3 @@
 export class Settings {
-   logSocket = true;
+   logSocket = false;
 }
