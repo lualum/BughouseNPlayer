@@ -1,0 +1,36 @@
+<div id="game-screen" data-screen="game">
+	<div id="game-sidebar">
+		<div id="sidebar-header">
+			<button id="leave-game-btn">⎋</button>
+			<div id="game-title">Room: <span id="game-room-code"></span></div>
+			<div class="ping-indicator" id="ping-indicator">
+				<div class="ping-bars">
+					<div class="ping-bar" data-bar-index="0"></div>
+					<div class="ping-bar" data-bar-index="1"></div>
+					<div class="ping-bar" data-bar-index="2"></div>
+					<div class="ping-bar" data-bar-index="3"></div>
+					<div class="ping-bar" data-bar-index="4"></div>
+				</div>
+			</div>
+		</div>
+		<button id="ready-btn">Ready</button>
+		<button id="resign-btn">Resign</button>
+		<div id="player-list"></div>
+		<div id="chat-section">
+			<div id="chat-messages"></div>
+			<div id="chat-input-container">
+				<input type="text" id="chat-input" placeholder="Type message..." maxlength="200" />
+			</div>
+		</div>
+	</div>
+	<div id="game-area-wrapper">
+		<div class="scroll-controls">
+			<button class="scroll-btn" id="scrollLeft">←</button>
+			<span class="scroll-indicator">Board <span id="boardRange">1</span> of
+				<span id="totalBoards">1</span></span>
+			<button id="grid-toggle-btn" class="control-btn">Grid View</button>
+			<button class="scroll-btn" id="scrollRight">→</button>
+		</div>
+		<div id="game-area" class="hide-scrollbar"></div>
+	</div>
+</div>

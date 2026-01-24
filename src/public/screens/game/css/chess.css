@@ -1,55 +1,3 @@
-/* Game Layout */
-#game {
-   display: flex;
-   flex-direction: row;
-   justify-content: flex-start;
-   align-items: center;
-   padding: 0;
-   width: 100vw;
-   max-width: none;
-   height: 100vh;
-}
-
-#game-area-wrapper {
-   display: flex;
-   position: relative;
-   flex: 1;
-   flex-direction: column;
-   width: 100%;
-   height: 100%;
-   overflow: hidden;
-}
-
-#game-area {
-   --square-size: 8.85vh;
-   display: flex;
-   position: relative;
-   flex: 1;
-   justify-content: flex-start;
-   align-items: center;
-   gap: calc(var(--square-size) * 0.235);
-   margin: auto;
-   padding: calc(var(--square-size) * 0.235);
-   width: 100%;
-   height: 100%;
-   overflow-x: auto;
-   background-color: var(--background);
-}
-
-#game-area.grid-mode {
-   display: grid;
-   align-content: center;
-   justify-content: center;
-   overflow-x: hidden;
-   overflow-y: auto;
-}
-
-#game-area.grid-mode .match-container {
-   min-width: unset;
-   min-height: unset;
-}
-
-/* Match Container */
 .match-container {
    display: flex;
    flex-direction: column;
@@ -58,7 +6,6 @@
    min-height: calc(var(--square-size) * 10);
 }
 
-/* Pockets */
 .pocket-row {
    display: flex;
    background: var(--primary);
