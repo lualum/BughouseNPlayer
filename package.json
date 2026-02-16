@@ -6,7 +6,7 @@
       "clean": "rm -rf public/dist server/dist shared/dist",
       "build": "node build.mjs",
       "dev": "node build.mjs --watch",
-      "start": "npm run build && node --no-deprecation server/dist/server.js"
+      "start": "node --no-deprecation server/dist/server.js"
    },
    "dependencies": {
       "express": "^5.2.1",
