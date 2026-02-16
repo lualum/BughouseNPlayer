@@ -1,0 +1,100 @@
+:root {
+   --font-family: "Segoe UI", Tahoma, sans-serif;
+
+   --background: #000000;
+   --primary: #1c1c20;
+   --secondary: #17171a;
+   --accent: #242429;
+   --text: rgba(255, 255, 255, 0.9);
+   --hidden-text: rgba(255, 255, 255, 0.5);
+
+   --blue: #3a7cd5;
+
+   --green: #5da061;
+   --yellow: #c2985e;
+   --red: #c13d3f;
+
+   --green-yellow: color-mix(in lch, var(--green), var(--yellow));
+   --yellow-red: color-mix(in lch, var(--yellow), var(--red));
+
+   --sidebar-margin: 2.5vh;
+}
+
+* {
+   box-sizing: border-box;
+   margin: 0;
+   padding: 0;
+   color: var(--text);
+}
+
+::placeholder {
+   color: var(--hidden-text);
+}
+
+body {
+   min-height: 100vh;
+   font-family: var(--font-family);
+}
+
+.screen {
+   display: flex;
+   position: relative;
+   justify-content: center;
+   align-items: center;
+   z-index: 1;
+   min-height: 100vh;
+}
+
+.hidden {
+   display: none !important;
+}
+
+input,
+button {
+   display: block;
+   width: 100%;
+}
+
+/* Error messages */
+#menu-error,
+#lobby-error {
+   margin-top: 15px;
+   border-radius: 6px;
+   padding: 10px;
+   font-weight: bold;
+   text-align: center;
+}
+
+#menu-error:empty,
+#lobby-error:empty {
+   display: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+   display: none;
+}
+
+.hide-scrollbar {
+   -ms-overflow-style: none;
+   overscroll-behavior: none;
+   scrollbar-width: none;
+}
+
+input {
+   display: flex;
+   border: none;
+   background: var(--accent);
+   border-radius: 8px;
+   background: var(--accent);
+   padding: 12px 15px;
+   font-size: 15px;
+}
+
+button {
+   cursor: pointer;
+   border: none;
+   border-radius: 8px;
+   padding: 12px 20px;
+   font-weight: 600;
+   font-size: 15px;
+}

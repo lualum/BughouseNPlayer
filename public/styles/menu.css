@@ -166,6 +166,7 @@
    font-size: 13px;
 }
 
+/* Modal styles */
 .modal {
    display: flex;
    position: fixed;

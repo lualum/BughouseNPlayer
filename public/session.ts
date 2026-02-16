@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
-import { Player } from "../../shared/player";
-import type { Room } from "../../shared/room";
+import { Player } from "../shared/player";
+import type { Room } from "../shared/room";
 import { Settings } from "./settings";
 
 export class Session {
