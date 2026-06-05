@@ -1,14 +1,15 @@
 {
-	"extends": "../tsconfig.json",
-	"compilerOptions": {
-		"outDir": "../dist/server",
-		"rootDir": ".",
-		"module": "ES2022",
-		"moduleResolution": "node",
-		"ignoreDeprecations": "6.0",
-		"lib": ["ES2022"],
-		"composite": true
-	},
-	"references": [{ "path": "../shared" }],
-	"include": ["./**/*.ts"]
+    "extends": "../tsconfig.base.json",
+    "compilerOptions": {
+        "composite": true,
+        "outDir": "../dist/server",
+        "rootDir": "./src",
+        "tsBuildInfoFile": "../dist/server/.tsbuildinfo",
+        "baseUrl": ".",
+        "paths": {
+            "@shared/*": ["../shared/src/*"]
+        }
+    },
+    "include": ["src"],
+    "references": [{ "path": "../shared" }]
 }

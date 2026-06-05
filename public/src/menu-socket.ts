@@ -1,5 +1,5 @@
-import { Player } from "../shared/player";
-import type { RoomListing } from "../shared/room";
+import { Player } from "@shared/player";
+import type { RoomListing } from "@shared/room";
 import { showError, updateLobbiesList } from "./menu-ui";
 import { sn } from "./session";
 

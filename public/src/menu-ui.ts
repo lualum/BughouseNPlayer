@@ -1,4 +1,4 @@
-import type { RoomListing } from "../shared/room";
+import type { RoomListing } from "@shared/room";
 import { stopPingUpdates } from "./game-ui";
 import { stopTimeUpdates } from "./match-ui";
 import { sn } from "./session";

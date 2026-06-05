@@ -1,5 +1,5 @@
-import { type Color, type Move } from "../shared/chess";
-import { Player, type PlayerStatus } from "../shared/player";
+import { type Color, type Move } from "@shared/chess";
+import { Player, type PlayerStatus } from "@shared/player";
 import {
     Game,
     Room,
@@ -7,7 +7,7 @@ import {
     type SerializedGame,
     type SerializedRoom,
     type Team,
-} from "../shared/room";
+} from "@shared/room";
 import {
     endGameUI,
     playAudio,

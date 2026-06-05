@@ -1,7 +1,7 @@
 import type { Socket } from "socket.io-client";
 import { io } from "socket.io-client";
-import { Player } from "../shared/player";
-import type { Room } from "../shared/room";
+import { Player } from "@shared/player";
+import type { Room } from "@shared/room";
 import { Settings } from "./settings";
 
 export class Session {
@@ -14,13 +14,13 @@ export class Session {
     constructor(id?: string, auth?: string) {
         this.socket =
             id && auth
-                ? io({
+                ? io("http://localhost:8000", {
                       auth: {
                           playerID: id,
                           token: auth,
                       },
                   })
-                : io();
+                : io("http://localhost:8000");
 
         this.room = undefined;
         this.player = id ? new Player(id) : undefined;

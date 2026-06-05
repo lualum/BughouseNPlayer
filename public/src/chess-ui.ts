@@ -1,4 +1,4 @@
-import type { MoveType } from "../shared/chess";
+import type { MoveType } from "@shared/chess";
 import {
     type BoardPosition,
     type Chess,
@@ -9,8 +9,8 @@ import {
     PieceType,
     type Position,
     positionsEqual,
-} from "../shared/chess";
-import { RoomStatus } from "../shared/room";
+} from "@shared/chess";
+import { RoomStatus } from "@shared/room";
 import { playAudio } from "./game-ui";
 import { visualFlipped } from "./match-ui";
 import { gs } from "./session";
